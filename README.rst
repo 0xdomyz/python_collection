@@ -1,4 +1,4 @@
-collection_template
-===================
+Collection of sklearn scripts
+=============================
 
-template for collection repos
+WIP
