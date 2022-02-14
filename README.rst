@@ -1,4 +1,4 @@
-Collection of sklearn scripts
+Collection of python scripts
 =============================
 
 WIP
