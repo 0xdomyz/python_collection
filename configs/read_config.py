@@ -1,6 +1,8 @@
 from configparser import ConfigParser
 
-cfg = _ConfigParser()
+pth = ''
+
+cfg = ConfigParser()
 cfg.read(pth)
 cfg.get('url',nme)
 
