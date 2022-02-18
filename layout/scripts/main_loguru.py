@@ -1,15 +1,36 @@
-"""Analyse random data and make summary"""
+"""
+Analysis random data and make summary.
 
+Generate random data, make basic summary,
+output into csv.
+
+Arguments
+---------
+seed : int
+    Seed for random generation.
+n : int
+    Number of rows in data.
+
+Effect
+------
+Write result csv into the output folder.
+
+Examples
+--------
+:
+    cd /d python_collection\layout\scripts
+    python main.py 0 100
+"""
 import pandas as pd
 import numpy as np
 import random
 from loguru import logger
 from pathlib import Path
+import sys
+
+_module_path, _file_name = Path(__file__).parent, Path(__file__).stem
 
 def main(seed,n):
-    logger.info(__doc__)
-    logger.info(f"{seed = }")
-    logger.info(f"{n = }")
     random.seed(seed)
     df = pd.DataFrame(
         dict(
@@ -18,44 +39,18 @@ def main(seed,n):
         )
     )
     res = df.groupby('cat').agg(score=('score',np.mean)).reset_index()
-    logger.info(f"\n{res.to_string()}")
-    path = "res.csv"
-    logger.info(f"save to {path}")
-    res.to_csv(path)
+
+    _result_path = _module_path / 'output' / f"{_file_name}_result.csv"
+    res.to_csv(_result_path)
+    logger.info(f"Results saved to {_result_path}")
 
 if __name__ == "__main__":
-    logger.add('log.log')
-    main(0, 100)
-
-"""Analyse random data and make summary"""
-
-import pandas as pd
-import numpy as np
-import random
-from loguru import logger
-from pathlib import Path
-
-_module_path = Path(__file__).parent
-_file_name = Path(__file__).stem
-_result_path = _module_path / f"{_file_name}_result.csv"
-_log_path = _module_path / f"{_file_name}_log.log"
-logger.add(_log_path)
-
-logger.info(__doc__)
-
-seed = 0
-n = 100
-logger.info(f"{seed = }")
-logger.info(f"{n = }")
-
-random.seed(seed)
-df = pd.DataFrame(
-    dict(
-        cat = [random.choice(['a','b','c']) for i in range(n)],
-        score = [random.random() for i in range(n)]
-    )
-)
-res = df.groupby('cat').agg(score=('score',np.mean)).reset_index()
-
-res.to_csv(_result_path)
-logger.info(f"save to {_result_path}")
+    args = sys.argv
+    if len(args) - 1 != 2:
+        print(__doc__)
+        sys.exit(1)
+    else:
+        logger.add(_module_path / "output" / f"{_file_name}_log.log")
+        logger.info(__doc__)
+        _, seed, n = args
+        main(int(seed), int(n))

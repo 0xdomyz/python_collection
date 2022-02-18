@@ -18,21 +18,18 @@ Write result csv into the output folder.
 Examples
 --------
 :
-    cd /d python_collection\layout
-    python analysis\main.py 0 100
+    cd /d python_collection\layout\scripts
+    python main.py 0 100
 """
-
-import sys
-import logging
-from pathlib import Path
 import pandas as pd
 import numpy as np
 import random
+import logging
+from pathlib import Path
+import sys
 
-_logger = logging.getLogger(__name__)
-_module_path = Path(__file__).parent
-_output_path = _module_path / 'output/out.csv'
-_log_path = _module_path / 'log.log'
+_module_path, _file_name = Path(__file__).parent, Path(__file__).stem
+logger = logging.getLogger(__name__)
 
 def main(seed,n):
     random.seed(seed)
@@ -42,8 +39,11 @@ def main(seed,n):
             score = [random.random() for i in range(n)]
         )
     )
-    df.groupby('cat').agg(score=('score',np.mean)).reset_index().to_csv(_output_path)
-    _logger.info("analysis done.")
+    res = df.groupby('cat').agg(score=('score',np.mean)).reset_index()
+
+    _result_path = _module_path / 'output' / f"{_file_name}_result.csv"
+    res.to_csv(_result_path)
+    logger.info(f"Results saved to {_result_path}")
 
 if __name__ == "__main__":
     args = sys.argv
@@ -51,10 +51,13 @@ if __name__ == "__main__":
         print(__doc__)
         sys.exit(1)
     else:
+        _log_path = _module_path / "output" / f"{_file_name}_log.log"
         logging.basicConfig(
             level = logging.INFO,
             format = "%(asctime)s [%(levelname)s] %(message)s",
-            handlers = [logging.StreamHandler(), logging.FileHandler(_log_path,'w+')]
+            handlers = [logging.StreamHandler(), 
+                logging.FileHandler(_log_path, 'w')]
         )
+        logger.info(__doc__)
         _, seed, n = args
         main(int(seed), int(n))

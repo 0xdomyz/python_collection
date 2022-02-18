@@ -2,18 +2,12 @@
 import pandas as pd
 import numpy as np
 import random
-import logging
+from loguru import logger
 from pathlib import Path
 
-#__file__ = r'E:\git_repo\python_collection\layout\interactive\analysis1.py'
+#__file__ = r'E:\git_repo\python_collection\layout\interactive\analysis_loguru.py'
 _module_path, _file_name = Path(__file__).parent, Path(__file__).stem
-logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level = logging.INFO,
-    format = "%(asctime)s [%(levelname)s] %(message)s",
-    handlers = [logging.StreamHandler(), 
-        logging.FileHandler(_module_path / f"{_file_name}_log.log", 'w')]
-)
+logger.add(_module_path / f"{_file_name}_log.log")
 logger.info(__doc__)
 
 seed = 0
