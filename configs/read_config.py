@@ -1,9 +1,9 @@
 from configparser import ConfigParser
 from pathlib import Path
 
-def config_reader(file_path):
+def config_reader(path):
     cfg = ConfigParser()
-    cfg.read(file_path)
+    cfg.read(path)
     return cfg
 
 if __name__ == '__main__':
