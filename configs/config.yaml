@@ -1,0 +1,17 @@
+data:
+  first_stage:
+    table1:
+      name: tab1
+      type: 2
+      sql:
+        select *
+        from tab1
+      items:
+        - 1
+        - rts
+        - 
+        - 5
+    table2:
+      name:
+      type: 3
+      items: [1, 'rts', 5, None, 7]

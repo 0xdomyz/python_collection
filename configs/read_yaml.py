@@ -1,7 +1,7 @@
 import yaml
 from pathlib import Path
 
-path = Path(__file__).parent / 'files/data.yaml'
+path = Path(__file__).parent / 'config.yaml'
 
 def read(path = path):
     with open(path) as f:
