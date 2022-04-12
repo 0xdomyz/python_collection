@@ -1,0 +1,10 @@
+alises:
+    &path1 configs/data.csv 
+    
+data:
+    - apple:
+        loader: yaml
+        path: configs/config.yaml
+    - banana:
+        loader: csv
+        path: *path1
