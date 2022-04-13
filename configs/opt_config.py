@@ -6,6 +6,9 @@ def config_reader(path):
     cfg.read(path)
     return cfg
 
+def _get_list_from_config(section, option):
+    return [i.lstrip() for i in cfg.get(section, option).split(',')]
+
 if __name__ == '__main__':
     pth = Path(__file__).parent / 'config'
     cfg = ConfigParser()
