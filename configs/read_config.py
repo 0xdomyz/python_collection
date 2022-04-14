@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 from pathlib import Path
 
-def config_reader(path):
+def read_config(path):
     cfg = ConfigParser()
     cfg.read(path)
     return cfg
@@ -30,7 +30,7 @@ if __name__ == '__main__':
         cfg.write(f)
     pth2.unlink()
 
-    cfg = config_reader(pth)
+    cfg = read_config(pth)
     {**cfg}
     [*cfg]
 
