@@ -7,6 +7,3 @@ stat.norm.sf()
 np.linalg.matrix_rank()
 np.linalg.inv()
 np.linalg.norm()
-
-
-

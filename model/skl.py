@@ -13,8 +13,3 @@ scaler.transform(x_train)
 scaler.fit_transform(x_train)
 scaler.scale_
 scaler.mean_
-
-
-
-
-

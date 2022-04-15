@@ -21,10 +21,3 @@ nn.BCEWithLogitsLoss()
 nn.Linear()
 nn.Module
 nn.BCELoss()
-
-
-
-
-
-
-

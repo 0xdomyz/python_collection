@@ -13,6 +13,7 @@ def cd(newdir):
     finally:
         os.chdir(prevdir)
 
+
 def make_dirs_if_not_exist(path: Path, number_of_parents: int = 2):
     """
     Examples
@@ -27,16 +28,18 @@ def make_dirs_if_not_exist(path: Path, number_of_parents: int = 2):
     if not path.exists():
         path.mkdir()
 
+
 def run_cmd_on_path(cmd: str, path: Path) -> subprocess.CompletedProcess[str]:
     with cd(path):
         return subprocess.run(cmd, shell=True, check=True)
 
+
 if __name__ == "__main__":
-    root_path = (Path(__file__).parents[2] / 'python_shell_example').resolve()
-    sub_paths = ['f1/sf1', 'f2/sf2']
+    root_path = (Path(__file__).parents[2] / "python_shell_example").resolve()
+    sub_paths = ["f1/sf1", "f2/sf2"]
     paths = [root_path / sub_path for sub_path in sub_paths]
-    repo_name = 'python_collection'
-    repo_address = f'git@github.com:0xdomyz/{repo_name}.git'
+    repo_name = "python_collection"
+    repo_address = f"git@github.com:0xdomyz/{repo_name}.git"
     for path in paths:
         print(f"on path: {path.as_posix()}")
         make_dirs_if_not_exist(path)
@@ -44,4 +47,3 @@ if __name__ == "__main__":
             run_cmd_on_path(f"git clone {repo_address}", path)
         run_cmd_on_path("git pull origin master", path / repo_name)
         run_cmd_on_path("dir", path)
-

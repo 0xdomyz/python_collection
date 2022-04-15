@@ -7,5 +7,6 @@ class PlayingCard:
     rank: str
     suit: str
 
+
 if __name__ == "__main__":
-    card = PlayingCard('ace', 'black')
+    card = PlayingCard("ace", "black")

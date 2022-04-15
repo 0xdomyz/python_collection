@@ -4,7 +4,7 @@ from glob import glob
 import sys
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     f = __file__
 
     p = Path(f).parent
@@ -21,35 +21,35 @@ if __name__ == '__main__':
         if i.is_dir():
             print(i)
 
-    (p / 'files').resolve()
+    (p / "files").resolve()
 
-    (p / 'files').exists()
+    (p / "files").exists()
 
-    (p / 'file').exists()
+    (p / "file").exists()
 
-    with open(p / 'config.yaml') as f:
+    with open(p / "config.yaml") as f:
         print(f)
 
-    for i in p.glob('*.py'):
+    for i in p.glob("*.py"):
         print(i)
 
-    for i in p.glob('*/*.py'):
+    for i in p.glob("*/*.py"):
         print(i)
 
-    for i in p.glob('**/*.yaml'):
+    for i in p.glob("**/*.yaml"):
         print(i)
 
     p.home()
 
-    (p.home() / '.dwopt').resolve()
+    (p.home() / ".dwopt").resolve()
 
-    p.home().joinpath('.dwopt').resolve()
+    p.home().joinpath(".dwopt").resolve()
 
-    [i for i in p.glob('*.yaml')]
+    [i for i in p.glob("*.yaml")]
 
-    [i for i in p.glob('*ta.yaml')]
+    [i for i in p.glob("*ta.yaml")]
 
-    q = p.joinpath('paths.py')
+    q = p.joinpath("paths.py")
     aq = q.resolve().as_posix()
     aq
 
@@ -59,21 +59,22 @@ if __name__ == '__main__':
 
     q.name
 
-    q.with_name('read_env.py')
+    q.with_name("read_env.py")
 
-    os.path.abspath('')
+    os.path.abspath("")
 
-    os.path.abspath('../configs/config.yaml')
+    os.path.abspath("../configs/config.yaml")
 
     os.path.dirname(aq)
 
-    with open(os.path.join(ap,'config.yaml')) as f: print(f)
+    with open(os.path.join(ap, "config.yaml")) as f:
+        print(f)
 
-    glob(ap+'/**/*.yaml')
-    
+    glob(ap + "/**/*.yaml")
+
     sys.path
 
-    sys.path.insert(0,p)
+    sys.path.insert(0, p)
 
-    path = Path(__file__).parent / 'config.yaml'
+    path = Path(__file__).parent / "config.yaml"
     print(path)

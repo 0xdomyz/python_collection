@@ -13,6 +13,3 @@ b.legend()
 b.bar()
 plt.subplots_adjust()
 plt.close()
-
-
-
