@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import os
 from pathlib import Path
 
+
 @contextmanager
 def cd(newdir):
     prevdir = os.getcwd()
@@ -12,22 +13,23 @@ def cd(newdir):
     finally:
         os.chdir(prevdir)
 
-def make_dir_and_2_parents_if_not_exist(path: Path):
-    if not path.parents[1].exists():
-        path.parents[1].mkdir()
-    if not path.parent.exists():
-        path.parent.mkdir()
+def make_dirs_if_not_exist(path: Path, number_of_parents: int = 2):
+    """
+    Examples
+    -----------
+    >>> make_dirs_if_not_exist(Path('.') / 'test' / 'test' / 'test')
+    >>> make_dirs_if_not_exist(Path('.') / 'test' / 'test' / 'test' / 'test')
+    FileNotFoundError: [WinError 3] ...
+    """
+    for i in reversed(range(number_of_parents)):
+        if not path.parents[i].exists():
+            path.parents[i].mkdir()
     if not path.exists():
         path.mkdir()
 
-def clone_repo_if_not_exist_on_path(path: Path, repo_name, repo_address):
-    if not (path / repo_name).exists():
-        with cd(path):
-            subprocess.run(f"git clone {repo_address}", shell=True, check=True)
-
-def run_cmd_on_path(cmd, path):
+def run_cmd_on_path(cmd: str, path: Path) -> subprocess.CompletedProcess[str]:
     with cd(path):
-        subprocess.run(cmd, shell=True, check=True)
+        return subprocess.run(cmd, shell=True, check=True)
 
 if __name__ == "__main__":
     root_path = (Path(__file__).parents[2] / 'python_shell_example').resolve()
@@ -36,8 +38,10 @@ if __name__ == "__main__":
     repo_name = 'python_collection'
     repo_address = f'git@github.com:0xdomyz/{repo_name}.git'
     for path in paths:
-        make_dir_and_2_parents_if_not_exist(path)
-        clone_repo_if_not_exist_on_path(path, repo_name, repo_address)
+        print(f"on path: {path.as_posix()}")
+        make_dirs_if_not_exist(path)
+        if not (path / repo_name).exists():
+            run_cmd_on_path(f"git clone {repo_address}", path)
         run_cmd_on_path("git pull origin master", path / repo_name)
         run_cmd_on_path("dir", path)
 
