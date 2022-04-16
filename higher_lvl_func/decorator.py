@@ -1,10 +1,26 @@
 import time
 import functools
-import math
 
 
 def hello(func):
-    """make a func that print hello then execute a func"""
+    """make a func that print hello then execute a func
+
+    Examples
+    -------------
+    >>> def name():
+    ...     print("Alice")
+    ...
+    >>> hello(name)()
+    Hello
+    Alice
+    >>> @hello
+    ... def name2():
+    ...     print("Alice")
+    ...
+    >>> name2()
+    Hello
+    Alice
+    """
 
     def inner():
         print("Hello")
@@ -14,6 +30,18 @@ def hello(func):
 
 
 def measure_time(func):
+    """
+    Exampls
+    -----------
+    >>> def myFunction(n):
+    ...     time.sleep(n)
+    ...     print("done")
+    ...
+    >>> measure_time(myFunction)(0.5)
+    done
+    Function took 0.5110921859741211 seconds to run
+    """
+
     def wrapper(*arg, **kwargs):
         t = time.time()
         res = func(*arg, **kwargs)
@@ -24,6 +52,14 @@ def measure_time(func):
 
 
 def do_twice(function):
+    """
+    Examples
+    ------------
+    >>> do_twice(lambda x: print(f"do twice {x}"))("input")
+    do twice input
+    do twice input
+    """
+
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
         function(*args, **kwargs)
@@ -33,7 +69,18 @@ def do_twice(function):
 
 
 def timer(func):
-    """Print the runtime of the decorated function"""
+    """Print the runtime of the decorated function
+
+    Examples
+    ------------
+    >>> @timer
+    ... def waste_some_time(num_times):
+    ...     for _ in range(num_times):
+    ...         sum([i**2 for i in range(10000)])
+    ...
+    >>> waste_some_time(2)
+    Finished 'waste_some_time' in 0.0056 secs
+    """
 
     @functools.wraps(func)
     def wrapper_timer(*args, **kwargs):
@@ -48,56 +95,39 @@ def timer(func):
 
 
 def debug(func):
-    """Print the function signature and return value"""
+    """Print the function signature and return value when called
+
+    Examples
+    ---------
+    >>> import math
+    >>> factorial = debug(math.factorial)
+    >>> def approximate_e(terms=18):
+    ...     return sum(1 / factorial(n) for n in range(terms))
+    ...
+    >>> approximate_e(4)
+    Calling factorial(0)
+    -> 1
+    Calling factorial(1)
+    -> 1
+    Calling factorial(2)
+    -> 2
+    Calling factorial(3)
+    -> 6
+    2.6666666666666665
+    """
 
     @functools.wraps(func)
-    def wrapper_debug(*args, **kwargs):
-        args_repr = [repr(a) for a in args]  # 1
-        kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]  # 2
-        signature = ", ".join(args_repr + kwargs_repr)  # 3
+    def new_func(*args, **kwargs):
+        args_repr = [repr(a) for a in args]
+        kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
+        signature = ", ".join(args_repr + kwargs_repr)
         print(f"Calling {func.__name__}({signature})")
         value = func(*args, **kwargs)
-        print(f"-> {value!r}")  # 4
+        print(f"-> {value!r}")
         return value
 
-    return wrapper_debug
-
-
-def name():
-    print("Alice")
-
-
-@hello
-def name2():
-    print("Alice")
-
-
-def myFunction(n):
-    time.sleep(n)
-    print("done")
-
-
-@timer
-def waste_some_time(num_times):
-    for _ in range(num_times):
-        sum([i**2 for i in range(10000)])
-
-
-math.factorial = debug(math.factorial)
-
-
-def approximate_e(terms=18):
-    return sum(1 / math.factorial(n) for n in range(terms))
+    return new_func
 
 
 if __name__ == "__main__":
-    hello(name)()
-    name2()
-
-    measure_time(myFunction)(0.5)
-
-    do_twice(lambda x: print(f"do twice {x}"))("input")
-
-    waste_some_time(2)
-
-    approximate_e(6)
+    pass
