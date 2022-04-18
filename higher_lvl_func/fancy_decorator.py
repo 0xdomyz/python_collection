@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import functools
-
+import datetime
+import pandas as pd
 
 def repeat(num_times):
     """
@@ -162,6 +163,87 @@ def identity(x):
     """
     print(f"{x=}")
     return x
+
+
+def dict_cache():
+    pass
+
+def pickle_cache(path):
+    """
+    Examples
+    -----------
+    from pathlib import Path
+    @cache_srs_to_pickle(_DATA_PATH)
+    def func():
+        time.sleep(2)
+        return pd.DataFrame(dict(a=range(3)))
+    func()
+    func(save_name='test')
+    func(from_save=True, save_name='test')
+    """
+    def decorate(func):
+        @functools.wraps(func)
+        def new_func(*args, from_save=True, save_name=None, **kwargs):
+            file_path = path / f"{save_name}.pkl"
+            if from_save and file_path.exists():
+                result = pd.read_pickle(file_path)
+            else:
+                result = func(*args, **kwargs)
+                if save_name is not None:
+                    result.to_pickle(file_path)
+            return result
+        return new_func
+    return decorate
+
+
+def minutely_cache(func):
+    """
+    Examples
+    -------------
+    >>> def now():
+    ...     print(datetime.datetime.utcnow().replace(second=0,microsecond=0))
+    ...
+    >>> @minutely_cache
+    ... def func(x):
+    ...     print('executed')
+    ...     return x
+    ...
+    >>> now()
+    2022-04-18 14:23:00
+    >>> func(3)
+    executed
+    3
+    >>> func(3)
+    3
+    >>> now()
+    2022-04-18 14:24:00
+    >>> func(3)
+    executed
+    3
+    >>> func.internal.cache_info()
+    CacheInfo(hits=1, misses=2, maxsize=1, currsize=1)
+
+    Prototype::
+
+        @functools.lru_cache(1)
+        def _func(x, hour):
+            print(hour)
+            return x
+        def func(x):
+            hour = datetime.datetime.utcnow().replace(second=0,microsecond=0)#minute=0,
+            return _func(x, hour)
+        func(3)
+        func(3)
+        func(3)
+    """
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        hour = datetime.datetime.utcnow().replace(second=0,microsecond=0)
+        return new_func.internal(*args, _hour=hour, **kwargs)
+    def internal(*args, _hour=None, **kwargs):
+        return func(*args, **kwargs)
+    new_func.internal = functools.lru_cache(1)(internal)
+    return new_func
 
 
 @dataclass
