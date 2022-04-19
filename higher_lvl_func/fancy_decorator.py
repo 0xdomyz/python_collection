@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import functools
 import datetime
 import pandas as pd
@@ -106,6 +105,35 @@ def debug_count_calls(func):
     return new_func
 
 
+def dict_cache(func):
+    """Keep a cache of previous function calls
+    
+    Examples
+    ------------
+    >>> @dict_cache
+    ... def func(x, y):
+    ...     print("executed")
+    ...     return x, y
+    ...
+    >>> func(4, y=5)
+    executed
+    (4, 5)
+    >>> func(4, y=5)
+    (4, 5)
+    >>> func(5, y=5)
+    executed
+    (5, 5)
+    """
+    @functools.wraps(func)
+    def wrapper_cache(*args, **kwargs):
+        cache_key = args + tuple(kwargs.items())
+        if cache_key not in wrapper_cache.cache:
+            wrapper_cache.cache[cache_key] = func(*args, **kwargs)
+        return wrapper_cache.cache[cache_key]
+    wrapper_cache.cache = dict()
+    return wrapper_cache
+
+
 @functools.lru_cache(maxsize=4)
 def fibonacci(num):
     """
@@ -163,10 +191,6 @@ def identity(x):
     """
     print(f"{x=}")
     return x
-
-
-def dict_cache():
-    pass
 
 def pickle_cache(path):
     """
@@ -245,17 +269,6 @@ def minutely_cache(func):
     new_func.internal = functools.lru_cache(1)(internal)
     return new_func
 
-
-@dataclass
-class PlayingCard:
-    """
-    Examples
-    -----------
-    card = PlayingCard("ace", "black")
-    """
-
-    rank: str
-    suit: str
 
 
 if __name__ == "__main__":
