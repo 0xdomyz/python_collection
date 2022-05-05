@@ -14,6 +14,11 @@ def cd(newdir):
         os.chdir(prevdir)
 
 
+def run_cmd_on_path(cmd: str, path: Path) -> subprocess.CompletedProcess[str]:
+    with cd(path):
+        return subprocess.run(cmd, shell=True, check=True)
+
+
 def make_dirs_if_not_exist(path: Path, number_of_parents: int = 2):
     """
     Examples
@@ -27,11 +32,6 @@ def make_dirs_if_not_exist(path: Path, number_of_parents: int = 2):
             path.parents[i].mkdir()
     if not path.exists():
         path.mkdir()
-
-
-def run_cmd_on_path(cmd: str, path: Path) -> subprocess.CompletedProcess[str]:
-    with cd(path):
-        return subprocess.run(cmd, shell=True, check=True)
 
 
 if __name__ == "__main__":
