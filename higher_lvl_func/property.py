@@ -1,16 +1,3 @@
-from dataclasses import dataclass
-
-@dataclass
-class PlayingCard:
-    """
-    Examples
-    -----------
-    card = PlayingCard("ace", "black")
-    """
-
-    rank: str
-    suit: str
-
 class C:
     """
     Examples
@@ -76,52 +63,6 @@ class D:
     def x(self):
         del self._x
         return "deleted"
-
-class E:
-    """
-    Examples
-    -----------
-    >>> e = E()
-    >>> E.print()     
-    dont need instance
-    >>> e.print()     
-    dont need instance
-    """
-    def __init__(self):
-        self._x = None
-
-    @classmethod
-    def print(cls):
-        print("dont need instance")
-
-def print1():
-    print(1)
-
-class F:
-    """
-    Examples
-    -------------
-    >>> f = F()
-    >>> f.print0("f")
-    f
-    >>> F.print0("F")
-    F
-    >>> f.do_print()
-    0
-    >>> f.print1()
-    1
-    """
-    def __init__(self):
-        self._x = None
-
-    @staticmethod
-    def print0(x):
-        print(x)
-
-    print1 = staticmethod(print1)
-
-    def do_print(self):
-        self.print0(0)
 
 
 if __name__ == "__main__":
