@@ -1,3 +1,6 @@
+"""
+`link <https://martinheinz.dev/blog/50>`_
+"""
 from functools import singledispatch
 
 @singledispatch
