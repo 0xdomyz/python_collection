@@ -2,6 +2,20 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+#global defn
+dates = pd.date_range("20130101", periods=6)
+df = pd.DataFrame(np.random.randn(6, 4), index=dates, columns=list("ABCD"))
+df2 = pd.DataFrame(
+    {
+        "A": 1.0,
+        "B": pd.Timestamp("20130102"),
+        "C": pd.Series(1, index=list(range(4)), dtype="float32"),
+        "D": np.array([3] * 4, dtype="int32"),
+        "E": pd.Categorical(["test", "train", "test", "train"]),
+        "F": "foo",
+    }
+)
+
 #series
 s = pd.Series([1, 3, 5, np.nan, 6, 8])
 
@@ -10,7 +24,9 @@ dates = pd.date_range("20130101", periods=6)
 dates
 
 #df
-np.random.randn(2, 2)
+np.random.randn(2)
+np.random.randn(2, 3)
+np.random.randn(2, 3, 4)
 list("sadf")
 df = pd.DataFrame(np.random.randn(6, 4), index=dates, columns=list("ABCD"))
 df
@@ -70,14 +86,21 @@ pd.isna(df1)
 #operations
 df.mean()
 
-s = pd.Series([1, 3, 5, np.nan, 6, 8], index=dates)
+s = pd.Series([1, 2, 3, np.nan, 5, 6], index=dates)
 s
-s.shift(2)
+s.shift(2)#shift down in dataframe order
 s.sort_index(ascending=False)
 s.sort_index(ascending=False).shift(2)
 
 s = pd.Series([1, 3, 5, np.nan, 6, 8], index=dates).shift(2)
 df.sub(s, axis="index")
+df.add(df)
+df.sub(df)
+df.mul(df)
+df.div(df)
+df.mod(df)
+df.pow(df)
+
 df.apply(np.cumsum)
 df.apply(lambda x: x.max() - x.min())
 
@@ -124,6 +147,7 @@ df2
 
 stacked = df2.stack()
 stacked
+stacked.index
 
 stacked.unstack()
 stacked.unstack(0)
@@ -142,8 +166,11 @@ df
 pd.pivot_table(df, values="D", index=["A", "B"], columns=["C"])
 
 #time series
+np.random.randint(1, 10)
+np.random.randint(1, 10, 5)
 rng = pd.date_range("1/1/2012", periods=100, freq="S")
 ts = pd.Series(np.random.randint(0, 500, len(rng)), index=rng)
+ts.resample("1Min").sum()
 ts.resample("5Min").sum()
 
 rng = pd.date_range("3/6/2012 00:00", periods=5, freq="D")
@@ -162,6 +189,7 @@ ps = ts.to_period()
 ps
 ps.to_timestamp()
 
+pd.period_range("1990Q1", "2000Q4", freq="Q-DEC")
 prng = pd.period_range("1990Q1", "2000Q4", freq="Q-NOV")
 ts = pd.Series(np.random.randn(len(prng)), prng)
 ts.index = (prng.asfreq("M", "e") + 1).asfreq("H", "s") + 9
@@ -173,7 +201,7 @@ df = pd.DataFrame(
 )
 df["grade"] = df["raw_grade"].astype("category")
 df["grade"]
-df["grade"].cat.categories = ["very good", "good", "very bad"]
+df["grade"].cat.categories = ["good", "very good", "very bad"]
 df["grade"] = df["grade"].cat.set_categories(
     ["very bad", "bad", "medium", "good", "very good"]
 )
@@ -195,6 +223,8 @@ df = df.cumsum()
 plt.figure()
 df.plot()
 plt.legend(loc='best')
+plt.show()
+plt.close("all")
 
 #i/o
 df.to_csv("foo.csv")
