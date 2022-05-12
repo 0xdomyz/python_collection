@@ -1,6 +1,4 @@
 import functools
-import datetime
-import pandas as pd
 
 def repeat(num_times):
     """
@@ -192,6 +190,8 @@ def identity(x):
     print(f"{x=}")
     return x
 
+import pandas as pd
+
 def pickle_cache(path):
     """
     Examples
@@ -219,6 +219,7 @@ def pickle_cache(path):
         return new_func
     return decorate
 
+import datetime
 
 def minutely_cache(func):
     """
@@ -269,6 +270,33 @@ def minutely_cache(func):
     new_func.internal = functools.lru_cache(1)(internal)
     return new_func
 
+
+import time
+
+def loop_print(seconds: int):
+    """
+    Examples
+    -----------------
+    ::
+        
+        @loop_print(1)
+        def func(a, b):
+            return 3
+        func(1, b=2)
+    """
+    def decorate(func):
+        @functools.wraps(func)
+        def new_func(*args, **kwargs):
+            while True:
+                res = func(*args, **kwargs)
+                args_repr = [repr(a) for a in args]
+                kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
+                signature = ", ".join(args_repr + kwargs_repr)
+                print(f"{func.__name__}({signature}): {res}")
+                for _ in range(seconds*5):
+                    time.sleep(0.2)
+        return new_func
+    return decorate
 
 
 if __name__ == "__main__":
