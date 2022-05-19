@@ -40,7 +40,13 @@ sns.relplot(
 #line
 dots = sns.load_dataset("dots")
 dots.head()
-dots.describe()
+dots.describe(include="all")
+
+sns.relplot(data=dots, x="time", y="firing_rate", kind="line",
+           col="align", hue="choice", style="choice")
+
+sns.relplot(data=dots, x="time", y="firing_rate", kind="line",
+           col="align", size="choice")
 
 sns.relplot(
     data=dots, kind="line",
@@ -48,6 +54,12 @@ sns.relplot(
     hue="choice", style="choice",
     facet_kws=dict(sharex=False),
 )
+
+sns.relplot(data=dots, x="time", y="firing_rate", kind="line",
+           col="align", hue="coherence", style="coherence")
+
+sns.relplot(data=dots, x="time", y="firing_rate", kind="line",
+           col="align", size="coherence")
 
 sns.relplot(
     data=dots, kind="line",
@@ -60,6 +72,7 @@ sns.relplot(
 #stat error bar
 fmri = sns.load_dataset("fmri")
 fmri.head()
+fmri.describe(include="all")
 
 sns.relplot(
     data=fmri, kind="line",
@@ -78,6 +91,9 @@ sns.lmplot(data=tips, x="total_bill", y="tip", col="time", hue="smoker")
 
 
 #distribution
+tips.head()
+tips.describe(include="all")
+
 sns.displot(data=tips, x="total_bill", col="time", kde=True)
 
 sns.displot(data=tips, kind="ecdf", x="total_bill", col="time", hue="smoker", rug=True)
@@ -88,6 +104,8 @@ sns.catplot(data=tips, kind="swarm", x="day", y="total_bill", hue="smoker")
 sns.catplot(data=tips, kind="violin", x="day", y="total_bill", hue="smoker", split=True)
 
 sns.catplot(data=tips, kind="bar", x="day", y="total_bill", hue="smoker")
+
+sns.catplot(data=tips, kind="bar", x="day", y="total_bill", hue="smoker", col="sex")
 
 sns.catplot(data=tips, kind="bar", x="day", y="total_bill")
 
