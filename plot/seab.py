@@ -42,6 +42,10 @@ dots = sns.load_dataset("dots")
 dots.head()
 dots.describe(include="all")
 
+sns.relplot(data=dots, x="time", y="firing_rate")
+
+sns.relplot(data=dots, x="time", y="firing_rate", kind="line")
+
 sns.relplot(data=dots, x="time", y="firing_rate", kind="line",
            col="align", hue="choice", style="choice")
 
@@ -73,6 +77,12 @@ sns.relplot(
 fmri = sns.load_dataset("fmri")
 fmri.head()
 fmri.describe(include="all")
+
+sns.relplot(
+    data=fmri,
+    x="timepoint", y="signal", col="region",
+    hue="subject", style="event",
+)
 
 sns.relplot(
     data=fmri, kind="line",
@@ -112,9 +122,18 @@ sns.catplot(data=tips, kind="bar", x="day", y="total_bill")
 #composite views
 penguins = sns.load_dataset("penguins")
 penguins.head()
+penguins.describe(include="all")
+penguins.select_dtypes(include="number")
+
+for col in penguins.columns:
+    sns.displot(data=penguins,x=col)
+
+sns.pairplot(data=penguins)
+for col in penguins.select_dtypes(include="object"):
+    sns.pairplot(data=penguins, hue=col)
+
 sns.jointplot(data=penguins, x="flipper_length_mm", y="bill_length_mm", hue="species")
 
-sns.pairplot(data=penguins, hue="species")
 
 #complex
 g = sns.PairGrid(penguins, hue="species", corner=True)
@@ -123,6 +142,7 @@ g.map_lower(sns.scatterplot, marker="+")
 g.map_diag(sns.histplot, element="step", linewidth=0, kde=True)
 g.add_legend(frameon=True)
 g.legend.set_bbox_to_anchor((.61, .6))
+
 
 #default vs custom
 sns.relplot(
