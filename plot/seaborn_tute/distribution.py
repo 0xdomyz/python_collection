@@ -4,37 +4,38 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 penguins = sns.load_dataset("penguins")
+
+#hist
 sns.displot(penguins, x="flipper_length_mm")
-
 sns.displot(penguins, x="flipper_length_mm", binwidth=3)
-
 sns.displot(penguins, x="flipper_length_mm", bins=20)
 
 tips = sns.load_dataset("tips")
+
+#number cat
 sns.displot(tips, x="size")
-
 sns.displot(tips, x="size", bins=[1, 2, 3, 4, 5, 6, 7])
-
 sns.displot(tips, x="size", discrete=True)
 
+#cat
+sns.displot(tips, x="day")
 sns.displot(tips, x="day", shrink=.8)
 
+#hue
 sns.displot(penguins, x="flipper_length_mm", hue="species")
-
 sns.displot(penguins, x="flipper_length_mm", hue="species", element="step")
-
 sns.displot(penguins, x="flipper_length_mm", hue="species", multiple="stack")
-
 sns.displot(penguins, x="flipper_length_mm", hue="sex", multiple="dodge")
 
+#col
 sns.displot(penguins, x="flipper_length_mm", col="sex")
 
+#stat
 sns.displot(penguins, x="flipper_length_mm", hue="species", stat="density")
-
 sns.displot(penguins, x="flipper_length_mm", hue="species", stat="density", common_norm=False)
-
 sns.displot(penguins, x="flipper_length_mm", hue="species", stat="probability")
 
+#kde
 sns.displot(penguins, x="flipper_length_mm", kind="kde")
 
 sns.displot(penguins, x="flipper_length_mm", kind="kde", bw_adjust=.25)
