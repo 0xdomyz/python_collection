@@ -15,6 +15,7 @@ X = (
         inc_d = lambda x:x["Income"].diff(),
         inc_lag_2 = lambda x:x["Income"].shift(2),
         inc_lead_2 = lambda x:x["Income"].shift(-2),
+        inc_chg = lambda x:x["Income"].pct_change(),
     )
     .dropna()
 )
