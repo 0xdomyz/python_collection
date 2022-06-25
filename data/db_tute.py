@@ -33,6 +33,38 @@ d.qry("tracks").top()
 
 
 class Tbl:
+    """
+    Examples
+    ---------
+    Have with clauses::
+
+        with part1 as (
+            select
+                a.id,
+                sum(b.col) col
+            from tbl1 a
+            join tbl2 b
+            on a.id = b.id
+            group by a.id
+        )
+        select
+            x.id,
+            y.col
+        from tbl1 x
+        join part1 y
+        on x.id = y.id
+
+    Not have with clauses::
+
+        select
+            x.id,
+            z.col
+        from tbl1 x
+        join part1 y
+        on x.id = y.id
+        join part2 z
+        on y.id2 = z.id
+    """
 
     def __init__(self, base=None):
         self._base = base
@@ -40,6 +72,7 @@ class Tbl:
         self._cols = list()
         self._joins = list()
         self._withs = list()
+        self._aliases = list()
         self._sql = ""
 
     def _make_sql(self):
@@ -53,16 +86,20 @@ class Tbl:
         base_sql = ""
         join_sql = ""
 
+    def run():
+        # 1 make uuid temp
+        #   check
+        #   delete original
+        #   make original again
+        # 2 make new one with specified name
+        pass
 
-    def add_invoice_info(self, columns="n_items"):
-        return self
+    def add_info(self, keys: list(str), cols, nme_maps: dict(str,str)):
+        # 1 sql, fields, joins
+        # 2 sql, fields, joins, withs
+        pass
 
-    def add_customer_info(self, columns="name"):
-        return self
 
-(
-    Tbl("invoices")
-    .add_customer_info()
-    .add_invoice_info()
-)
+Tbl("invoices").add_info()
+
 
