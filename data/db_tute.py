@@ -1,69 +1,6 @@
-"""
-https://www.sqlitetutorial.net/wp-content/uploads/2018/03/chinook.zip
-"""
-
-from dwopt import db
-
-d = db("sqlite:///data/chinook.db")
-
-
-d.list_tables()
-
-
-d.qry("albums").top()
-
-col1 = "AlbumId"
-col2 = "ArtistId"
-group_by = (
-    f"select {col1}, count(distinct {col2}) distinct_{col2} from albums group by {col1}"
-)
-d.qry(f"({group_by})").valc(f"distinct_{col2}")
-
-d.qry("artists").top()
-d.qry("customers").top()
-d.qry("employees").top()
-d.qry("genres").top()
-d.qry("invoices").top()
-d.qry("invoice_items").top()
-d.qry("media_types").top()
-d.qry("playlists").top()
-d.qry("playlist_track").top()
-d.qry("tracks").top()
-
-
 
 class Tbl:
     """
-    Examples
-    ---------
-    Have with clauses::
-
-        with part1 as (
-            select
-                a.id,
-                sum(b.col) col
-            from tbl1 a
-            join tbl2 b
-            on a.id = b.id
-            group by a.id
-        )
-        select
-            x.id,
-            y.col
-        from tbl1 x
-        join part1 y
-        on x.id = y.id
-
-    Not have with clauses::
-
-        select
-            x.id,
-            z.col
-        from tbl1 x
-        join part1 y
-        on x.id = y.id
-        join part2 z
-        on y.id2 = z.id
     """
 
     def __init__(self, base=None):
@@ -100,6 +37,65 @@ class Tbl:
         pass
 
 
-Tbl("invoices").add_info()
+if __name__ == "__main__":
+
+    run_exploration = False
+
+    if run_exploration:
+        from dwopt import db
+        #data from `here <https://www.sqlitetutorial.net/wp-content/uploads/2018/03/chinook.zip>`_
+        d = db("sqlite:///data/chinook.db")
+        d.list_tables()
+        d.qry("albums").top()
+
+        col1 = "AlbumId"
+        col2 = "ArtistId"
+        group_by = (
+            f"select {col1}, count(distinct {col2}) distinct_{col2} from albums group by {col1}"
+        )
+        d.qry(f"({group_by})").valc(f"distinct_{col2}")
+
+        d.qry("artists").top()
+        d.qry("customers").top()
+        d.qry("employees").top()
+        d.qry("genres").top()
+        d.qry("invoices").top()
+        d.qry("invoice_items").top()
+        d.qry("media_types").top()
+        d.qry("playlists").top()
+        d.qry("playlist_track").top()
+        d.qry("tracks").top()
+    else:
+        t = Tbl("invoices")
+        t.add_info()
+        print(t.sql)
+        # select
+        #     x.id,
+        #     z.col
+        # from tbl1 x
+        # join part1 y
+        # on x.id = y.id
+        # join part2 z
+        # on y.id2 = z.id
+
+        t.add_with_info()
+        print(t.sql)
+        # with part1 as (
+        #     select
+        #         a.id,
+        #         sum(b.col) col
+        #     from tbl1 a
+        #     join tbl2 b
+        #     on a.id = b.id
+        #     group by a.id
+        # )
+        # select
+        #     x.id,
+        #     y.col
+        # from tbl1 x
+        # join part1 y
+        # on x.id = y.id
+
+
 
 
