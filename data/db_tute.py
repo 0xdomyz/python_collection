@@ -3,7 +3,7 @@ class Tbl:
     """
     """
 
-    def __init__(self, base=None):
+    def __init__(self, base: str):
         self._base = base
         self._nmes = list()
         self._cols = list()
@@ -23,6 +23,11 @@ class Tbl:
         base_sql = ""
         join_sql = ""
 
+    def add_info(self, keys: list(str), cols, nme_maps: dict(str,str)):
+        # 1 sql, fields, joins
+        # 2 sql, fields, joins, withs
+        pass
+
     def run():
         # 1 make uuid temp
         #   check
@@ -31,10 +36,6 @@ class Tbl:
         # 2 make new one with specified name
         pass
 
-    def add_info(self, keys: list(str), cols, nme_maps: dict(str,str)):
-        # 1 sql, fields, joins
-        # 2 sql, fields, joins, withs
-        pass
 
 
 if __name__ == "__main__":
@@ -44,6 +45,7 @@ if __name__ == "__main__":
     if run_exploration:
         from dwopt import db
         #data from `here <https://www.sqlitetutorial.net/wp-content/uploads/2018/03/chinook.zip>`_
+        #diagram `<https://www.sqlitetutorial.net/sqlite-sample-database/>`_
         d = db("sqlite:///data/chinook.db")
         d.list_tables()
         d.qry("albums").top()
@@ -69,14 +71,19 @@ if __name__ == "__main__":
         t = Tbl("invoices")
         t.add_info()
         print(t.sql)
-        # select
-        #     x.id,
-        #     z.col
-        # from tbl1 x
-        # join part1 y
-        # on x.id = y.id
-        # join part2 z
-        # on y.id2 = z.id
+        sql = """
+select
+    x.trackid,
+    x.albumid,
+    x.genreid,
+    y.title album_title,
+    z.name genre_name
+from tracks x
+left join albums y
+on x.albumid = y.albumid
+left join genres z
+on y.genreid = z.genreid
+        """
 
         t.add_with_info()
         print(t.sql)
