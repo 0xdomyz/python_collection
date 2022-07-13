@@ -259,5 +259,16 @@ df.dtypes
 df2 = df.fillna(np.nan)
 df2.dtypes
 
+#change types 
+df = pd.DataFrame({
+    "a":[0,0,0,1,1,1,None,None,None],
+    "b":[0,2,None,0,2,None,0,2,None],
+})
+df.dtypes
+df["a"]
+df2 = df.astype("str");df2;df2.dtypes
+df2 = df2.astype("float64");df2;df2.dtypes
+df2 = df2.astype("int32");df2;df2.dtypes#error since na inf cant be integer
+
 
 
