@@ -37,6 +37,39 @@ class Tbl:
         pass
 
 
+eg_simple = """
+select
+    x.trackid,
+    x.albumid,
+    x.genreid,
+    y.title album_title,
+    z.name genre_name
+from tracks x
+left join albums y
+on x.albumid = y.albumid
+left join genres z
+on x.genreid = z.genreid
+"""
+
+
+eg_with = """
+with part1 as (
+    select
+        a.albumid,
+        count(distinct b.trackid) n_tracks
+    from albums a
+    join tracks b
+    on a.albumid = b.albumid
+    group by a.albumid
+)
+select
+    x.albumid,
+    y.n_tracks
+from albums x
+join part1 y
+on x.albumid = y.albumid
+"""
+
 
 if __name__ == "__main__":
 
@@ -52,11 +85,14 @@ if __name__ == "__main__":
 
         col1 = "AlbumId"
         col2 = "ArtistId"
+        # col1 = "ArtistId"
+        # col2 = "AlbumId"
         group_by = (
             f"select {col1}, count(distinct {col2}) distinct_{col2} from albums group by {col1}"
         )
         d.qry(f"({group_by})").valc(f"distinct_{col2}")
 
+        d.qry("albums").top()
         d.qry("artists").top()
         d.qry("customers").top()
         d.qry("employees").top()
@@ -67,41 +103,24 @@ if __name__ == "__main__":
         d.qry("playlists").top()
         d.qry("playlist_track").top()
         d.qry("tracks").top()
+
+        q = d.qry(f"({eg_simple})")
+        q.len()
+        q.head()
+        d.qry("tracks").len()
+
+        q = d.qry(f"({eg_with})")
+        q.len()
+        q.head()
+        d.qry("albums").len()
+
+
     else:
         t = Tbl("invoices")
         t.add_info()
         print(t.sql)
-        sql = """
-select
-    x.trackid,
-    x.albumid,
-    x.genreid,
-    y.title album_title,
-    z.name genre_name
-from tracks x
-left join albums y
-on x.albumid = y.albumid
-left join genres z
-on y.genreid = z.genreid
-        """
-
         t.add_with_info()
         print(t.sql)
-        # with part1 as (
-        #     select
-        #         a.id,
-        #         sum(b.col) col
-        #     from tbl1 a
-        #     join tbl2 b
-        #     on a.id = b.id
-        #     group by a.id
-        # )
-        # select
-        #     x.id,
-        #     y.col
-        # from tbl1 x
-        # join part1 y
-        # on x.id = y.id
 
 
 
