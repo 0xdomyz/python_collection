@@ -234,3 +234,30 @@ pd.read_hdf("foo.h5", "df")
 df.to_excel("foo.xlsx", sheet_name="Sheet1")
 pd.read_excel("foo.xlsx", "Sheet1", index_col=None, na_values=["NA"])
 
+
+#divide by zero or none
+df = pd.DataFrame({
+    "a":[0,0,0,1,1,1,None,None,None],
+    "b":[0,2,None,0,2,None,0,2,None],
+})
+df.dtypes
+df["a"] / df["b"]
+
+df = pd.DataFrame({
+    "a":np.array([3] * 3, dtype="int32"),
+    "b":np.array([4] * 3, dtype="int32"),
+})
+df.iloc[0,0]=None
+df.iloc[0,1]=0
+df.iloc[1,1]=0
+df.dtypes
+df["a"] / df["b"]
+
+df["c"]=['a','b','c']
+df.iloc[0,2]=None
+df.dtypes
+df2 = df.fillna(np.nan)
+df2.dtypes
+
+
+
