@@ -1,10 +1,18 @@
 
 class Tbl:
     """
+
+    select
+        {base fields}
+        {fields 1}
+        {fields 2}
+    from {base} x
+    {join_clause 1}
+    {join_clause 2}
     """
 
     def __init__(self, base: str):
-        self._base = base
+        self._base = base#future: allow a base query
         self._nmes = list()
         self._cols = list()
         self._joins = list()
