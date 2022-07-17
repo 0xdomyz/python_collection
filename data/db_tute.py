@@ -1,19 +1,9 @@
 
 class Tbl:
-    """
-
-    select
-        {base fields}
-        {fields 1}
-        {fields 2}
-    from {base} x
-    {join_clause 1}
-    {join_clause 2}
-    """
 
     def __init__(self, base: str):
         self._base = base#future: allow a base query
-        self._nmes = list()
+        self._join_clause = list()
         self._cols = list()
         self._joins = list()
         self._withs = list()
@@ -77,6 +67,37 @@ from albums x
 join part1 y
 on x.albumid = y.albumid
 """
+
+"""
+simple template
+
+select
+    {base fields}
+    {fields 1}
+    {fields 2}
+from {base} {alias base}
+{join_clause 1} {alias 1}
+{join_clause 2} {alias 2}
+"""
+
+{
+    "join_clause": """
+
+left join albums {a}
+on {base}.albumid = {a}.albumid
+
+    """,
+    "alias": "y",
+    "fields": """
+{a}.title album_title
+    """
+}
+
+def bind(sql, data):
+    new_sql = None
+    return new_sql
+
+bind("select {a} from dual", {"a":"x"})
 
 
 if __name__ == "__main__":
