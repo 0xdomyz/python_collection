@@ -1,18 +1,84 @@
-from jinja2 import Environment
+from jinja2 import Environment, FileSystemLoader
 
-env = Environment()
+#based on strings
+def bind(template_str, *args, **kwargs):
+    env = Environment()
+    return env.from_string(template_str).render(*args, **kwargs)
 
-def bind(template_str, data):
-    return env.from_string(template_str).render(data)
+def pbind(template_str, *args, **kwargs):
+    print(bind(template_str, *args, **kwargs))
+
+#based on file sys
+def fbind(template_name, *args, **kwargs):
+    env = Environment(loader=FileSystemLoader("data/jinja2_templates"))
+    return env.get_template(template_name).render(*args, **kwargs)
+
+def pfbind(template_name, *args, **kwargs):
+    print(fbind(template_name, *args, **kwargs))
+
+pfbind("base.html",{})
 
 
-print(bind(
-    "select {{ fields }} from table",
-    {"fields": "a"}
-))
+#variables
+pbind(
+    "select {{ foo.bar }}, {{ foo['bar'] }} from table",
+    foo = dict(bar=1)
+)
+
+#filters
+pbind(
+    """
+select
+    {{ fields | join(', ') | title}}
+from table
+    """,
+    {"fields": ["aa","bb"]}
+)
 
 
-print(bind(
+#tests
+pbind(
+    """
+select
+    a
+from table
+{% if condition is divisibleby 3 %}where a is not null{% endif %}
+    """,
+    {"condition": 6}
+)
+
+#white space
+pbind("""
+<div>
+    {% if True %}
+        yay
+    {% endif %}
+</div>
+""",{"a":1})
+
+pbind("""
+{% for item in seq -%}
+    {{ item }}
+{%- endfor %}
+""", {"seq":[1,2,3]})
+
+#escape
+pbind("""
+{% raw %}
+    {{ item }}
+{% endraw %}
+""", {})
+
+#line state
+
+#template
+
+
+
+
+
+#for loop
+pbind(
     """
 select
     {% for i in fields[:-1] -%}
@@ -22,64 +88,10 @@ select
 from table
     """,
     {"fields": ["a","b", "c"]}
-))
+)
 
 
-print(bind(
-    """
-select
-    {{ fields | join(', ') }}
-from table
-    """,
-    {"fields": ["a","b"]}
-))
 
 
-print(bind(
-    """
-select
-    {% if fields is divisibleby 3 %}
-        {{ fields }}
-    {% endif %}
-from table
-    """,
-    {"fields": 6}
-))
-
-print(bind(
-    """
-select
-    {% if fields is divisibleby 3 -%}
-        {{ fields }}
-    {%- endif %}
-from table
-    """,
-    {"fields": 6}
-))
-
-
-print(bind(
-    "select {{ fields }} from table"
-    ""
-    "",
-    {"fields": "a"}
-))
-
-print(bind(
-    """
-select {{ fields }} from table
-""",
-    {"fields": "a"}
-))
-
-print(bind(
-    """
-
-select {{ fields }} from table
-
-
-""",
-    {"fields": "a"}
-))
 
 
