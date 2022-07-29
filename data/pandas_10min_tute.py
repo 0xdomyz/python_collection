@@ -1,11 +1,16 @@
-#import
+"""
+https://pandas.pydata.org/pandas-docs/stable/user_guide/10min.html
+https://seaborn.pydata.org/tutorial/function_overview.html
+"""
+
+# import
 import numpy as np
 import pandas as pd
 
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-#object creation: series and dataframe
+# object creation: series and dataframe
 
 #   read csv
 titanic = pd.read_csv("toydata/titanic.csv")
@@ -13,19 +18,20 @@ a = pd.read_csv("toydata\\titanic.csv")
 b = pd.read_csv(r"toydata\titanic.csv")
 
 from pathlib import Path
-d = pd.read_csv(Path("").resolve() / "toydata"/ "titanic.csv")
+
+d = pd.read_csv(Path("").resolve() / "toydata" / "titanic.csv")
 
 #   dataframe
 small = pd.DataFrame(
     {
-        "float_list": [1.0, 2.0]*2,
+        "float_list": [1.0, 2.0] * 2,
         "int_array": np.array([3] * 4, dtype="int32"),
         "datetime": pd.Timestamp("20130102"),
         "series": pd.Series(np.random.randn(), index=list(range(4)), dtype="float32"),
         "category": pd.Categorical(["test", "train", "test", "train"]),
-        "string": ["foo","bar",None,np.nan],
+        "string": ["foo", "bar", None, np.nan],
     },
-    index = range(1,5)
+    index=range(1, 5),
 )
 
 #   series
@@ -33,11 +39,11 @@ small["datetime"]
 small.series
 
 pd.Series(range(3))
-pd.Series([1.0,np.nan])
+pd.Series([1.0, np.nan])
 pd.date_range("20131031", periods=5, freq="M")
 
 
-#Viewing data
+# Viewing data
 titanic.head()
 titanic.tail()
 titanic.index
@@ -50,34 +56,31 @@ titanic.sort_index(axis=1)
 titanic.sort_values("age", ascending=False)
 
 
-#Selection
+# Selection
 titanic["class"]
 titanic[0:2]
 titanic.loc[1, "fare"]
-titanic.iloc[0,:]
+titanic.iloc[0, :]
 
 #   boolean indexing
 titanic[titanic["age"] > 70]
 
-titanic.loc[lambda x:x["age"] > 70,:]
+titanic.loc[lambda x: x["age"] > 70, :]
 titanic.loc[
-    lambda x:
-        x["embark_town"].isin(["Queenstown","Southampton"]) &
-        (x["age"] > 70),
-        :
+    lambda x: x["embark_town"].isin(["Queenstown", "Southampton"]) & (x["age"] > 70), :
 ]
 
-#Setting value
+# Setting value
 small
 small["new"] = pd.Series("new", index=range(4))
 
 small.loc[:, "new"] = 100
 small
-small.loc[lambda x:x["series"].isna(), "new2"] = "series is null"
+small.loc[lambda x: x["series"].isna(), "new2"] = "series is null"
 small
 
 
-#Missing data
+# Missing data
 df1 = df.reindex(index=dates[0:4], columns=list(df.columns) + ["E"])
 df1.loc[dates[0] : dates[1], "E"] = 1
 df1
@@ -85,12 +88,12 @@ df1.dropna(how="any")
 df1.fillna(value=5)
 pd.isna(df1)
 
-#operations
+# operations
 df.mean()
 
 s = pd.Series([1, 2, 3, np.nan, 5, 6], index=dates)
 s
-s.shift(2)#shift down in dataframe order
+s.shift(2)  # shift down in dataframe order
 s.sort_index(ascending=False)
 s.sort_index(ascending=False).shift(2)
 
@@ -112,7 +115,7 @@ s.value_counts()
 s = pd.Series(["A", "B", "C", "Aaba", "Baca", np.nan, "CABA", "dog", "cat"])
 s.str.lower()
 
-#merge
+# merge
 df = pd.DataFrame(np.random.randn(10, 4))
 pieces = [df[:3], df[3:7], df[7:]]
 pd.concat(pieces)
@@ -121,7 +124,7 @@ left = pd.DataFrame({"key": ["foo", "bar"], "lval": [1, 2]})
 right = pd.DataFrame({"key": ["foo", "bar"], "rval": [4, 5]})
 pd.merge(left, right, on="key")
 
-#group
+# group
 df = pd.DataFrame(
     {
         "A": ["foo", "bar", "foo", "bar", "foo", "bar", "foo", "foo"],
@@ -133,7 +136,7 @@ df = pd.DataFrame(
 df.groupby("A").sum()
 df.groupby(["A", "B"]).sum()
 
-#reshape
+# reshape
 tuples = list(
     zip(
         *[
@@ -167,7 +170,7 @@ df = pd.DataFrame(
 df
 pd.pivot_table(df, values="D", index=["A", "B"], columns=["C"])
 
-#time series
+# time series
 np.random.randint(1, 10)
 np.random.randint(1, 10, 5)
 rng = pd.date_range("1/1/2012", periods=100, freq="S")
@@ -197,7 +200,7 @@ ts = pd.Series(np.random.randn(len(prng)), prng)
 ts.index = (prng.asfreq("M", "e") + 1).asfreq("H", "s") + 9
 ts.head()
 
-#cate
+# cate
 df = pd.DataFrame(
     {"id": [1, 2, 3, 4, 5, 6], "raw_grade": ["a", "b", "b", "a", "a", "e"]}
 )
@@ -211,7 +214,7 @@ df["grade"]
 df.sort_values(by="grade")
 df.groupby("grade").size()
 
-#plot
+# plot
 plt.close("all")
 ts = pd.Series(np.random.randn(1000), index=pd.date_range("1/1/2000", periods=1000))
 ts = ts.cumsum()
@@ -224,11 +227,11 @@ df = pd.DataFrame(
 df = df.cumsum()
 plt.figure()
 df.plot()
-plt.legend(loc='best')
+plt.legend(loc="best")
 plt.show()
 plt.close("all")
 
-#i/o
+# i/o
 df.to_csv("foo.csv")
 pd.read_csv("foo.csv")
 df.to_hdf("foo.h5", "df")
@@ -237,40 +240,49 @@ df.to_excel("foo.xlsx", sheet_name="Sheet1")
 pd.read_excel("foo.xlsx", "Sheet1", index_col=None, na_values=["NA"])
 
 
-#divide by zero or none
-df = pd.DataFrame({
-    "a":[0,0,0,1,1,1,None,None,None],
-    "b":[0,2,None,0,2,None,0,2,None],
-})
+# divide by zero or none
+df = pd.DataFrame(
+    {
+        "a": [0, 0, 0, 1, 1, 1, None, None, None],
+        "b": [0, 2, None, 0, 2, None, 0, 2, None],
+    }
+)
 df.dtypes
 df["a"] / df["b"]
 
-df = pd.DataFrame({
-    "a":np.array([3] * 3, dtype="int32"),
-    "b":np.array([4] * 3, dtype="int32"),
-})
-df.iloc[0,0]=None
-df.iloc[0,1]=0
-df.iloc[1,1]=0
+df = pd.DataFrame(
+    {
+        "a": np.array([3] * 3, dtype="int32"),
+        "b": np.array([4] * 3, dtype="int32"),
+    }
+)
+df.iloc[0, 0] = None
+df.iloc[0, 1] = 0
+df.iloc[1, 1] = 0
 df.dtypes
 df["a"] / df["b"]
 
-df["c"]=['a','b','c']
-df.iloc[0,2]=None
+df["c"] = ["a", "b", "c"]
+df.iloc[0, 2] = None
 df.dtypes
 df2 = df.fillna(np.nan)
 df2.dtypes
 
-#change types 
-df = pd.DataFrame({
-    "a":[0,0,0,1,1,1,None,None,None],
-    "b":[0,2,None,0,2,None,0,2,None],
-})
+# change types
+df = pd.DataFrame(
+    {
+        "a": [0, 0, 0, 1, 1, 1, None, None, None],
+        "b": [0, 2, None, 0, 2, None, 0, 2, None],
+    }
+)
 df.dtypes
 df["a"]
-df2 = df.astype("str");df2;df2.dtypes
-df2 = df2.astype("float64");df2;df2.dtypes
-df2 = df2.astype("int32");df2;df2.dtypes#error since na inf cant be integer
-
-
-
+df2 = df.astype("str")
+df2
+df2.dtypes
+df2 = df2.astype("float64")
+df2
+df2.dtypes
+df2 = df2.astype("int32")
+df2
+df2.dtypes  # error since na inf cant be integer
