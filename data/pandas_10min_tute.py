@@ -109,6 +109,8 @@ c = titanic["age"]
 c.mean()
 c.max()
 c.median()
+c.nunique()
+c.quantile(0.25)
 c.shift(1)
 c.cumsum()
 
@@ -121,8 +123,11 @@ c.pow(1/2)
 c.apply(lambda x:x+1)
 
 alive = titanic["alive"]
-
 alive.value_counts()
+
+titanic.select_dtypes("number").mean()
+titanic.select_dtypes(object).value_counts()
+
 
 #   string methods
 alive.str.upper()
@@ -135,63 +140,49 @@ alive.str.replace(r"(\w).+", lambda x:x.group(1),)
 
 
 # merge
-df = pd.DataFrame(np.random.randn(10, 4))
-pieces = [df[:3], df[3:7], df[7:]]
-pd.concat(pieces)
+df = titanic["class"].value_counts().reset_index()
+df.columns = ["class","class_count"]
+df
 
-left = pd.DataFrame({"key": ["foo", "bar"], "lval": [1, 2]})
-right = pd.DataFrame({"key": ["foo", "bar"], "rval": [4, 5]})
-pd.merge(left, right, on="key")
+titanic.merge(df, how="left", left_on="class", right_on="class")
+
+cols = ["age", "alive"]
+a = titanic.loc[lambda x:x["age"]>70,cols]
+b = titanic.loc[lambda x:x["age"]<10,cols]
+c = titanic.loc[lambda x:x["age"]<10, "class"]
+
+pd.concat([a,b],ignore_index=True)
+pd.concat([b,c],axis=1)
+
 
 # group
-df = pd.DataFrame(
-    {
-        "A": ["foo", "bar", "foo", "bar", "foo", "bar", "foo", "foo"],
-        "B": ["one", "one", "two", "three", "two", "two", "one", "three"],
-        "C": np.random.randn(8),
-        "D": np.random.randn(8),
-    }
+titanic.groupby("class").mean()
+titanic.groupby(["class","alive"]).mean()
+
+summary = (
+    titanic
+    .groupby(["class","alive"])
+    .agg(
+        age = ("age",np.mean),
+        fare_max = ("fare",lambda x:x.max()+1),
+    )
+    .reset_index()
 )
-df.groupby("A").sum()
-df.groupby(["A", "B"]).sum()
+
 
 # reshape
-tuples = list(
-    zip(
-        *[
-            ["bar", "bar", "baz", "baz", "foo", "foo", "qux", "qux"],
-            ["one", "two", "one", "two", "one", "two", "one", "two"],
-        ]
-    )
-)
-index = pd.MultiIndex.from_tuples(tuples, names=["first", "second"])
-df = pd.DataFrame(np.random.randn(8, 2), index=index, columns=["A", "B"])
-df2 = df[:4]
-df2
+summary.pivot("class","alive",["age","fare_max"])
+#melt?
 
-stacked = df2.stack()
-stacked
-stacked.index
-
-stacked.unstack()
-stacked.unstack(0)
-stacked.unstack(1)
-
-df = pd.DataFrame(
-    {
-        "A": ["one", "one", "two", "three"] * 3,
-        "B": ["A", "B", "C"] * 4,
-        "C": ["foo", "foo", "foo", "bar", "bar", "bar"] * 2,
-        "D": np.random.randn(12),
-        "E": np.random.randn(12),
-    }
-)
-df
-pd.pivot_table(df, values="D", index=["A", "B"], columns=["C"])
 
 # time series
-np.random.randint(1, 10)
-np.random.randint(1, 10, 5)
+taxis = pd.read_csv("toydata/taxis.csv")
+
+pickup = taxis["pickup"]
+
+pd.to_datetime(pickup)
+
+
 rng = pd.date_range("1/1/2012", periods=100, freq="S")
 ts = pd.Series(np.random.randint(0, 500, len(rng)), index=rng)
 ts.resample("1Min").sum()
