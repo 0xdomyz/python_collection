@@ -7,8 +7,6 @@ https://seaborn.pydata.org/tutorial/function_overview.html
 import numpy as np
 import pandas as pd
 
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # object creation: series and dataframe
 
@@ -16,6 +14,12 @@ import matplotlib.pyplot as plt
 titanic = pd.read_csv("toydata/titanic.csv")
 a = pd.read_csv("toydata\\titanic.csv")
 b = pd.read_csv(r"toydata\titanic.csv")
+
+#   write csv
+titanic.to_csv("foo.csv",index=False)
+df = pd.read_csv("foo.csv")
+pd.testing.assert_frame_equal(titanic, df)
+
 
 #   dataframe
 small = pd.DataFrame(
@@ -113,6 +117,7 @@ c.nunique()
 c.quantile(0.25)
 c.shift(1)
 c.cumsum()
+c.astype(str)
 
 c.sub(20)
 c - 20
@@ -166,13 +171,17 @@ summary = (
         age = ("age",np.mean),
         fare_max = ("fare",lambda x:x.max()+1),
     )
-    .reset_index()
 )
+
+summary.reset_index()
 
 
 # reshape
-summary.pivot("class","alive",["age","fare_max"])
-#melt?
+wide = summary.reset_index().pivot("class","alive","age")
+wide
+
+long = wide.reset_index().melt(["class"],["no","yes"])
+long
 
 
 # time series
@@ -180,119 +189,39 @@ taxis = pd.read_csv("toydata/taxis.csv")
 
 pickup = taxis["pickup"]
 
-pd.to_datetime(pickup)
-
-
-rng = pd.date_range("1/1/2012", periods=100, freq="S")
-ts = pd.Series(np.random.randint(0, 500, len(rng)), index=rng)
-ts.resample("1Min").sum()
-ts.resample("5Min").sum()
-
-rng = pd.date_range("3/6/2012 00:00", periods=5, freq="D")
-ts = pd.Series(np.random.randn(len(rng)), rng)
+ts = pd.to_datetime(pickup)
 ts
+pd.to_datetime(pickup, format="%Y-%m-%d %H:%M:%S")
 
-ts_utc = ts.tz_localize("UTC")
-ts_utc
-ts_utc.tz_convert("US/Eastern")
+import datetime
+ts + datetime.timedelta(hours=1)
 
-rng = pd.date_range("1/1/2012", periods=5, freq="M")
-ts = pd.Series(np.random.randn(len(rng)), index=rng)
-ts
+pd.period_range("2020-Q1", "2022-Q4", freq="Q-DEC")
 
-ps = ts.to_period()
-ps
-ps.to_timestamp()
-
-pd.period_range("1990Q1", "2000Q4", freq="Q-DEC")
-prng = pd.period_range("1990Q1", "2000Q4", freq="Q-NOV")
-ts = pd.Series(np.random.randn(len(prng)), prng)
-ts.index = (prng.asfreq("M", "e") + 1).asfreq("H", "s") + 9
-ts.head()
 
 # cate
-df = pd.DataFrame(
-    {"id": [1, 2, 3, 4, 5, 6], "raw_grade": ["a", "b", "b", "a", "a", "e"]}
-)
-df["grade"] = df["raw_grade"].astype("category")
-df["grade"]
-df["grade"].cat.categories = ["good", "very good", "very bad"]
-df["grade"] = df["grade"].cat.set_categories(
-    ["very bad", "bad", "medium", "good", "very good"]
-)
-df["grade"]
-df.sort_values(by="grade")
-df.groupby("grade").size()
+df = titanic.loc[lambda x:(x.age>10) & (x.age<15),["age"]]
+df.value_counts().sort_index()
+
+df["cate"] = df["age"].astype("category").cat.set_categories(np.array(range(1,10))/2+10)
+df["cate"].value_counts().sort_index()
+
 
 # plot
-plt.close("all")
-ts = pd.Series(np.random.randn(1000), index=pd.date_range("1/1/2000", periods=1000))
-ts = ts.cumsum()
-ts.plot()
+import matplotlib.pyplot as plt
+
+titanic.value_counts("class").plot(kind="barh")
 plt.show()
 
-df = pd.DataFrame(
-    np.random.randn(1000, 4), index=ts.index, columns=["A", "B", "C", "D"]
-)
-df = df.cumsum()
-plt.figure()
-df.plot()
-plt.legend(loc="best")
+titanic.plot(kind="scatter",x="age",y="fare")
 plt.show()
-plt.close("all")
 
-# i/o
-df.to_csv("foo.csv")
-pd.read_csv("foo.csv")
-df.to_hdf("foo.h5", "df")
-pd.read_hdf("foo.h5", "df")
-df.to_excel("foo.xlsx", sheet_name="Sheet1")
-pd.read_excel("foo.xlsx", "Sheet1", index_col=None, na_values=["NA"])
-
-
-# divide by zero or none
-df = pd.DataFrame(
-    {
-        "a": [0, 0, 0, 1, 1, 1, None, None, None],
-        "b": [0, 2, None, 0, 2, None, 0, 2, None],
-    }
+(
+    titanic
+    .groupby("age")
+    .agg(fare=("fare",np.mean))
+    .reset_index()
+    .plot(kind="line",x="age",y="fare")
 )
-df.dtypes
-df["a"] / df["b"]
+plt.show()
 
-df = pd.DataFrame(
-    {
-        "a": np.array([3] * 3, dtype="int32"),
-        "b": np.array([4] * 3, dtype="int32"),
-    }
-)
-df.iloc[0, 0] = None
-df.iloc[0, 1] = 0
-df.iloc[1, 1] = 0
-df.dtypes
-df["a"] / df["b"]
-
-df["c"] = ["a", "b", "c"]
-df.iloc[0, 2] = None
-df.dtypes
-df2 = df.fillna(np.nan)
-df2.dtypes
-
-# change types
-df = pd.DataFrame(
-    {
-        "a": [0, 0, 0, 1, 1, 1, None, None, None],
-        "b": [0, 2, None, 0, 2, None, 0, 2, None],
-    }
-)
-df.dtypes
-df["a"]
-df2 = df.astype("str")
-df2
-df2.dtypes
-df2 = df2.astype("float64")
-df2
-df2.dtypes
-df2 = df2.astype("int32")
-df2
-df2.dtypes  # error since na inf cant be integer
