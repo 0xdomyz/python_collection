@@ -17,10 +17,6 @@ titanic = pd.read_csv("toydata/titanic.csv")
 a = pd.read_csv("toydata\\titanic.csv")
 b = pd.read_csv(r"toydata\titanic.csv")
 
-from pathlib import Path
-
-d = pd.read_csv(Path("").resolve() / "toydata" / "titanic.csv")
-
 #   dataframe
 small = pd.DataFrame(
     {
@@ -33,10 +29,11 @@ small = pd.DataFrame(
     },
     index=range(1, 5),
 )
+small
 
 #   series
 small["datetime"]
-small.series
+small.datetime
 
 pd.Series(range(3))
 pd.Series([1.0, np.nan])
@@ -46,11 +43,14 @@ pd.date_range("20131031", periods=5, freq="M")
 # Viewing data
 titanic.head()
 titanic.tail()
+
 titanic.index
 titanic.columns
 titanic.dtypes
+
 titanic.describe()
-titanic.describe(include=np.object)
+titanic.describe(include=object)
+
 titanic.sort_index(ascending=False)
 titanic.sort_index(axis=1)
 titanic.sort_values("age", ascending=False)
@@ -58,9 +58,18 @@ titanic.sort_values("age", ascending=False)
 
 # Selection
 titanic["class"]
+titanic[["class","age"]]
+
 titanic[0:2]
+
 titanic.loc[1, "fare"]
+titanic.loc[0:1, ["fare","age"]]
+titanic.loc[:, "fare"]
+titanic.loc[0:1, :]
+
+titanic.iloc[0:2, 0:2]
 titanic.iloc[0, :]
+
 
 #   boolean indexing
 titanic[titanic["age"] > 70]
@@ -70,50 +79,60 @@ titanic.loc[
     lambda x: x["embark_town"].isin(["Queenstown", "Southampton"]) & (x["age"] > 70), :
 ]
 
+
 # Setting value
-small
 small["new"] = pd.Series("new", index=range(4))
+small
 
 small.loc[:, "new"] = 100
 small
+
 small.loc[lambda x: x["series"].isna(), "new2"] = "series is null"
 small
 
 
 # Missing data
-df1 = df.reindex(index=dates[0:4], columns=list(df.columns) + ["E"])
-df1.loc[dates[0] : dates[1], "E"] = 1
-df1
-df1.dropna(how="any")
-df1.fillna(value=5)
-pd.isna(df1)
+small.dropna()
+
+small["series"].fillna(value=0)
+
+small.isna()
+small["series"].isna()
+
 
 # operations
-df.mean()
+titanic.mean()
+titanic.value_counts("class")
 
-s = pd.Series([1, 2, 3, np.nan, 5, 6], index=dates)
-s
-s.shift(2)  # shift down in dataframe order
-s.sort_index(ascending=False)
-s.sort_index(ascending=False).shift(2)
+c = titanic["age"]
 
-s = pd.Series([1, 3, 5, np.nan, 6, 8], index=dates).shift(2)
-df.sub(s, axis="index")
-df.add(df)
-df.sub(df)
-df.mul(df)
-df.div(df)
-df.mod(df)
-df.pow(df)
+c.mean()
+c.max()
+c.median()
+c.shift(1)
+c.cumsum()
 
-df.apply(np.cumsum)
-df.apply(lambda x: x.max() - x.min())
+c.sub(20)
+c - 20
+c * -1
+c.mod(2)
+c.pow(1/2)
 
-s = pd.Series(np.random.randint(0, 7, size=10))
-s.value_counts()
+c.apply(lambda x:x+1)
 
-s = pd.Series(["A", "B", "C", "Aaba", "Baca", np.nan, "CABA", "dog", "cat"])
-s.str.lower()
+alive = titanic["alive"]
+
+alive.value_counts()
+
+#   string methods
+alive.str.upper()
+alive.str[0:2]
+
+titanic["alive"] + "-" + titanic["age"].astype(str)
+
+alive.str.replace(r"(\w).+", r"\1",).str.capitalize()
+alive.str.replace(r"(\w).+", lambda x:x.group(1),)
+
 
 # merge
 df = pd.DataFrame(np.random.randn(10, 4))
