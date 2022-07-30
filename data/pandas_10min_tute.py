@@ -1,6 +1,5 @@
 """
 https://pandas.pydata.org/pandas-docs/stable/user_guide/10min.html
-https://seaborn.pydata.org/tutorial/function_overview.html
 """
 
 # import
