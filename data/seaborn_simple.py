@@ -13,25 +13,33 @@ list(titanic.select_dtypes(object).columns)
 #['sex', 'embarked', 'class', 'who', 'deck', 'embark_town', 'alive']
 
 
-#relational
+
+#statistical relationship
 
 #    scatter
 
-#    line
+#    line: continuity
 
 
-#distributions
+#variable distribution
 
 #    hist
 
 
-#categorical
+#categorical data
 
 #    box
 
 #    point
 
 #    bar
+
+
+#additional variables to any of the base charts
+#hue
+#style
+#size
+#col
 
 
 #univariate
