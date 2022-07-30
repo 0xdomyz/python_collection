@@ -11,7 +11,7 @@ list(titanic.select_dtypes("number").columns)
 #['survived', 'pclass', 'age', 'sibsp', 'parch', 'fare']
 list(titanic.select_dtypes(object).columns)
 #['sex', 'embarked', 'class', 'who', 'deck', 'embark_town', 'alive']
-head(titanic)
+titanic.head()
 
 
 #statistical relationship
