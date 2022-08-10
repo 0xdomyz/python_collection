@@ -16,8 +16,6 @@ def fbind(template_name, *args, **kwargs):
 def pfbind(template_name, *args, **kwargs):
     print(fbind(template_name, *args, **kwargs))
 
-pfbind("base.html",{})
-
 
 #variables
 pbind(
@@ -97,28 +95,64 @@ from table
     {"fields": ["a","b", "c"]}
 )
 
-<dl>
+pbind("""
+select
 {% for key, value in my_dict | dictsort %}
-    <dt>{{ key|e }}</dt>
-    <dd>{{ value|e }}</dd>
+    {{ key }} as {{ value }},
 {% endfor %}
-</dl>
+from table
+""",
+{"my_dict":{"a":"A","b":"B","c":"C","d":"D"}}
+)
 
-{% for row in rows %}
-    <li class="{{ loop.cycle('odd', 'even') }}">{{ row }}</li>
+pbind("""
+select
+{% for key, value in my_dict | dictsort %}
+    {{ key }} as {{ value }}, {{ loop.cycle('#odd', '#even') }}
 {% endfor %}
+from table
+""",
+{"my_dict":{"a":"A","b":"B","c":"C","d":"D"}}
+)
 
-{% for user in users if not user.hidden %}
-    <li>{{ user.username|e }}</li>
-{% endfor %}
+pbind(
+    """
+select
+    {% for i in fields[:-1] if i not in ["a"] -%}
+        {{ i }},
+    {%- endfor %}
+    {{ fields[-1] }}
+from table
+    """,
+    {"fields": ["a","b", "c"]}
+)
 
-<ul>
-{% for user in users %}
-    <li>{{ user.username|e }}</li>
-{% else %}
-    <li><em>no users found</em></li>
-{% endfor %}
-</ul>
+pbind(
+    """
+select
+    {% for i in fields if False -%}
+        {{ i }},
+    {% else %}
+        default
+    {%- endfor %}
+from table
+    """,
+    {"fields": ["a","b", "c"]}
+)
 
-loop.last
+pbind(
+    """
+select
+    {% for i in fields -%}
+        {% if not loop.last %}
+        {{ i }},
+        {% else %}
+        {{ i }}
+        {% endif %}
+    {%- endfor %}
+from table
+    """,
+    {"fields": ["a","b", "c"]}
+)
+
 
