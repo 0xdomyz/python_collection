@@ -72,9 +72,16 @@ pbind("""
 #line state
 
 #template
+#   super blocks
+pfbind("child.html",{})
+pfbind("child.sql",{"table_name":"table_a"})
 
 
-
+#template objects
+env = Environment(loader=FileSystemLoader("data/jinja2_templates"))
+base = env.get_template("base.sql")
+child2 = env.get_template("child2.sql")
+print(child2.render(base=base))
 
 
 #for loop
@@ -90,8 +97,28 @@ from table
     {"fields": ["a","b", "c"]}
 )
 
+<dl>
+{% for key, value in my_dict | dictsort %}
+    <dt>{{ key|e }}</dt>
+    <dd>{{ value|e }}</dd>
+{% endfor %}
+</dl>
 
+{% for row in rows %}
+    <li class="{{ loop.cycle('odd', 'even') }}">{{ row }}</li>
+{% endfor %}
 
+{% for user in users if not user.hidden %}
+    <li>{{ user.username|e }}</li>
+{% endfor %}
 
+<ul>
+{% for user in users %}
+    <li>{{ user.username|e }}</li>
+{% else %}
+    <li><em>no users found</em></li>
+{% endfor %}
+</ul>
 
+loop.last
 
