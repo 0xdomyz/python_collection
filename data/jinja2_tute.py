@@ -155,4 +155,82 @@ from table
     {"fields": ["a","b", "c"]}
 )
 
+#for
+"""
+{% if users %}
+<ul>
+{% for user in users %}
+    <li>{{ user.username|e }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+"""
+
+"""
+{% if kenny.sick %}
+    Kenny is sick.
+{% elif kenny.dead %}
+    You killed Kenny!  You bastard!!!
+{% else %}
+    Kenny looks okay --- so far
+{% endif %}
+"""
+
+#macro
+"""
+{% macro input(name, value='', type='text', size=20) -%}
+    <input type="{{ type }}" name="{{ name }}" value="{{
+        value|e }}" size="{{ size }}">
+{%- endmacro %}
+"""
+
+"""
+<p>{{ input('username') }}</p>
+<p>{{ input('password', type='password') }}</p>
+"""
+
+#call
+"""
+{% macro render_dialog(title, class='dialog') -%}
+    <div class="{{ class }}">
+        <h2>{{ title }}</h2>
+        <div class="contents">
+            {{ caller() }}
+        </div>
+    </div>
+{%- endmacro %}
+
+{% call render_dialog('Hello World') %}
+    This is a simple dialog rendered by using a macro and
+    a call block.
+{% endcall %}
+"""
+
+"""
+{% macro dump_users(users) -%}
+    <ul>
+    {%- for user in users %}
+        <li><p>{{ user.username|e }}</p>{{ caller(user) }}</li>
+    {%- endfor %}
+    </ul>
+{%- endmacro %}
+
+{% call(user) dump_users(list_of_user) %}
+    <dl>
+        <dt>Realname</dt>
+        <dd>{{ user.realname|e }}</dd>
+        <dt>Description</dt>
+        <dd>{{ user.description }}</dd>
+    </dl>
+{% endcall %}
+"""
+
+#filter
+"""
+{% filter upper %}
+    This text becomes uppercase
+{% endfilter %}
+"""
+
+
 
