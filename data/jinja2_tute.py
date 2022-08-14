@@ -1,3 +1,16 @@
+#simple
+from jinja2 import Environment
+
+sql = """
+select 
+    {{ col }}
+from table
+"""
+
+prepared = Environment().from_string(sql).render({"col":"column"})
+print(prepared)
+
+#comprehensive
 from jinja2 import Environment, FileSystemLoader
 
 #based on strings
