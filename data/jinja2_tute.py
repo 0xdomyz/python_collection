@@ -169,15 +169,19 @@ from table
 )
 
 #for
+pbind(
 """
 {% if users %}
 <ul>
 {% for user in users %}
-    <li>{{ user.username|e }}</li>
+    <li>{{ user }}</li>
 {% endfor %}
 </ul>
 {% endif %}
-"""
+""",
+    {"users": [1,2,3]}
+)
+
 
 """
 {% if kenny.sick %}
