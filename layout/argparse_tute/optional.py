@@ -3,15 +3,20 @@ Examples
 ------------
 ::
 
-    python optional.py      
-
-    python optional.py -v
-    verbosity turned on
+    py layout\argparse_tute\optional.py
+    py layout\argparse_tute\optional.py -v
+    py layout\argparse_tute\optional.py -v -nv aaa
+    py layout\argparse_tute\optional.py -h
 """
-import argparse
-parser = argparse.ArgumentParser()
+from argparse import ArgumentParser
+parser = ArgumentParser()
+
 parser.add_argument("-v", "--verbose", help="increase output verbosity",
                     action="store_true")
-args = parser.parse_args()
-if args.verbose:
-    print("verbosity turned on")
+parser.add_argument("-nv", help="nv help")
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    print(args)
+    if args.verbose:
+        print("verbosity turned on")
