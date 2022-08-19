@@ -73,13 +73,29 @@ for var in cat_vars:
     encoder.fit(df_useful[var], df_useful[target])
     df_cat_clean[var] = encoder.transform(df_useful[var])
     
+
+encoder = ce.WOEEncoder(cols=[], random_state=0)
+encoder.fit(df_useful[var], df_useful[target])
+df_cat_clean[var] = encoder.transform(df_useful[var])
 df_cat_clean.head()
 
 #standardise
+from sklearn.preprocessing import StandardScaler
 
+ss = StandardScaler()
+ss.fit(X)
+ss.mean
+np.sqrt(ss.var_)
+Xt = ss.transform(X)
 
 #statsmodels
 import statsmodels.api as sm
+
+sm.add_constant()
+est = sm.GLM().fit()
+print(est.summary())
+
+est.get_prediction().summary_frame(alpha=0.05)
 
 
 
@@ -88,11 +104,20 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 from sklearn.metrics import roc_curve, auc, r2_score
 
+lr = LogisticRegression()
 
+lr.fit(X,y)
 
+lr.coef_
+lr.intercept_
 
+wts = np.round(np.abs(lr.intercept_)/sum(lr.intercept_)*100,2)
 
+p = lr.predict()
 
+r2_score(y, p)
 
-
+n=len(p)
+k = len(lr.coef_)
+adj_r2 = 1 - (1-r2) * float(n-1) / float(n-k-1)
 
