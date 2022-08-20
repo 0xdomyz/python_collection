@@ -1,83 +1,73 @@
-#data
+import pandas as pd
+import numpy as np
+import category_encoders as ce
+
+#data & first look
 import seaborn as sns
 df = sns.load_dataset("titanic")
 df.head()
 
-#get rid of useless columns
-spec = r"""
-target:
-    - survived
+target = "survived"
 
-num_vars:
-    - fare
-    - age
-    - sibsp
-    - parch
+num_vars = [
+    "fare",
+    "age",
+    "sibsp",
+    "parch",
+]
 
-cat_vars:
-    - who
-    - sex
-    - adult_male
-    - class
-    - embark_town
-    - deck
-    - alone
+cat_vars =[
+    "who",
+    "sex",
+    "adult_male",
+    "class",
+    "embark_town",
+    "deck",
+    "alone",
+]
 
-junk:
-    - alive
-    - pclass
-    - embarked
-"""
+junk = [
+     "alive",
+     "pclass",
+     "embarked",
+]
 
-from yaml import safe_load
-loaded_spec = safe_load(spec)
-target = loaded_spec["target"][0]
-num_vars = loaded_spec["num_vars"]
-cat_vars = loaded_spec["cat_vars"]
 
-df_useful = df.loc[:,num_vars + cat_vars + [target]]
+X:pd.DataFrame = df.drop(junk+[target], axis=1).loc[:,num_vars + cat_vars]
+y:pd.Series = df[target]
 
-#categorical variables - dummy
-import pandas as pd
+X.head()
+X.dtypes
+y
 
-pd.get_dummies(df_useful["who"])
+#encode categorical variables
 
-#categorical variables - target
-import category_encoders as ce
+#   dummy
+pd.get_dummies(X["who"])
 
-encoder = ce.TargetEncoder(cols=["sex"])
-encoder.fit(df_useful["sex"], df_useful[target])
-encoder.transform(df_useful["sex"])
+#   target
+cols = ["who"]
+encoder_class = ce.TargetEncoder
+encoder = encoder_class(cols=cols,smoothing=1)
+encoder.fit(X[cols], y)
+encoder.transform(X[cols])
 
-import numpy as np
-df_useful.groupby("sex").agg(avg_survive = ("survived",np.mean))
+df.groupby(cols).agg(avg_survive = ("survived",np.mean))
 
-#categorical variables - leave one out
-encoder = ce.LeaveOneOutEncoder(cols=["class"], random_state=0)
-encoder.fit(df_useful["class"], df_useful[target])
-encoder.transform(df_useful["class"])
+def encode(encoder_class, X, cols):
+    encoder = encoder_class(cols=cols)
+    encoder.fit(X[cols], y)
+    return encoder.transform(X[cols])
 
-#categorical variables - woe
-encoder = ce.WOEEncoder(cols=["embark_town"], random_state=0)
-encoder.fit(df_useful["embark_town"], df_useful[target])
-encoder.transform(df_useful["embark_town"])
+cols = ["who"]
+encode(ce.TargetEncoder, X, cols)
+encode(ce.LeaveOneOutEncoder, X, cols)
+encode(ce.WOEEncoder, X, cols)
 
-encoder = ce.WOEEncoder(cols=["deck"], random_state=0)
-encoder.fit(df_useful["deck"], df_useful[target])
-encoder.transform(df_useful["deck"])
+X_cat = X.select_dtypes([object,"category",bool])
+X_cat_encoded = encode(ce.WOEEncoder, X_cat, list(X_cat.columns))
+X[X_cat.columns] = X_cat_encoded
 
-#categorical variables
-df_cat_clean = df_useful.copy()
-for var in cat_vars:
-    encoder = ce.WOEEncoder(cols=[var], random_state=0)
-    encoder.fit(df_useful[var], df_useful[target])
-    df_cat_clean[var] = encoder.transform(df_useful[var])
-    
-
-encoder = ce.WOEEncoder(cols=[], random_state=0)
-encoder.fit(df_useful[var], df_useful[target])
-df_cat_clean[var] = encoder.transform(df_useful[var])
-df_cat_clean.head()
 
 #standardise
 from sklearn.preprocessing import StandardScaler
@@ -87,6 +77,7 @@ ss.fit(X)
 ss.mean
 np.sqrt(ss.var_)
 Xt = ss.transform(X)
+
 
 #statsmodels
 import statsmodels.api as sm
