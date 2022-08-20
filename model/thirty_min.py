@@ -1,6 +1,14 @@
 import pandas as pd
 import numpy as np
+
+from sklearn.model_selection import train_test_split
 import category_encoders as ce
+import sklearn.preprocessing as prep
+#from sklearn.preprocessing import StandardScaler
+import statsmodels.api as sm
+import sklearn.linear_model as sklm
+import sklearn.metrics as metrics
+
 
 #data & first look
 import seaborn as sns
@@ -33,6 +41,7 @@ junk = [
 ]
 
 
+#pre-pre-processing
 X:pd.DataFrame = df.drop(junk+[target], axis=1).loc[:,num_vars + cat_vars]
 y:pd.Series = df[target]
 
@@ -40,60 +49,65 @@ X.head()
 X.dtypes
 y
 
+
 #encode categorical variables
+cols = X.select_dtypes([object,"category",bool]).columns
+encoder = ce.WOEEncoder(cols=cols)
+encoder.fit(X[cols], y)
+X[cols] = encoder.transform(X[cols])
+
+X
 
 #   dummy
 pd.get_dummies(X["who"])
 
-#   target
-cols = ["who"]
-encoder_class = ce.TargetEncoder
-encoder = encoder_class(cols=cols,smoothing=1)
-encoder.fit(X[cols], y)
-encoder.transform(X[cols])
+drop_enc = prep.OneHotEncoder(drop='first').fit(X[cols])
+drop_enc.transform(X[cols]).toarray()
 
-df.groupby(cols).agg(avg_survive = ("survived",np.mean))
-
-def encode(encoder_class, X, cols):
+#   other encoders
+def encode(encoder_class, X, cols, y):
     encoder = encoder_class(cols=cols)
     encoder.fit(X[cols], y)
     return encoder.transform(X[cols])
 
 cols = ["who"]
-encode(ce.TargetEncoder, X, cols)
-encode(ce.LeaveOneOutEncoder, X, cols)
-encode(ce.WOEEncoder, X, cols)
+encode(ce.TargetEncoder, X, cols, y)
+df.groupby(cols).agg(avg_survive = ("survived",np.mean))
 
-X_cat = X.select_dtypes([object,"category",bool])
-X_cat_encoded = encode(ce.WOEEncoder, X_cat, list(X_cat.columns))
-X[X_cat.columns] = X_cat_encoded
+encode(ce.LeaveOneOutEncoder, X, cols, y)
+encode(ce.GLMMEncoder, X, cols, y)#doco says this is log odds if target is binary
 
 
 #standardise
-from sklearn.preprocessing import StandardScaler
+cols = X.columns
+scaler = prep.StandardScaler()
+scaler.fit(X)
+X = scaler.transform(X)
+X_df = pd.DataFrame(X, columns=cols)
 
-ss = StandardScaler()
-ss.fit(X)
-ss.mean
-np.sqrt(ss.var_)
-Xt = ss.transform(X)
+X
+X.shape
+scaler.mean_
+np.sqrt(scaler.var_)
 
+
+#remove na
+X_df = sm.add_constant(X_df)
+X_df = X_df.dropna()
+X = X_df.values
+y = y.loc[X_df.index]
 
 #statsmodels
-import statsmodels.api as sm
+estimator = sm.GLM(endog = y, exog = X_df, family = sm.families.Binomial())
+res = estimator.fit()
 
-sm.add_constant()
-est = sm.GLM().fit()
-print(est.summary())
-
-est.get_prediction().summary_frame(alpha=0.05)
-
+res.summary()
+res.get_prediction().summary_frame(alpha=0.05)
 
 
 #sklearn
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
-from sklearn.metrics import roc_curve, auc, r2_score
+sklm.LogisticRegression, sklm.LogisticRegressionCV
+metrics.roc_curve, metrics.auc, metrics.r2_score
 
 lr = LogisticRegression()
 
