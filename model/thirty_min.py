@@ -4,10 +4,9 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import category_encoders as ce
 import sklearn.preprocessing as prep
-#from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
 import sklearn.metrics as metrics
-
+import sklearn.ensemble as ens
 
 #data
 import seaborn as sns
@@ -40,115 +39,106 @@ duplicated_columns = [
 ]
 
 
-#create X and y modelling frames
+#pre-pre-processing: dup columns, nas, train, test sets
 X:pd.DataFrame = df.drop(duplicated_columns+[target], axis=1).loc[:,num_vars+cat_vars]
 y:pd.Series = df[target]
 
-X.head()
-X.dtypes
-y
+#    EDA/single factor analysis
+X.describe(include="all")
+X.isna().sum()
+
+#    impute age as avg age
+X.loc[lambda x:x["age"].isna(),'age'] = int(X["age"].median())
+
+#    train test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+X_train.head()
+X_train.dtypes
+y_train
+X_train.shape
+X_test.shape
 
 
 #encode categorical variables
-cols = X.select_dtypes([object,"category",bool]).columns
-encoder = ce.WOEEncoder(cols=cols)
-encoder.fit(X[cols], y)
-X[cols] = encoder.transform(X[cols])
+cat_cols = X_train.select_dtypes([object,"category",bool]).columns
 
-X.head()
-X.dtypes
+encoder = ce.WOEEncoder(cols=cat_cols)
+encoder.fit(X_train[cat_cols], y_train)
+
+X_train[cat_cols] = encoder.transform(X_train[cat_cols])
+X_test[cat_cols] = encoder.transform(X_test[cat_cols])
+
+X_train.head()
+X_test.head()
 
 
 #discretize numeric variables
+sns.displot(data=X[["fare"]],x="fare")
+
 est = prep.KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='quantile')
-est.fit(X[["fare"]])
-X["fare_bin"] = est.transform(X[["fare"]])
+est.fit(X_train[["fare"]])
+X_train["fare"] = est.transform(X_train[["fare"]])
+X_test["fare"] = est.transform(X_test[["fare"]])
 
-_ = (
-    prep.KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='uniform')
-    .fit(X[["fare"]])
-    .transform(X[["fare"]])
-)
-pd.DataFrame(_).value_counts()
+sns.displot(data=X_train[["fare"]],x="fare")
 
-X["fare_bin"].value_counts()
-
-
-#dummy and other encoders
+#   dummy and other encoders
 if False:
-
-    #   dummy
-    pd.get_dummies(X["who"])
-
-    drop_enc = prep.OneHotEncoder(drop='first').fit(X[cols])
-    drop_enc.transform(X[cols]).toarray()
-
-    #   other encoders
-    def encode(encoder_class, X, cols, y):
-        encoder = encoder_class(cols=cols)
-        encoder.fit(X[cols], y)
-        return encoder.transform(X[cols])
-
-    cols = ["who"]
-    encode(ce.TargetEncoder, X, cols, y)
-    df.groupby(cols).agg(avg_survive = ("survived",np.mean))
-
-    encode(ce.LeaveOneOutEncoder, X, cols, y)
-    encode(ce.GLMMEncoder, X, cols, y)#doco says this is log odds if target is binary
-
+    pd.get_dummies()
+    prep.OneHotEncoder
+    ce.TargetEncoder
+    ce.LeaveOneOutEncoder
+    ce.GLMMEncoder#doco says this is log odds if target is binary
 
 #standardise
-cols = X.columns
+cols = X_train.columns
 scaler = prep.StandardScaler()
-scaler.fit(X)
-X = scaler.transform(X)
-X_df = pd.DataFrame(X, columns=cols)
+scaler.fit(X_train)
+X_train[cols] = scaler.transform(X_train)
+X_test[cols] = scaler.transform(X_test)
 
-X
-X_df.head()
 
+X_train.head()
 scaler.mean_
 np.sqrt(scaler.var_)
 
 
-#remove na
-X_df = sm.add_constant(X_df)
-X_df = X_df.dropna()
-X = X_df.values
-y = y.loc[X_df.index]
-
-X_df.head()
-X_df.shape
-
-
 #statsmodels
-estimator = sm.GLM(endog = y, exog = X_df, family = sm.families.Binomial())
-fitted_glm_model = estimator.fit()
+fitted_glm_model = sm.GLM(
+    endog = y_train,
+    exog = sm.add_constant(X_train),
+    family = sm.families.Binomial()
+).fit()
 
 fitted_glm_model.summary()
 fitted_glm_model.params.abs()/sum(fitted_glm_model.params.abs())*100
 
 fitted_glm_model.get_prediction().summary_frame(alpha=0.05)
-predictions = fitted_glm_model.get_prediction().summary_frame()["mean"]
 
 
 #evaluation
 
 #    accuracy
 import scipy
-scipy.stats.somersd(y, predictions).statistic
+
+preds_train = fitted_glm_model.get_prediction().summary_frame()["mean"]
+preds_test = fitted_glm_model.get_prediction(sm.add_constant(X_test)).summary_frame()["mean"]
+
+scipy.stats.somersd(y_train, preds_train).statistic
+scipy.stats.somersd(y_test, preds_test).statistic
 
 
 #    calibration
-predictions_calibrated = np.where(predictions>0.5, 1, 0)
+preds_test_calibrated = np.where(preds_test>0.5, 1, 0)
 
 _ = pd.concat([
-    df.loc[X_df.index].assign(
-        survived=predictions_calibrated,
+    df.loc[X_test.index].assign(
+        survived=preds_test_calibrated,
         prediction_actual="prediction"
     ),
-    df.loc[X_df.index].assign(
-        survived=y,
+    df.loc[X_test.index].assign(
+        survived=y_test,
         prediction_actual="actual"
     ),
 ])
@@ -159,6 +149,22 @@ sns.catplot(data=_, x="survived", hue = "prediction_actual",col="adult_male",kin
 sns.catplot(data=_, x="survived", hue = "prediction_actual",col="class",kind="count")
 plt.show()
 
+#stability
+from psi import calculate_psi
+
+for col in X_train.columns:
+    psi = calculate_psi(
+        X_train[col], 
+        X_test[col]
+    )
+    print(f"{col = }, {psi = }")
+
+
 #sklearn
+clf = ens.RandomForestClassifier(random_state=0)
+clf.fit(X_train,y_train)
+
+scipy.stats.somersd(y_train, clf.predict(X_train)).statistic
+scipy.stats.somersd(y_test, clf.predict(X_test)).statistic
 
 
