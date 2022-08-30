@@ -1,13 +1,16 @@
 import pandas as pd
 import numpy as np
 
-from sklearn.model_selection import train_test_split
 import category_encoders as ce
 import sklearn.preprocessing as prep
 import statsmodels.api as sm
-import sklearn.metrics as metrics
 import sklearn.ensemble as ens
 from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LogisticRegression
+import scipy
+import sklearn.metrics as metrics
+import sklearn.model_selection as select
+from sklearn.pipeline import make_pipeline
 
 #data
 import seaborn as sns
@@ -52,7 +55,7 @@ X.isna().sum()
 X.loc[lambda x:x["age"].isna(),'age'] = int(X["age"].median())
 
 #    train test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+X_train, X_test, y_train, y_test = select.train_test_split(X, y, random_state=0)
 
 X_train.head()
 X_train.dtypes
@@ -121,8 +124,6 @@ fitted_glm_model.get_prediction().summary_frame(alpha=0.05)
 #evaluation
 
 #    accuracy
-import scipy
-
 preds_train = fitted_glm_model.get_prediction().summary_frame()["mean"]
 preds_test = fitted_glm_model.get_prediction(sm.add_constant(X_test)).summary_frame()["mean"]
 
@@ -170,12 +171,9 @@ scipy.stats.somersd(y_test, clf.predict(X_test)).statistic
 
 
 #pipeline
-from sklearn.pipeline import make_pipeline
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+X_train, X_test, y_train, y_test = select.train_test_split(X, y, random_state=0)
 
 cat_cols = X_train.select_dtypes([object,"category",bool]).columns
-
 column_trans = ColumnTransformer(
     [
         (
@@ -188,57 +186,46 @@ column_trans = ColumnTransformer(
     remainder = 'passthrough'
 )
 
-column_trans.fit(X_train, y_train)
-a = column_trans.transform(X_train)
-a[0]
-
-
 pipe = make_pipeline(
     column_trans,
     prep.StandardScaler(),
+    # LogisticRegression()
     ens.RandomForestClassifier(random_state=0)
 )
 pipe.fit(X_train, y_train)
-pipe.predict(X_test)
 
-#cv as evaluation
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import cross_validate
+scipy.stats.somersd(
+    y_train,
+    [i[1] for i in pipe.predict_proba(X_train)]
+).statistic
+scipy.stats.somersd(
+    y_test,
+    [i[1] for i in pipe.predict_proba(X_test)]
+).statistic
 
-X, y = make_regression(n_samples=1000, random_state=0)
-lr = LinearRegression()
-
-result = cross_validate(lr, X, y)  # defaults to 5-fold CV
-result['test_score']  # r_squared score is high because dataset is easy
 
 #para search
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.model_selection import train_test_split
-from scipy.stats import randint
+param_grid = {
+    'randomforestclassifier__n_estimators': range(1,10),
+    'randomforestclassifier__max_depth': range(5,10)
+}
 
-X, y = fetch_california_housing(return_X_y=True)
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+search = select.GridSearchCV(
+    estimator=pipe,
+    param_grid = param_grid,
+    cv=3,
+)
 
-# define the parameter space that will be searched over
-param_distributions = {'n_estimators': randint(1, 5),
-                       'max_depth': randint(5, 10)}
-
-# now create a searchCV object and fit it to the data
-search = RandomizedSearchCV(estimator=RandomForestRegressor(random_state=0),
-                            n_iter=5,
-                            param_distributions=param_distributions,
-                            random_state=0)
 search.fit(X_train, y_train)
-
-
 search.best_params_
 
-
-# the search object now acts like a normal random forest estimator
-# with max_depth=9 and n_estimators=4
-search.score(X_test, y_test)
-
-
-
+scipy.stats.somersd(
+    y_train,
+    [i[1] for i in search.predict_proba(X_train)]
+).statistic
+scipy.stats.somersd(
+    y_test,
+    [i[1] for i in search.predict_proba(X_test)]
+).statistic
 
 
