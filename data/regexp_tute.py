@@ -75,3 +75,54 @@ Lookaround
 """
 
 #https://docs.python.org/3/library/re.html#regular-expression-examples
+
+
+import re
+
+def camel_to_snake(name:str)->str:
+    """
+    Examples
+    ---------------
+    >>> camel_to_snake('CamelCaseName')
+    'camel_case_name'
+    """
+    #pattern = re.compile(r'(?<!^)(?=[A-Z])')
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
+
+def camel_to_snake(name):
+    """
+    Examples
+    ---------------
+    >>> camel_to_snake('camel2_camel2_case')
+    'camel2_camel2_case'
+    >>> camel_to_snake('getHTTPResponseCode')
+    'get_http_response_code'
+    """
+    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+
+def to_snake_case(name):
+    """
+    Examples
+    ---------------
+    >>> camel_to_snake('camel2_camel2__case')
+    'camel2_camel2__case'
+    >>> camel_to_snake('getHTTPResponseCode')
+    'get_http_response_code'
+    """
+    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    name = re.sub('__([A-Z])', r'_\1', name)
+    name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name)
+    return name.lower()
+
+def snake_to_camel(name:str)->str:
+    """
+    Examples
+    -----------
+    >>> snake_to_camel('snake_case_name')
+    'SnakeCaseName'
+    """
+    return ''.join(word.title() for word in name.split('_'))
+
+
+
