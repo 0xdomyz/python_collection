@@ -85,30 +85,62 @@ def camel_to_snake(name:str)->str:
     ---------------
     >>> camel_to_snake('CamelCaseName')
     'camel_case_name'
+    >>> camel_to_snake('camelCaseName')
+    'camel_case_name'
+    >>> camel_to_snake('camel2_camel2_case')
+    'camel2_camel2_case'
+    >>> camel_to_snake('45rcamel2_camel2_case')
+    '45rcamel2_camel2_case'
+    >>> camel_to_snake('getHTTPResponseCode')
+    'get_h_t_t_p_response_code'
     """
     #pattern = re.compile(r'(?<!^)(?=[A-Z])')
     return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
 
-def camel_to_snake(name):
+def camel_to_snake(name:str)->str:
     """
     Examples
     ---------------
+    >>> camel_to_snake('CamelCaseName')
+    'camel_case_name'
+    >>> camel_to_snake('camelCaseName')
+    'camel_case_name'
     >>> camel_to_snake('camel2_camel2_case')
     'camel2_camel2_case'
+    >>> camel_to_snake('45rcamel2_camel2_case')
+    '45rcamel2_camel2_case'
     >>> camel_to_snake('getHTTPResponseCode')
     'get_http_response_code'
+    >>> camel_to_snake('_CamelCaseName')
+    '__camel_case_name'
+    >>> camel_to_snake('_Camel_CaseName')
+    '__camel__case_name'
+    >>> camel_to_snake('__CamelCaseName')
+    '___camel_case_name'
     """
     name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
-def to_snake_case(name):
+def to_snake_case(name:str)->str:
     """
     Examples
     ---------------
-    >>> camel_to_snake('camel2_camel2__case')
-    'camel2_camel2__case'
-    >>> camel_to_snake('getHTTPResponseCode')
+    >>> to_snake_case('CamelCaseName')
+    'camel_case_name'
+    >>> to_snake_case('camelCaseName')
+    'camel_case_name'
+    >>> to_snake_case('camel2_camel2_case')
+    'camel2_camel2_case'
+    >>> to_snake_case('45rcamel2_camel2_case')
+    '45rcamel2_camel2_case'
+    >>> to_snake_case('getHTTPResponseCode')
     'get_http_response_code'
+    >>> to_snake_case('_CamelCaseName')
+    '_camel_case_name'
+    >>> to_snake_case('_Camel_CaseName')
+    '_camel_case_name'
+    >>> to_snake_case('__CamelCaseName')
+    '__camel_case_name'
     """
     name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     name = re.sub('__([A-Z])', r'_\1', name)
@@ -120,6 +152,10 @@ def snake_to_camel(name:str)->str:
     Examples
     -----------
     >>> snake_to_camel('snake_case_name')
+    'SnakeCaseName'
+    >>> snake_to_camel('_snake_case_name')
+    'SnakeCaseName'
+    >>> snake_to_camel('__snake_case_name')
     'SnakeCaseName'
     """
     return ''.join(word.title() for word in name.split('_'))
