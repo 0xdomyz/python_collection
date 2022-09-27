@@ -109,3 +109,22 @@ df2.loc[idx, "dt"] = ""
 df2.loc[lambda x: x["dte"].isna(), "dte"] = ""
 df2.dtypes
 df2
+
+
+#datetime rounding
+def floor_dt(dt:datetime.datetime, delta:datetime.timedelta)->datetime.datetime:
+   """
+   Examples
+   ------------
+   ::
+
+      import datetime
+      dt = datetime.datetime.utcnow(); dt
+      floor_dt(dt, datetime.timedelta(seconds=60))
+      floor_dt(dt, datetime.timedelta(seconds=15))
+   """
+   return dt - (dt - datetime.datetime.min) % delta
+
+
+
+
