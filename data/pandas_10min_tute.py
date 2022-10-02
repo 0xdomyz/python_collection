@@ -102,6 +102,8 @@ small["series"].fillna(value=0)
 small.isna()
 small["series"].isna()
 
+#duplicate data
+pd.concat([small,small]).drop_duplicates()
 
 # operations
 titanic.mean()
