@@ -15,7 +15,7 @@ a = pd.read_csv("toydata\\titanic.csv")
 b = pd.read_csv(r"toydata\titanic.csv")
 
 #   write csv
-titanic.to_csv("foo.csv",index=False)
+titanic.to_csv("foo.csv", index=False)
 df = pd.read_csv("foo.csv")
 pd.testing.assert_frame_equal(titanic, df)
 
@@ -61,12 +61,12 @@ titanic.sort_values("age", ascending=False)
 
 # Selection
 titanic["class"]
-titanic[["class","age"]]
+titanic[["class", "age"]]
 
 titanic[0:2]
 
 titanic.loc[1, "fare"]
-titanic.loc[0:1, ["fare","age"]]
+titanic.loc[0:1, ["fare", "age"]]
 titanic.loc[:, "fare"]
 titanic.loc[0:1, :]
 
@@ -102,8 +102,8 @@ small["series"].fillna(value=0)
 small.isna()
 small["series"].isna()
 
-#duplicate data
-pd.concat([small,small]).drop_duplicates()
+# duplicate data
+pd.concat([small, small]).drop_duplicates()
 
 # operations
 titanic.mean()
@@ -124,9 +124,9 @@ c.sub(20)
 c - 20
 c * -1
 c.mod(2)
-c.pow(1/2)
+c.pow(1 / 2)
 
-c.apply(lambda x:x+1)
+c.apply(lambda x: x + 1)
 
 alive = titanic["alive"]
 alive.value_counts()
@@ -141,47 +141,49 @@ alive.str[0:2]
 
 titanic["alive"] + "-" + titanic["age"].astype(str)
 
-alive.str.replace(r"(\w).+", r"\1",).str.capitalize()
-alive.str.replace(r"(\w).+", lambda x:x.group(1),)
+alive.str.replace(
+    r"(\w).+",
+    r"\1",
+).str.capitalize()
+alive.str.replace(
+    r"(\w).+",
+    lambda x: x.group(1),
+)
 
 
 # merge
 df = titanic["class"].value_counts().reset_index()
-df.columns = ["class","class_count"]
+df.columns = ["class", "class_count"]
 df
 
 titanic.merge(df, how="left", left_on="class", right_on="class")
 
 cols = ["age", "alive"]
-a = titanic.loc[lambda x:x["age"]>70,cols]
-b = titanic.loc[lambda x:x["age"]<10,cols]
-c = titanic.loc[lambda x:x["age"]<10, "class"]
+a = titanic.loc[lambda x: x["age"] > 70, cols]
+b = titanic.loc[lambda x: x["age"] < 10, cols]
+c = titanic.loc[lambda x: x["age"] < 10, "class"]
 
-pd.concat([a,b],ignore_index=True)
-pd.concat([b,c],axis=1)
+pd.concat([a, b], ignore_index=True)
+pd.concat([b, c], axis=1)
 
 
 # group
 titanic.groupby("class").mean()
-titanic.groupby(["class","alive"]).mean()
+titanic.groupby(["class", "alive"]).mean()
 
-summary = (
-    titanic
-    .groupby(["class","alive"])
-    .agg(
-        age = ("age",np.mean),
-        fare_max = ("fare",lambda x:x.max()+1),
-    )
+summary = titanic.groupby(["class", "alive"]).agg(
+    age=("age", np.mean),
+    fare_max=("fare", lambda x: x.max() + 1),
 )
 
 summary.reset_index()
 
 
 # reshape
-wide = summary.reset_index().pivot("class","alive","age")
+wide = summary.reset_index().pivot("class", "alive", "age")
 wide
 
-long = wide.reset_index().melt(["class"],["no","yes"])
+long = wide.reset_index().melt(["class"], ["no", "yes"])
 long
 
 
@@ -195,16 +197,19 @@ ts
 pd.to_datetime(pickup, format="%Y-%m-%d %H:%M:%S")
 
 import datetime
+
 ts + datetime.timedelta(hours=1)
 
 pd.period_range("2020-Q1", "2022-Q4", freq="Q-DEC")
 
 
 # cate
-df = titanic.loc[lambda x:(x.age>10) & (x.age<15),["age"]]
+df = titanic.loc[lambda x: (x.age > 10) & (x.age < 15), ["age"]]
 df.value_counts().sort_index()
 
-df["cate"] = df["age"].astype("category").cat.set_categories(np.array(range(1,10))/2+10)
+df["cate"] = (
+    df["age"].astype("category").cat.set_categories(np.array(range(1, 10)) / 2 + 10)
+)
 df["cate"].value_counts().sort_index()
 
 
@@ -214,15 +219,13 @@ import matplotlib.pyplot as plt
 titanic.value_counts("class").plot(kind="barh")
 plt.show()
 
-titanic.plot(kind="scatter",x="age",y="fare")
+titanic.plot(kind="scatter", x="age", y="fare")
 plt.show()
 
 (
-    titanic
-    .groupby("age")
-    .agg(fare=("fare",np.mean))
+    titanic.groupby("age")
+    .agg(fare=("fare", np.mean))
     .reset_index()
-    .plot(kind="line",x="age",y="fare")
+    .plot(kind="line", x="age", y="fare")
 )
 plt.show()
-

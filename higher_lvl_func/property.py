@@ -8,6 +8,7 @@ class C:
     4
     >>> c.delx()
     """
+
     def __init__(self):
         self._x = None
 
@@ -25,6 +26,7 @@ class C:
 
     x = property(getx, setx, delx, "I'm the 'x' property.")
 
+
 class D:
     """
     Examples
@@ -40,6 +42,7 @@ class D:
     4
     >>> del d.x
     """
+
     def __init__(self):
         self._x = None
 
@@ -67,7 +70,3 @@ class D:
 
 if __name__ == "__main__":
     pass
-
-
-
-

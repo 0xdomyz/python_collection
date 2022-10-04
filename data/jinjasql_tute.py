@@ -2,8 +2,9 @@
 https://github.com/sripathikrishnan/jinjasql
 """
 
-#baisc
+# baisc
 from jinjasql import JinjaSql
+
 j = JinjaSql()
 
 template = """
@@ -15,10 +16,7 @@ template = """
     {% endif %}
 """
 
-data = {
-    "project_id": 123,
-    "user_id": u"sripathi"
-}
+data = {"project_id": 123, "user_id": "sripathi"}
 
 query, bind_params = j.prepare_query(template, data)
 
@@ -35,8 +33,8 @@ query, bind_params = j.prepare_query(template, data)
 ['sripathi', 123]
 """
 
-#param style
-j = JinjaSql(param_style='named')
+# param style
+j = JinjaSql(param_style="named")
 query, bind_params = j.prepare_query(template, data)
 
 """
@@ -52,28 +50,24 @@ query, bind_params = j.prepare_query(template, data)
 {'user_id_1': 'sripathi', 'project_id_2': 123}
 """
 
-#tuple via jinja
+# tuple via jinja
 query, bind_params = j.prepare_query(
-"""
+    """
 select 'x' from dual
 where project_id in {{ project_ids | inclause }}
 """,
-    {"project_ids":[1,2,3]}
+    {"project_ids": [1, 2, 3]},
 )
 print(query)
 bind_params
 
 
-#mods
+# mods
 query, bind_params = j.prepare_query(
-"""
+    """
 select {{column_names | sqlsafe}} from dual
 """,
-    {"column_names":"aaaa,bbb"}
+    {"column_names": "aaaa,bbb"},
 )
 print(query)
 bind_params
-
-
-
-

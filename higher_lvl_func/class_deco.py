@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class PlayingCard:
     """
@@ -12,10 +13,5 @@ class PlayingCard:
     suit: str
 
 
-
 if __name__ == "__main__":
     pass
-
-
-
-

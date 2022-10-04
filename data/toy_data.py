@@ -34,7 +34,6 @@ if __name__ == "__main__":
     sklearn_data("iris", sklearn.datasets.load_iris(as_frame=True))
     sklearn_data("wine", sklearn.datasets.load_wine(as_frame=True))
 
-
     # sns.get_dataset_names()
     names = [
         "anagrams",
@@ -60,7 +59,6 @@ if __name__ == "__main__":
 
     for name in names:
         sns_data(name)
-
 
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00350/default%20of%20credit%20card%20clients.xls"
     urlretrieve(url, _DATA_DIR / "uci_credit_card.xls")

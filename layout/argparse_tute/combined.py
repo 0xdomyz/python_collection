@@ -10,12 +10,13 @@ Examples
     py layout\argparse_tute\combined.py 3 -vv
 """
 import argparse
+
 parser = argparse.ArgumentParser()
-parser.add_argument("square", type=int,
-                    help="display a square of a given number")
+parser.add_argument("square", type=int, help="display a square of a given number")
 parser.add_argument("-o", help="optional value")
-parser.add_argument("-v", "--verbosity", action="count", default=0,
-                    help="increase output verbosity")
+parser.add_argument(
+    "-v", "--verbosity", action="count", default=0, help="increase output verbosity"
+)
 
 if __name__ == "__main__":
     args = parser.parse_args()

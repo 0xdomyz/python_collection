@@ -10,6 +10,7 @@ class C:
     >>> C.from_dict({"a":1, "b":2})
     [('a', 1), ('b', 2)]
     """
+
     def __init__(self, x: list) -> None:
         self.x = x
 
@@ -31,11 +32,12 @@ class E:
     Examples
     -----------
     >>> e = E()
-    >>> E.print()     
+    >>> E.print()
     dont need instance
-    >>> e.print()     
+    >>> e.print()
     dont need instance
     """
+
     def __init__(self):
         self._x = None
 
@@ -43,8 +45,10 @@ class E:
     def print(cls):
         print("dont need instance")
 
+
 def print1():
     print(1)
+
 
 class F:
     """static method do not have self
@@ -61,6 +65,7 @@ class F:
     >>> f.print1()
     1
     """
+
     def __init__(self):
         self._x = None
 
@@ -76,7 +81,3 @@ class F:
 
 if __name__ == "__main__":
     pass
-
-
-
-

@@ -5,10 +5,10 @@ import janitor
 
 # Sample Data curated for this example
 company_sales = {
-    'SalesMonth': ['Jan', 'Feb', 'Mar', 'April'],
-    'Company1': [150.0, 200.0, 300.0, 400.0],
-    'Company2': [180.0, 250.0, np.nan, 500.0],
-    'Company3': [400.0, 500.0, 600.0, 675.0]
+    "SalesMonth": ["Jan", "Feb", "Mar", "April"],
+    "Company1": [150.0, 200.0, 300.0, 400.0],
+    "Company2": [180.0, 250.0, np.nan, 500.0],
+    "Company3": [400.0, 500.0, 600.0, 675.0],
 }
 
 # The Pandas Way
@@ -17,22 +17,22 @@ company_sales = {
 df = pd.DataFrame.from_dict(company_sales)
 
 # 2. Delete a column from the DataFrame. Say 'Company1'
-del df['Company1']
+del df["Company1"]
 
 # 3. Drop rows that have empty values in columns 'Company2' and 'Company3'
-df = df.dropna(subset=['Company2', 'Company3'])
+df = df.dropna(subset=["Company2", "Company3"])
 
 # 4. Rename 'Company2' to 'Amazon' and 'Company3' to 'Facebook'
 df = df.rename(
     {
-        'Company2': 'Amazon',
-        'Company3': 'Facebook',
+        "Company2": "Amazon",
+        "Company3": "Facebook",
     },
     axis=1,
 )
 
 # 5. Let's add some data for another company. Say 'Google'
-df['Google'] = [450.0, 550.0, 800.0]
+df["Google"] = [450.0, 550.0, 800.0]
 
 df
 # Output looks like this:
@@ -76,7 +76,7 @@ df
 # 3      April   500.0     675.0   800.0
 
 
-#examples
+# examples
 df = pd.DataFrame.from_dict(company_sales)
 df
 
@@ -84,9 +84,9 @@ df.remove_columns("Company2")
 df.dropna(subset=["Company2", "Company3"])
 df.rename_column("Company2", "Amazon")
 df.rename_column("Company3", "Facebook")
-df.add_column("Google", [450.0, 550.0, 800.0,1])
+df.add_column("Google", [450.0, 550.0, 800.0, 1])
 
-#to-do add functionality examples
+# to-do add functionality examples
 # Cleaning columns name (multi-indexes are possible!)
 # Removing empty rows and columns
 # Identifying duplicate entries
@@ -112,12 +112,6 @@ df = clean_names(df)
 df = remove_empty(df)
 
 from janitor import clean_names, remove_empty
-df = (
-    pd.DataFrame.from_dict(company_sales)
-    .pipe(clean_names)
-    .pipe(remove_empty)
-)
+
+df = pd.DataFrame.from_dict(company_sales).pipe(clean_names).pipe(remove_empty)
 df
-
-
-

@@ -9,10 +9,12 @@ Examples
     py layout\argparse_tute\optional.py -h
 """
 from argparse import ArgumentParser
+
 parser = ArgumentParser()
 
-parser.add_argument("-v", "--verbose", help="increase output verbosity",
-                    action="store_true")
+parser.add_argument(
+    "-v", "--verbose", help="increase output verbosity", action="store_true"
+)
 parser.add_argument("-nv", help="nv help")
 
 if __name__ == "__main__":

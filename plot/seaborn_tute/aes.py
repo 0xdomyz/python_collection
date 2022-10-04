@@ -2,10 +2,12 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+
 def sinplot(flip=1):
     x = np.linspace(0, 14, 100)
     for i in range(1, 7):
-        plt.plot(x, np.sin(x + i * .5) * (7 - i) * flip)
+        plt.plot(x, np.sin(x + i * 0.5) * (7 - i) * flip)
+
 
 sinplot()
 
@@ -15,7 +17,7 @@ sinplot()
 
 sns.set_style("whitegrid")
 data = np.random.normal(size=(20, 6)) + np.arange(6) / 2
-sns.boxplot(data=data);
+sns.boxplot(data=data)
 
 sns.set_style("dark")
 sinplot()
@@ -31,7 +33,7 @@ sns.despine()
 
 f, ax = plt.subplots()
 sns.violinplot(data=data)
-sns.despine(offset=10, trim=True);
+sns.despine(offset=10, trim=True)
 
 sns.set_style("whitegrid")
 sns.boxplot(data=data, palette="deep")
@@ -113,11 +115,11 @@ sns.color_palette("cubehelix", as_cmap=True)
 
 sns.cubehelix_palette(as_cmap=True)
 
-sns.cubehelix_palette(start=.5, rot=-.5, as_cmap=True)
+sns.cubehelix_palette(start=0.5, rot=-0.5, as_cmap=True)
 
-sns.cubehelix_palette(start=.5, rot=-.75, as_cmap=True)
+sns.cubehelix_palette(start=0.5, rot=-0.75, as_cmap=True)
 
-sns.cubehelix_palette(start=2, rot=0, dark=0, light=.95, reverse=True, as_cmap=True)
+sns.cubehelix_palette(start=2, rot=0, dark=0, light=0.95, reverse=True, as_cmap=True)
 
 sns.color_palette("ch:start=.2,rot=-.3", as_cmap=True)
 
@@ -148,7 +150,3 @@ sns.diverging_palette(250, 30, l=65, center="dark", as_cmap=True)
 sns.color_palette("Spectral", as_cmap=True)
 
 sns.color_palette("coolwarm", as_cmap=True)
-
-
-
-

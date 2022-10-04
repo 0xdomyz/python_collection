@@ -1,11 +1,14 @@
 from contextlib import contextmanager
 
+
 def acquire_resource():
     x = 1
     return x
 
+
 def release_resource(resource):
     del resource
+
 
 @contextmanager
 def managed_resource(*args, **kwds):
@@ -15,12 +18,14 @@ def managed_resource(*args, **kwds):
     finally:
         release_resource(resource)
 
+
 with managed_resource() as resource:
     print(resource)
 
-#db
+# db
 from contextlib import contextmanager
 from dwopt import lt
+
 
 @contextmanager
 def temp_db():
@@ -35,6 +40,7 @@ def temp_db():
 
 
 import logging
+
 logging.basicConfig(level=logging.INFO)
 
 with temp_db() as tbl:
@@ -43,14 +49,15 @@ with temp_db() as tbl:
 lt.exist("tmp_5678")
 
 
-#db from decorator
+# db from decorator
 import functools
 from contextlib import contextmanager
 import nanoid
 from dwopt import lt
 import time
 
-def temp_table_name()->str:
+
+def temp_table_name() -> str:
     while True:
         name = "temp_" + nanoid.generate("0123456789abcdefghijklmnopqrstuvwxyz", 8)
         if not lt.exist(name):
@@ -62,14 +69,16 @@ def temp_table_name()->str:
 
 def temp_table(db):
     """
-    Require kwargs temp to be True. 
+    Require kwargs temp to be True.
 
-    Function to return a sql str. 
+    Function to return a sql str.
     """
+
     def decorate(func):
         @functools.wraps(func)
         def new_func(*args, **kwargs):
             if "temp" in kwargs and kwargs["temp"]:
+
                 @contextmanager
                 def func_as_contextmanager(*args, **kwargs):
                     name = temp_table_name()
@@ -79,15 +88,18 @@ def temp_table(db):
                         yield name
                     finally:
                         db.drop(name)
+
                 result = func_as_contextmanager(*args, **kwargs)
             else:
                 result = func(*args, **kwargs)
             return result
+
         return new_func
+
     return decorate
 
-class A:
 
+class A:
     def __init__(self):
         pass
 

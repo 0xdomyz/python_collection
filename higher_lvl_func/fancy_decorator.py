@@ -1,5 +1,6 @@
 import functools
 
+
 def repeat(num_times):
     """
     Examples
@@ -105,7 +106,7 @@ def debug_count_calls(func):
 
 def dict_cache(func):
     """Keep a cache of previous function calls
-    
+
     Examples
     ------------
     >>> @dict_cache
@@ -122,12 +123,14 @@ def dict_cache(func):
     executed
     (5, 5)
     """
+
     @functools.wraps(func)
     def wrapper_cache(*args, **kwargs):
         cache_key = args + tuple(kwargs.items())
         if cache_key not in wrapper_cache.cache:
             wrapper_cache.cache[cache_key] = func(*args, **kwargs)
         return wrapper_cache.cache[cache_key]
+
     wrapper_cache.cache = dict()
     return wrapper_cache
 
@@ -190,7 +193,9 @@ def identity(x):
     print(f"{x=}")
     return x
 
+
 import pandas as pd
+
 
 def pickle_cache(path):
     """
@@ -205,6 +210,7 @@ def pickle_cache(path):
     func(save_name='test')
     func(from_save=True, save_name='test')
     """
+
     def decorate(func):
         @functools.wraps(func)
         def new_func(*args, from_save=True, save_name=None, **kwargs):
@@ -216,10 +222,14 @@ def pickle_cache(path):
                 if save_name is not None:
                     result.to_pickle(file_path)
             return result
+
         return new_func
+
     return decorate
 
+
 import datetime
+
 
 def minutely_cache(func):
     """
@@ -261,29 +271,34 @@ def minutely_cache(func):
         func(3)
         func(3)
     """
+
     @functools.wraps(func)
     def new_func(*args, **kwargs):
-        hour = datetime.datetime.utcnow().replace(second=0,microsecond=0)
+        hour = datetime.datetime.utcnow().replace(second=0, microsecond=0)
         return new_func.internal(*args, _hour=hour, **kwargs)
+
     def internal(*args, _hour=None, **kwargs):
         return func(*args, **kwargs)
+
     new_func.internal = functools.lru_cache(1)(internal)
     return new_func
 
 
 import time
 
+
 def loop_print(seconds: int):
     """
     Examples
     -----------------
     ::
-        
+
         @loop_print(1)
         def func(a, b):
             return 3
         func(1, b=2)
     """
+
     def decorate(func):
         @functools.wraps(func)
         def new_func(*args, **kwargs):
@@ -293,9 +308,11 @@ def loop_print(seconds: int):
                 kwargs_repr = [f"{k}={v!r}" for k, v in kwargs.items()]
                 signature = ", ".join(args_repr + kwargs_repr)
                 print(f"{func.__name__}({signature}): {res}")
-                for _ in range(seconds*5):
+                for _ in range(seconds * 5):
                     time.sleep(0.2)
+
         return new_func
+
     return decorate
 
 

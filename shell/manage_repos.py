@@ -78,4 +78,3 @@ if __name__ == "__main__":
         eval(f"{args.function}()")
     else:
         pull_all()
-

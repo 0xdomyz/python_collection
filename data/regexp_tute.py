@@ -74,12 +74,13 @@ Lookaround
 
 """
 
-#https://docs.python.org/3/library/re.html#regular-expression-examples
+# https://docs.python.org/3/library/re.html#regular-expression-examples
 
 
 import re
 
-def camel_to_snake(name:str)->str:
+
+def camel_to_snake(name: str) -> str:
     """
     Examples
     ---------------
@@ -94,10 +95,11 @@ def camel_to_snake(name:str)->str:
     >>> camel_to_snake('getHTTPResponseCode')
     'get_h_t_t_p_response_code'
     """
-    #pattern = re.compile(r'(?<!^)(?=[A-Z])')
-    return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
+    # pattern = re.compile(r'(?<!^)(?=[A-Z])')
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
-def camel_to_snake(name:str)->str:
+
+def camel_to_snake(name: str) -> str:
     """
     Examples
     ---------------
@@ -118,10 +120,11 @@ def camel_to_snake(name:str)->str:
     >>> camel_to_snake('__CamelCaseName')
     '___camel_case_name'
     """
-    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
 
-def to_snake_case(name:str)->str:
+
+def to_snake_case(name: str) -> str:
     """
     Examples
     ---------------
@@ -142,12 +145,13 @@ def to_snake_case(name:str)->str:
     >>> to_snake_case('__CamelCaseName')
     '__camel_case_name'
     """
-    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    name = re.sub('__([A-Z])', r'_\1', name)
-    name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name)
+    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    name = re.sub("__([A-Z])", r"_\1", name)
+    name = re.sub("([a-z0-9])([A-Z])", r"\1_\2", name)
     return name.lower()
 
-def snake_to_camel(name:str)->str:
+
+def snake_to_camel(name: str) -> str:
     """
     Examples
     -----------
@@ -158,7 +162,4 @@ def snake_to_camel(name:str)->str:
     >>> snake_to_camel('__snake_case_name')
     'SnakeCaseName'
     """
-    return ''.join(word.title() for word in name.split('_'))
-
-
-
+    return "".join(word.title() for word in name.split("_"))

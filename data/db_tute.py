@@ -1,8 +1,6 @@
-
 class Tbl:
-
     def __init__(self, base: str):
-        self._base = base#future: allow a base query
+        self._base = base  # future: allow a base query
         self._join_clause = list()
         self._cols = list()
         self._joins = list()
@@ -16,12 +14,12 @@ class Tbl:
             if with_sql == "":
                 with_sql = f"with {nme} as (\n{block}\n)"
             else:
-                with_sql =  with_sql + f", {nme} as (\n{block}\n)"
+                with_sql = with_sql + f", {nme} as (\n{block}\n)"
         select_sql = ""
         base_sql = ""
         join_sql = ""
 
-    def add_info(self, keys: list(str), cols, nme_maps: dict(str,str)):
+    def add_info(self, keys: list(str), cols, nme_maps: dict(str, str)):
         # 1 sql, fields, joins
         # 2 sql, fields, joins, withs
         pass
@@ -90,14 +88,16 @@ on {base}.albumid = {a}.albumid
     "alias": "y",
     "fields": """
 {a}.title album_title
-    """
+    """,
 }
+
 
 def bind(sql, data):
     new_sql = None
     return new_sql
 
-bind("select {a} from dual", {"a":"x"})
+
+bind("select {a} from dual", {"a": "x"})
 
 
 if __name__ == "__main__":
@@ -106,8 +106,9 @@ if __name__ == "__main__":
 
     if run_exploration:
         from dwopt import db
-        #data from `here <https://www.sqlitetutorial.net/wp-content/uploads/2018/03/chinook.zip>`_
-        #diagram `<https://www.sqlitetutorial.net/sqlite-sample-database/>`_
+
+        # data from `here <https://www.sqlitetutorial.net/wp-content/uploads/2018/03/chinook.zip>`_
+        # diagram `<https://www.sqlitetutorial.net/sqlite-sample-database/>`_
         d = db("sqlite:///data/chinook.db")
         d.list_tables()
         d.qry("albums").top()
@@ -116,9 +117,7 @@ if __name__ == "__main__":
         col2 = "ArtistId"
         # col1 = "ArtistId"
         # col2 = "AlbumId"
-        group_by = (
-            f"select {col1}, count(distinct {col2}) distinct_{col2} from albums group by {col1}"
-        )
+        group_by = f"select {col1}, count(distinct {col2}) distinct_{col2} from albums group by {col1}"
         d.qry(f"({group_by})").valc(f"distinct_{col2}")
 
         d.qry("albums").top()
@@ -143,14 +142,9 @@ if __name__ == "__main__":
         q.head()
         d.qry("albums").len()
 
-
     else:
         t = Tbl("invoices")
         t.add_info()
         print(t.sql)
         t.add_with_info()
         print(t.sql)
-
-
-
-
