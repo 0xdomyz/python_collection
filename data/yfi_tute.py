@@ -19,7 +19,7 @@ hist = bhp.history(period="max")
 
 audusd = yf.Ticker("AUDUSD=X").history(period="max")
 
-audusd.index = audusd.index.tz_convert('UTC').tz_convert(None)
+audusd.index = audusd.index.tz_convert("UTC").tz_convert(None)
 audusd = audusd.sort_index()
 audusd["start"] = audusd.index
 audusd["end"] = audusd["start"].shift(-1)
@@ -81,7 +81,5 @@ bhp.options
 bhp.news
 
 # get option chain for specific expiration
-opt = bhp.option_chain('YYYY-MM-DD')
+opt = bhp.option_chain("YYYY-MM-DD")
 # data available via: opt.calls, opt.puts
-
-
