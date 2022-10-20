@@ -6,28 +6,24 @@ Examples
 ----------
 Usage as cli::
 
-    python manage_repos.py
-    python manage_repos.py pull_all
-    python manage_repos.py make_html_all
+    python manage_repos.py -h
 
-Usage in python::
+Funcs are also usable as python func.
 
-    import manage_repos
-    manage_repos.pull_all()
-    manage_repos.make_html_all()
 """
 
-import subprocess
-from contextlib import contextmanager
 import os
-from pathlib import Path
+import subprocess
 from argparse import ArgumentParser
+from contextlib import contextmanager
+from pathlib import Path
 
 path = Path(__file__).parent
 parser = ArgumentParser()
 parser.add_argument(
     "-f", "--function", help="Use function, possible ones: pull_all, make_html_all"
 )
+parser.add_argument("-c", "--command", help="Run commands, e.g.: git status")
 
 
 @contextmanager
@@ -55,6 +51,16 @@ def pull_all():
                 print("\n" * 2)
 
 
+def run_cmds(cmd: str):
+    for dir in path.iterdir():
+        if dir.is_dir():
+            if (dir / ".gitignore").exists():
+                print(f"on: {dir.resolve()}")
+                print("-" * 80)
+                run_cmd_on_path(cmd, dir)
+                print("\n" * 2)
+
+
 def make_html_all():
     for dir in path.iterdir():
         if dir.is_dir():
@@ -76,5 +82,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.function is not None:
         eval(f"{args.function}()")
+    elif args.command is not None:
+        run_cmds(args.command)
     else:
         pull_all()
