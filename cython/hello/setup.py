@@ -1,8 +1,8 @@
-from setuptools import setup
 from Cython.Build import cythonize
+from setuptools import setup
 
 setup(
-    name="Hello world app",
+    name="new app",
     ext_modules=cythonize("hello.pyx"),
     zip_safe=False,
 )
