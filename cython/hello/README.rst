@@ -13,7 +13,7 @@ Setup tool:
 
 .. code-block:: console
 
-    python setup.py build_ext --inplace
+    python3.9 setup.py build_ext --inplace
 
 Jupyter::
 
