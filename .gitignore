@@ -2,6 +2,7 @@ configs/files/*
 *.csv
 !data/toydata/*.csv
 *.c
+*.html
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
