@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
-from example2 import apply_integrate_f
+from example3 import apply_integrate_f_wrap
 
 from example1 import integrate_f_typed
+from example2 import apply_integrate_f
 
 df = pd.DataFrame(
     {
@@ -42,5 +43,6 @@ ipython::
     %timeit apply_integrate_f(df["a"].to_numpy(), df["b"].to_numpy(), df["N"].to_numpy())
     %prun -l 4 apply_integrate_f(df["a"].to_numpy(), df["b"].to_numpy(), df["N"].to_numpy())
 
+    %timeit apply_integrate_f_wrap(df["a"].to_numpy(), df["b"].to_numpy(), df["N"].to_numpy())
 
 """

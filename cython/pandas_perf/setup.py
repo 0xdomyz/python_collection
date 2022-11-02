@@ -14,3 +14,9 @@ setup(
     ext_modules=cythonize("example2.pyx"),
     zip_safe=False,
 )
+
+setup(
+    name="new app",
+    ext_modules=cythonize("example3.pyx"),
+    zip_safe=False,
+)
