@@ -1,11 +1,35 @@
-"""
-# My first app
-Here's our first attempt at using data to create a table:
-"""
+# Run this app with `python app.py` and
+# visit http://127.0.0.1:8050/ in your web browser.
 
-import streamlit as st
 import pandas as pd
+import plotly.express as px
+from dash import Dash, dcc, html
 
-df = pd.DataFrame({"first column": [1, 2, 3, 4], "second column": [10, 20, 30, 40]})
+app = Dash(__name__)
 
-df
+# assume you have a "long-form" data frame
+# see https://plotly.com/python/px-arguments/ for more options
+df = pd.DataFrame(
+    {
+        "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
+        "Amount": [4, 1, 2, 2, 4, 5],
+        "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"],
+    }
+)
+
+fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
+
+app.layout = html.Div(
+    children=[
+        html.H1(children="Hello Dash"),
+        html.Div(
+            children="""
+        Dash: A web application framework for your data.
+    """
+        ),
+        dcc.Graph(id="example-graph", figure=fig),
+    ]
+)
+
+if __name__ == "__main__":
+    app.run_server(debug=True)
