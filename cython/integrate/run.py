@@ -1,8 +1,7 @@
 import time
 
-from integrate_cy import integrate_f as integrate_f_cy
-
 from integrate import integrate_f
+from integrate_cy import integrate_f as integrate_f_cy
 from integrate_cy_cdef import integrate_f as integrate_f_cy_cdef
 from integrate_cy_naive import integrate_f as integrate_f_cy_naive
 

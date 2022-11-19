@@ -1,5 +1,5 @@
-import seaborn as sns
 import matplotlib.pylab as plt
+import seaborn as sns
 
 plt.subplot()
 a, (b) = plt.subplots(gridspec_kw={})

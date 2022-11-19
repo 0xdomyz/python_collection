@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import matplotlib.pyplot as plt
 
 sns.set_theme(color_codes=True)
 tips = sns.load_dataset("tips")

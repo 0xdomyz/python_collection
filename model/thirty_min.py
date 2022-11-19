@@ -1,19 +1,17 @@
-import pandas as pd
-import numpy as np
-
 import category_encoders as ce
-import sklearn.preprocessing as prep
-import statsmodels.api as sm
-import sklearn.ensemble as ens
-from sklearn.compose import ColumnTransformer
-from sklearn.linear_model import LogisticRegression
+import numpy as np
+import pandas as pd
 import scipy
-import sklearn.metrics as metrics
-import sklearn.model_selection as select
-from sklearn.pipeline import make_pipeline
-
 # data
 import seaborn as sns
+import sklearn.ensemble as ens
+import sklearn.metrics as metrics
+import sklearn.model_selection as select
+import sklearn.preprocessing as prep
+import statsmodels.api as sm
+from sklearn.compose import ColumnTransformer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
 
 df = sns.load_dataset("titanic")
 df.head()

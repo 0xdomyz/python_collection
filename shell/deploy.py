@@ -1,6 +1,6 @@
+import os
 import subprocess
 from contextlib import contextmanager
-import os
 from pathlib import Path
 
 

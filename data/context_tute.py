@@ -24,6 +24,7 @@ with managed_resource() as resource:
 
 # db
 from contextlib import contextmanager
+
 from dwopt import lt
 
 
@@ -51,10 +52,11 @@ lt.exist("tmp_5678")
 
 # db from decorator
 import functools
+import time
 from contextlib import contextmanager
+
 import nanoid
 from dwopt import lt
-import time
 
 
 def temp_table_name() -> str:

@@ -13,6 +13,7 @@ print(prepared)
 # comprehensive
 from jinja2 import Environment, FileSystemLoader
 
+
 # based on strings
 def bind(template_str, *args, **kwargs):
     env = Environment()

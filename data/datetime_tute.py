@@ -12,6 +12,7 @@ Datetime objects
 
 import datetime
 import time
+
 import pytz
 
 print("\n" * 5)
@@ -93,8 +94,8 @@ dte = datetime.date.today()
 
 print("\n" * 5)
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 df = pd.DataFrame({"dt": [dt] * 5, "dte": [dte] * 5})
 df

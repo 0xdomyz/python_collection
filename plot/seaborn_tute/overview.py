@@ -1,6 +1,6 @@
+import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
-import pandas as pd
 
 
 def displot_cols(data, cols: list[str] = None):

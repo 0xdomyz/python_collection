@@ -1,10 +1,9 @@
 import datetime
 import random
 
+import duckdb
 import pandas
 import pandas as pd
-
-import duckdb
 
 con = duckdb.connect()
 

@@ -1,9 +1,10 @@
 """Analyse random data and make summary"""
-import pandas as pd
-import numpy as np
-import random
 import logging
+import random
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 # __file__ = r'E:\git_repo\python_collection\layout\interactive\analysis_logging.py'
 _module_path, _file_name = Path(__file__).parent, Path(__file__).stem

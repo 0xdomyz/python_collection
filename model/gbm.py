@@ -1,4 +1,5 @@
 from configparser import MAX_INTERPOLATION_DEPTH
+
 import lightgbm
 
 config = dict(num_leaves=5, max_depth=10, min_child_weight=0.2)

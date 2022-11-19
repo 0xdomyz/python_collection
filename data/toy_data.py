@@ -1,9 +1,9 @@
-import sklearn.datasets
-import seaborn as sns
-import pandas as pd
 from pathlib import Path
 from urllib.request import urlretrieve
 
+import pandas as pd
+import seaborn as sns
+import sklearn.datasets
 
 _DATA_DIR = Path(__file__).parent / "toydata"
 # _DATA_DIR = Path("").resolve() / "toydata"

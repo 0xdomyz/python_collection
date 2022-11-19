@@ -1,5 +1,5 @@
-import seaborn as sns
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 sns.set_theme(style="ticks", color_codes=True)
 

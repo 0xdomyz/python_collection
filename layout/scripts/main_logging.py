@@ -21,12 +21,13 @@ Examples
     cd /d python_collection\layout\scripts
     python main.py 0 100
 """
-import pandas as pd
-import numpy as np
-import random
 import logging
-from pathlib import Path
+import random
 import sys
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 _module_path, _file_name = Path(__file__).parent, Path(__file__).stem
 logger = logging.getLogger(__name__)

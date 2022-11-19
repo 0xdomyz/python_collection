@@ -1,10 +1,10 @@
-import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
-import statsmodels.formula.api as smf
-import statsmodels.api as sm
+from sklearn.preprocessing import StandardScaler
 
 df = pd.read_csv("us_change.csv")
 target = "Consumption"

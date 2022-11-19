@@ -1,5 +1,7 @@
 cimport numpy as np
+
 import numpy as np
+
 
 cdef double f_typed(double x) except? -2:
     return x * (x - 1)

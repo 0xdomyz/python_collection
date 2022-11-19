@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
-from example3 import apply_integrate_f_wrap
-
 from example1 import integrate_f_typed
 from example2 import apply_integrate_f
+from example3 import apply_integrate_f_wrap
 
 df = pd.DataFrame(
     {

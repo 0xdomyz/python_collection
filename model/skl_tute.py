@@ -22,8 +22,8 @@ clf.predict([[0, 1, 0]])
 
 
 """transform preproc"""
-from sklearn.preprocessing import StandardScaler
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 
 X = [[0, 15], [0.2, 10], [0.5, 0], [0.7, 10], [2, -15]]
 # scale data according to computed scaling values
@@ -34,12 +34,12 @@ x2 = [i[1] for i in X]
 
 
 """pipeline"""
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import make_pipeline
 from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 # create a pipeline object
 pipe = make_pipeline(StandardScaler(), LogisticRegression())
@@ -82,11 +82,10 @@ result["test_score"]  # r_squared score is high because dataset is easy
 
 
 """parameter search"""
+from scipy.stats import randint
 from sklearn.datasets import fetch_california_housing
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.model_selection import train_test_split
-from scipy.stats import randint
+from sklearn.model_selection import RandomizedSearchCV, train_test_split
 
 randint(5, 7).cdf(5.1)
 

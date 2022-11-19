@@ -1,7 +1,7 @@
+from sklearn.base import BaseEstimator, TransformerMixin, is_outlier_detector
+from sklearn.metrics import auc, mean_absolute_percentage_error, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, scale
-from sklearn.metrics import auc, roc_auc_score, mean_absolute_percentage_error
-from sklearn.base import BaseEstimator, TransformerMixin, is_outlier_detector
 
 x_train = 1
 y_train = 1

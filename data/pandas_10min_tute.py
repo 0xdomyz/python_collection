@@ -6,7 +6,6 @@ https://pandas.pydata.org/pandas-docs/stable/user_guide/10min.html
 import numpy as np
 import pandas as pd
 
-
 # object creation: series and dataframe
 
 #   read csv

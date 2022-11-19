@@ -1,8 +1,7 @@
 import os
-from pathlib import Path
-from glob import glob
 import sys
-
+from glob import glob
+from pathlib import Path
 
 if __name__ == "__main__":
     f = __file__

@@ -6,7 +6,7 @@ e: list = ["a", "b", "c"]
 f: tuple = (1, 2, 3)
 g: dict = {"a": 1, "b": 2}
 
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
 e: List[str] = ["a", "b", "c"]
 f: Tuple[int, int, int] = (1, 2, 3)

@@ -1,7 +1,7 @@
 # Libraries
+import janitor
 import numpy as np
 import pandas as pd
-import janitor
 
 # Sample Data curated for this example
 company_sales = {

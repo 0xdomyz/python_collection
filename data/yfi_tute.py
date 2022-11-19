@@ -2,9 +2,10 @@
 https://github.com/ranaroussi/yfinance
 """
 
-import yfinance as yf
 import datetime
+
 import pandas as pd
+import yfinance as yf
 
 bhp = yf.Ticker("BHP.AX")
 

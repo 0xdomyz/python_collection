@@ -44,8 +44,8 @@ def penalty(x):
     return 0.0
 
 
-from mystic.solvers import diffev2
 from mystic.monitors import VerboseMonitor
+from mystic.solvers import diffev2
 
 mon = VerboseMonitor(10)
 

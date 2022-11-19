@@ -1,5 +1,5 @@
-import scipy.stats as stat
 import numpy as np
+import scipy.stats as stat
 
 stat.binned_statistic()
 stat.norm.sf()

@@ -1,6 +1,9 @@
-cimport cython
 cimport numpy as np
+
+cimport cython
+
 import numpy as np
+
 
 cdef np.float64_t f_typed(np.float64_t x) except? -2:
     return x * (x - 1)
