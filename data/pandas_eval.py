@@ -5,26 +5,31 @@ nrows, ncols = 200000, 100
 
 df1, df2, df3, df4 = [pd.DataFrame(np.random.randn(nrows, ncols)) for _ in range(4)]
 
-#pd
-%timeit df1 + df2 + df3 + df4
+# pd
+"""
+::
 
-%timeit pd.eval("df1 + df2 + df3 + df4")
+    %timeit df1 + df2 + df3 + df4
 
-%timeit df1 * df2 + (df3 > df4)
+    %timeit pd.eval("df1 + df2 + df3 + df4")
 
-%timeit pd.eval("df1 * df2 + (df3 > df4)")
+    %timeit df1 * df2 + (df3 > df4)
 
-%timeit (df1 > 0) & (df2 > 0) & (df3 > 0) & (df4 > 0)
+    %timeit pd.eval("df1 * df2 + (df3 > df4)")
 
-%timeit pd.eval("(df1 > 0) & (df2 > 0) & (df3 > 0) & (df4 > 0)")
+    %timeit (df1 > 0) & (df2 > 0) & (df3 > 0) & (df4 > 0)
 
-s = pd.Series(np.random.randn(50))
+    %timeit pd.eval("(df1 > 0) & (df2 > 0) & (df3 > 0) & (df4 > 0)")
 
-%timeit df1 + df2 + df3 + df4 + s
+    s = pd.Series(np.random.randn(50))
 
-%timeit pd.eval("df1 + df2 + df3 + df4 + s")
+    %timeit df1 + df2 + df3 + df4 + s
 
-#df
+    %timeit pd.eval("df1 + df2 + df3 + df4 + s")
+
+"""
+
+# df
 df = pd.DataFrame(np.random.randn(5, 2), columns=["a", "b"])
 
 df.eval("a + b")
@@ -61,7 +66,7 @@ df.query("a > 2")
 
 df.query("a > 2", inplace=True)
 
-#local
+# local
 df = pd.DataFrame(np.random.randn(5, 2), columns=list("ab"))
 
 newcol = np.random.randn(len(df))
