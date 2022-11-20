@@ -2,7 +2,6 @@ import category_encoders as ce
 import numpy as np
 import pandas as pd
 import scipy
-# data
 import seaborn as sns
 import sklearn.ensemble as ens
 import sklearn.metrics as metrics
