@@ -5,6 +5,9 @@ configs/files/*
 *.html
 fig.png
 *.zip
+model/torch_tute/data/*
+model/torch_tute/model.pth
+!placeholder
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
