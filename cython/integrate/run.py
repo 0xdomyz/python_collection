@@ -1,3 +1,21 @@
+"""
+::
+
+    python3.9 setup.py build_ext --inplace
+
+    python3.9 run.py
+
+    # html report
+    cython -a integrate_cy.pyx
+    cython -a integrate_cy_cdef.pyx
+    cython -a integrate_cy_naive.pyx
+
+    explorer.exe integrate_cy.html
+    explorer.exe integrate_cy_cdef.html
+    explorer.exe integrate_cy_naive.html
+
+"""
+
 import time
 
 from integrate import integrate_f
@@ -23,6 +41,3 @@ if __name__ == "__main__":
     t = time.time()
     integrate_f_cy_cdef(*args)
     print(f"{time.time()-t = }")
-
-    # html report
-    # cython -a integrate_cy.pyx
