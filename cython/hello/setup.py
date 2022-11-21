@@ -1,3 +1,5 @@
+"""python3.9 setup.py build_ext --inplace"""
+
 from Cython.Build import cythonize
 from setuptools import setup
 
