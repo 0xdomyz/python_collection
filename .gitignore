@@ -4,6 +4,7 @@ configs/files/*
 *.c
 *.html
 fig.png
+*.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
