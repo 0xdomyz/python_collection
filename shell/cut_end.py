@@ -44,5 +44,6 @@ def duration(inp):
 
 if __name__ == "__main__":
     fname = ' "' + argv[1] + '"'
-    cutter(fname, 10)
+    t = int(argv[2])
+    cutter(fname, t)
     # fader(fname, 5)
