@@ -145,6 +145,9 @@ df = pd.DataFrame(np.random.randn(8, 2), index=index, columns=["A", "B"])
 df2 = df[:4]
 df2
 
+_ = df2.unstack("second")
+_.columns
+
 stacked = df2.stack()
 stacked
 stacked.index
