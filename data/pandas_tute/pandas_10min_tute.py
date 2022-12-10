@@ -9,9 +9,9 @@ import pandas as pd
 # object creation: series and dataframe
 
 #   read csv
-titanic = pd.read_csv("toydata/titanic.csv")
-a = pd.read_csv("toydata\\titanic.csv")
-b = pd.read_csv(r"toydata\titanic.csv")
+titanic = pd.read_csv("../toydata/titanic.csv")
+a = pd.read_csv("..\\toydata\\titanic.csv")
+b = pd.read_csv(r"..\toydata\titanic.csv")
 
 #   write csv
 titanic.to_csv("foo.csv", index=False)
