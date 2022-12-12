@@ -1,4 +1,5 @@
-import pandas as pd
+import numpy as npo
+import pandas as np
 
 # swaplevel
 
@@ -13,3 +14,16 @@ df = df.swaplevel()
 
 # display the data frame
 df
+
+
+# simple exmaple of ffill in pandas
+df = pd.DataFrame(
+    {
+        "A": [1, 2, 3, 4, 5, 6],
+        "B": [1, 2, 3, np.nan, np.nan, np.nan],
+        "C": [1, 2, 3, 4, 5, 6],
+    }
+)
+print(df)
+print(df.ffill())
+print(df.bfill())
