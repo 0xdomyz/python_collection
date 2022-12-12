@@ -37,7 +37,7 @@ grouped = df.groupby("A")
 
 grouped = df.groupby(["A", "B"])
 
-df2 = df.set_index(["A", "B"])
+df2 = df.set_index(["A", "B"])  # haivng index is good for performance
 
 grouped = df2.groupby(level=df2.index.names.difference(["B"]))
 
@@ -76,7 +76,7 @@ df2.groupby(["X"], sort=False).sum()
 
 df3 = pd.DataFrame({"X": ["A", "B", "A", "B"], "Y": [1, 4, 3, 2]})
 
-df3.groupby(["X"]).get_group("A")
+df3.groupby(["X"]).get_group("A")  # this is like filtering
 
 
 df3.groupby(["X"]).get_group("B")
@@ -136,11 +136,11 @@ s.groupby(level=["first", "second"]).sum()
 
 s.groupby(["first", "second"]).sum()
 
+# example of groupby with multiindex
 arrays = [
     ["bar", "bar", "baz", "baz", "foo", "foo", "qux", "qux"],
     ["one", "two", "one", "two", "one", "two", "one", "two"],
 ]
-
 
 index = pd.MultiIndex.from_arrays(arrays, names=["first", "second"])
 
@@ -148,13 +148,13 @@ df = pd.DataFrame({"A": [1, 1, 1, 1, 2, 2, 3, 3], "B": np.arange(8)}, index=inde
 
 df
 
-
 df.groupby([pd.Grouper(level=1), "A"]).sum()
 
 df.groupby([pd.Grouper(level="second"), "A"]).sum()
 
 df.groupby(["second", "A"]).sum()
 
+# example
 df = pd.DataFrame(
     {
         "A": ["foo", "bar", "foo", "bar", "foo", "bar", "foo", "foo"],
@@ -164,9 +164,7 @@ df = pd.DataFrame(
     }
 )
 
-
 df
-
 
 grouped = df.groupby(["A"])
 
@@ -223,3 +221,97 @@ df4
 
 
 df4.groupby("A")["B"].nunique()
+
+# example of pandas groupby, rank within group, comeback with top rank rows in each group
+df = pd.DataFrame(
+    {
+        "A": ["foo", "bar", "foo", "bar", "foo", "bar", "foo", "foo"],
+        "B": ["one", "one", "two", "three", "two", "two", "one", "three"],
+        "C": np.random.randn(8),
+        "D": np.random.randn(8),
+    }
+)
+df
+
+df["rank"] = df.groupby("A")["C"].rank(ascending=False)
+
+# filter down to only top ranks in group
+df[df["rank"] == 1]
+
+# do above in one groupby step
+df2 = df.groupby("A").apply(lambda x: x.loc[x["C"].rank(ascending=False) == 1])
+df2.reset_index(drop=True)
+
+
+# examples of pandas groupby advanced usages
+# set seed
+np.random.seed(123)
+df = pd.DataFrame(
+    {
+        "A": ["foo", "bar", "foo", "bar", "foo", "bar", "foo", "foo"],
+        "B": ["one", "one", "two", "three", "two", "two", "one", "three"],
+        "C": np.random.randn(8),
+        "D": np.random.randn(8),
+    }
+)
+df
+
+# simple groupby
+df.groupby("A").agg({"C": np.sum, "D": np.mean})
+df.groupby("A").agg({"C": np.sum, "D": lambda x: np.std(x, ddof=1)})
+
+# groupped object has useful methods: agg, transform, filter, apply
+grouped = df.groupby("A")
+
+grouped.agg(
+    {"C": np.sum, "D": lambda x: np.std(x, ddof=1)}
+)  # ddof is delta degrees of freedom
+
+grouped.transform(lambda x: (x - x.mean()) / x.std())
+# transform documentation says: Call function producing a like-indexed DataFrame
+# on each group and return a DataFrame having the same indexes as the original
+# #object filled with the transformed values
+
+grouped.filter(lambda x: x["C"].mean() > 0)
+# doco says filter: Return a copy of a DataFrame excluding elements from groups
+# that do not satisfy the boolean criterion specified by func.
+
+grouped.apply(lambda x: x.describe())
+grouped.apply(lambda x: x.max())
+# apply doco says: Invoke function on the DataFrame group and return a result
+# either a DataFrame or a Series depending on the function used.
+df.describe().pipe(type)
+
+# groupby with multiple columns
+grouped = df.groupby("A")
+grouped.agg({"C": "sum", "D": "mean"})
+
+# groupby with multiple columns, multiple aggregations
+grouped = df.groupby("A")
+grouped.agg({"C": ["sum", "min"], "D": ["mean", "max"]})
+
+# groupby with multiple columns, multiple aggregations, reset index
+grouped = df.groupby("A")
+grouped.agg({"C": ["sum", "min"], "D": ["mean", "max"]}).reset_index()
+
+# reset index with drop=True, level=0 means drop the first level of the index
+grouped = df.groupby("A")
+grouped.agg({"C": ["sum", "min"], "D": ["mean", "max"]}).reset_index(level=0, drop=True)
+
+# remove multi level column, this will be deprecated in future
+df2 = grouped.agg({"C": ["sum", "min"], "D": ["mean", "max"]})
+df2.columns = ["_".join(x) for x in df2.columns.ravel()]
+df2
+# another way is
+df2 = grouped.agg({"C": ["sum", "min"], "D": ["mean", "max"]})
+df2.columns = df2.columns.map("_".join)
+df2
+
+# groupby with multiple columns, multiple aggregations, reset index, rename columns
+# namedagg doco says NamedAgg is a namedtuple with attribute names column and aggfunc
+df.groupby("A").agg(
+    c_sum=pd.NamedAgg(column="C", aggfunc="sum"),
+    d_mean=pd.NamedAgg(column="D", aggfunc="mean"),
+)
+# another way to do above is
+df.groupby("A").agg(c_sum=("C", "sum"), d_mean=("D", "mean"))
