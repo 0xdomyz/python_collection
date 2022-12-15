@@ -55,15 +55,29 @@ def open_folder():
 if __name__ == "__main__":
     # use argparse to get day, month, year
     parser = argparse.ArgumentParser()
-    parser.add_argument("--day", type=int, default=None)
-    parser.add_argument("--month", type=int, default=None)
-    parser.add_argument("--year", type=int, default=None)
+    parser.add_argument(
+        "--date", type=str, default=None, help="Date (yyyy-mm-dd) to get wallpaper from"
+    )
+    # optional argument to extend date range
+    parser.add_argument(
+        "--weeks_prior", type=int, default=None, help="Number of weeks to extend range"
+    )
     args = parser.parse_args()
 
-    if args.day is None or args.month is None or args.year is None:
+    if args.date is None:
         date = datetime.date.today()
     else:
-        date = datetime.date(args.year, args.month, args.day)
+        year, month, day = args.date.split("-")
+        date = datetime.date(int(year), int(month), int(day))
 
-    get_wallpaper(date)
+    if args.weeks_prior is not None:
+        # list of dates
+        dates = [
+            date - datetime.timedelta(weeks=i) for i in range(args.weeks_prior + 1)
+        ]
+        for date in dates:
+            get_wallpaper(date)
+    else:
+        get_wallpaper(date)
+
     open_folder()
