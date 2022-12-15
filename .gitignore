@@ -9,6 +9,12 @@ model/torch_tute/data/*
 model/torch_tute/model.pth
 !placeholder
 *.mp3
+*.ignore
+web/wallpaper/pictures/*
+
+config.toml
+
+!.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
