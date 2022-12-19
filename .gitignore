@@ -1,20 +1,33 @@
-configs/files/*
+*.ignore
+
+#data
 *.csv
 !data/toydata/*.csv
+*.zip
+configs/files/*
+
+#outputs
 *.c
 *.html
 fig.png
-*.zip
+*.mp3
+
+#torch
 model/torch_tute/data/*
 model/torch_tute/model.pth
-!placeholder
-*.mp3
-*.ignore
-web/wallpaper/pictures/*
 
+#configs
 config.toml
 
+#virtual envs
+venvs/*
+
+#others
+web/wallpaper/pictures/*
+
+#folder struct
 !.gitkeep
+!placeholder
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
