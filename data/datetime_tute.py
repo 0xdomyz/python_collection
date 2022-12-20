@@ -2,12 +2,12 @@
 Datetime objects
 -----------------
 
-*. datetime.datetime
+- datetime.datetime
    iso_datetime
-*. datetime.date
+- datetime.date
    iso_date
-*. datetime.time
-*. time_stamp
+- datetime.time
+- time_stamp
 """
 
 import datetime
@@ -117,11 +117,60 @@ def floor_dt(dt: datetime.datetime, delta: datetime.timedelta) -> datetime.datet
     """
     Examples
     ------------
-    ::
-
-       import datetime
-       dt = datetime.datetime.utcnow(); dt
-       floor_dt(dt, datetime.timedelta(seconds=60))
-       floor_dt(dt, datetime.timedelta(seconds=15))
+    >>> import datetime
+    >>>
+    >>> dt = datetime.datetime.utcnow(); dt
+    datetime.datetime(2022, 12, 20, 3, 28, 49, 372246)
+    >>> floor_dt(dt, datetime.timedelta(seconds=60))
+    datetime.datetime(2022, 12, 20, 3, 28)
+    >>> floor_dt(dt, datetime.timedelta(seconds=15))
+    datetime.datetime(2022, 12, 20, 3, 28, 45)
     """
     return dt - (dt - datetime.datetime.min) % delta
+
+
+# find out earliest quarter end after the date
+def get_quarter_end(dt: datetime.datetime) -> datetime.datetime:
+    """
+    Examples
+    ------------
+    >>> import datetime
+    >>>
+    >>> dt = datetime.datetime.utcnow(); dt
+    datetime.datetime(2022, 12, 20, 3, 29, 25, 68229)
+    >>> get_quarter_end(dt)
+    datetime.datetime(2022, 12, 31, 0, 0)
+    >>>
+    >>> get_quarter_end(dt.replace(month=1))
+    datetime.datetime(2022, 3, 31, 0, 0)
+    >>> get_quarter_end(dt.replace(month=2))
+    datetime.datetime(2022, 3, 31, 0, 0)
+    >>> get_quarter_end(dt.replace(month=3))
+    datetime.datetime(2022, 3, 31, 0, 0)
+    >>> get_quarter_end(dt.replace(month=4))
+    datetime.datetime(2022, 6, 30, 0, 0)
+    >>> get_quarter_end(dt.replace(month=5))
+    datetime.datetime(2022, 6, 30, 0, 0)
+    >>> get_quarter_end(dt.replace(month=6))
+    datetime.datetime(2022, 6, 30, 0, 0)
+    >>> get_quarter_end(dt.replace(month=7))
+    datetime.datetime(2022, 9, 30, 0, 0)
+    >>> get_quarter_end(dt.replace(month=8))
+    datetime.datetime(2022, 9, 30, 0, 0)
+    >>> get_quarter_end(dt.replace(month=9))
+    datetime.datetime(2022, 9, 30, 0, 0)
+    >>> get_quarter_end(dt.replace(month=10))
+    datetime.datetime(2022, 12, 31, 0, 0)
+    >>> get_quarter_end(dt.replace(month=11))
+    datetime.datetime(2022, 12, 31, 0, 0)
+    """
+    dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    if dt.month < 4:
+        dt = dt.replace(month=3, day=31)
+    elif dt.month < 7:
+        dt = dt.replace(month=6, day=30)
+    elif dt.month < 10:
+        dt = dt.replace(month=9, day=30)
+    else:
+        dt = dt.replace(month=12, day=31)
+    return dt
