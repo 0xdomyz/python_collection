@@ -174,3 +174,23 @@ def get_quarter_end(dt: datetime.datetime) -> datetime.datetime:
     else:
         dt = dt.replace(month=12, day=31)
     return dt
+
+
+# differences between two dates in number of quarters
+def get_quarter_diff(dt1: datetime.datetime, dt2: datetime.datetime) -> int:
+    """
+    Examples
+    ------------
+    >>> import datetime
+    >>> get_quarter_diff(datetime.datetime(2022, 12, 31), datetime.datetime(2022, 9, 30))
+    1
+    >>> get_quarter_diff(datetime.datetime(2022, 12, 31), datetime.datetime(2022, 6, 30))
+    2
+    >>> get_quarter_diff(datetime.datetime(2022, 12, 31), datetime.datetime(2022, 3, 31))
+    3
+    >>> get_quarter_diff(datetime.datetime(2022, 12, 31), datetime.datetime(2021, 12, 31))
+    4
+    """
+    q1 = (dt1.year - 1) * 4 + (dt1.month - 1) // 3 + 1
+    q2 = (dt2.year - 1) * 4 + (dt2.month - 1) // 3 + 1
+    return q1 - q2
