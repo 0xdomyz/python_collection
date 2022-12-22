@@ -88,3 +88,30 @@ w = np.linalg.solve(e, f)
 # saving and loading arrays
 np.savetxt("a.txt", e)
 x = np.loadtxt("a.txt")
+
+# apply func to np array
+import numpy as np
+
+a = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+
+def func(x):
+    return str(x) + "1"
+
+
+b = np.apply_along_axis(func, 0, a)
+print(b)
+
+# apply func to each element in np array
+import numpy as np
+
+a = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+
+def func(x):
+    return str(x) + "1"
+
+
+b = np.vectorize(func)(a)
+
+print(b)
