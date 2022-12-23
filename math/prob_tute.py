@@ -38,3 +38,6 @@ plt.suptitle("Probability of having at least 1 success in n trials")
 plt.grid(b=True, which="major", color="k", linestyle="-", alpha=0.2)
 plt.grid(b=True, which="minor", color="k", linestyle="-", alpha=0.1)
 plt.show()
+
+# how much code did i write in this script? versus how much copilot write?
+# i wrote 2 lines of code, copilot wrote 20 lines of code
