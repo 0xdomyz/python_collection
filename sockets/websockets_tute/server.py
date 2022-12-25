@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+"""
+interactive client::
+
+    python3.9 -m websockets ws://localhost:8765/
+    Connected to ws://localhost:8765/.
+    > Hello world!
+    < Hello world!
+    Connection closed: 1000 (OK).
+"""
+
 import asyncio
 
 import websockets
