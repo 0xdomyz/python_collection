@@ -9,6 +9,7 @@ configs/files/*
 #outputs
 *.c
 *.html
+!index.html
 fig.png
 *.mp3
 
