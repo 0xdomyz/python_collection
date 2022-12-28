@@ -12,7 +12,7 @@ configs/files/*
 !index.html
 fig.png
 *.mp3
-asyncio_tute/foundurls.txt
+asyncio_tute/*/foundurls.txt
 
 #torch
 model/torch_tute/data/*
