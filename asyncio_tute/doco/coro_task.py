@@ -36,7 +36,6 @@ async def main():
 asyncio.run(main())
 
 # tasks
-#####################
 async def main():
     task1 = asyncio.create_task(say_after(1, "hello"))
 
@@ -167,6 +166,94 @@ async def main():
         factorial("C", 4),
     )
     print(L)
+
+
+asyncio.run(main())
+
+
+# timeout
+#####################
+async def main():
+    try:
+        async with asyncio.timeout(10):
+            await factorial()
+    except TimeoutError:
+        print("The long operation timed out, but we've handled it.")
+
+    print("This statement will run regardless.")
+
+
+asyncio.run(main())
+
+
+# wait for
+#####################
+async def eternity():
+    # Sleep for one hour
+    await asyncio.sleep(3600)
+    print("yay!")
+
+
+async def main():
+    # Wait for at most 1 second
+    try:
+        await asyncio.wait_for(eternity(), timeout=1.0)
+    except asyncio.exceptions.TimeoutError:
+        print("timeout!")
+
+
+asyncio.run(main())
+
+# to thread
+#####################
+import time
+
+
+def blocking_io():
+    print(f"start blocking_io at {time.strftime('%X')}")
+    # Note that time.sleep() can be replaced with any blocking
+    # IO-bound operation, such as file operations.
+    time.sleep(1)
+    print(f"blocking_io complete at {time.strftime('%X')}")
+
+
+async def main():
+    print(f"started main at {time.strftime('%X')}")
+
+    await asyncio.gather(asyncio.to_thread(blocking_io), asyncio.sleep(3))
+
+    print(f"finished main at {time.strftime('%X')}")
+
+
+asyncio.run(main())
+
+# task cancel
+#####################
+async def cancel_me():
+    print("cancel_me(): before sleep")
+
+    try:
+        # Wait for 1 hour
+        await asyncio.sleep(3600)
+    except asyncio.CancelledError:
+        print("cancel_me(): cancel sleep")
+        raise
+    finally:
+        print("cancel_me(): after sleep")
+
+
+async def main():
+    # Create a "cancel_me" Task
+    task = asyncio.create_task(cancel_me())
+
+    # Wait for 1 second
+    await asyncio.sleep(1)
+
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        print("main(): cancel_me is cancelled now")
 
 
 asyncio.run(main())
