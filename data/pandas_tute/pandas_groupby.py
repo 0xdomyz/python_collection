@@ -222,6 +222,9 @@ df4
 
 df4.groupby("A")["B"].nunique()
 
+# rank within group
+#######################
+
 # example of pandas groupby, rank within group, comeback with top rank rows in each group
 df = pd.DataFrame(
     {
@@ -242,6 +245,8 @@ df[df["rank"] == 1]
 df2 = df.groupby("A").apply(lambda x: x.loc[x["C"].rank(ascending=False) == 1])
 df2.reset_index(drop=True)
 
+# advanced
+##########
 
 # examples of pandas groupby advanced usages
 # set seed
