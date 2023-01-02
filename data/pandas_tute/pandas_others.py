@@ -18,7 +18,7 @@ df = df.swaplevel()
 # display the data frame
 df
 
-# unstak
+# unstack
 ###################
 
 # create a sample data frame with a MultiIndex
@@ -34,6 +34,39 @@ df = df.unstack()
 
 # display the data frame
 df
+
+# stack
+###################
+
+df
+
+# stack the data frame
+df = df.stack()
+
+# display the data frame
+df
+
+# drop
+###################
+
+# create a sample data frame
+df = pd.DataFrame(
+    {"A": [1, 2, 3], "B": [4, 5, 6], "C": [7, 8, 9]},
+    index=[["x", "x", "y"], ["a", "b", "a"]],
+)
+df
+
+# drop the index level 0
+df.drop("x", level=0)
+
+# drop by axis
+df.drop("A", axis=1)
+
+# drop by index
+df.drop(index="x")
+
+# drop by labels
+df.drop(labels="x")
 
 # ffil
 ###################

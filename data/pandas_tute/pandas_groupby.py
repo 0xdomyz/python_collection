@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 
+# tute in doco
+####################
+
 df = pd.DataFrame(
     [
         ("bird", "Falconiformes", 389.0),
@@ -137,6 +140,7 @@ s.groupby(level=["first", "second"]).sum()
 s.groupby(["first", "second"]).sum()
 
 # example of groupby with multiindex
+#########################################
 arrays = [
     ["bar", "bar", "baz", "baz", "foo", "foo", "qux", "qux"],
     ["one", "two", "one", "two", "one", "two", "one", "two"],
@@ -262,10 +266,12 @@ df = pd.DataFrame(
 df
 
 # simple groupby
+###########################
 df.groupby("A").agg({"C": np.sum, "D": np.mean})
 df.groupby("A").agg({"C": np.sum, "D": lambda x: np.std(x, ddof=1)})
 
 # groupped object has useful methods: agg, transform, filter, apply
+########################################################################
 grouped = df.groupby("A")
 
 grouped.agg(
@@ -287,7 +293,40 @@ grouped.apply(lambda x: x.max())
 # either a DataFrame or a Series depending on the function used.
 df.describe().pipe(type)
 
+# get_group
+grouped.get_group("bar")
+
+# groupped obj has useful attributes: groups, indices
+#####################################################
+grouped.groups
+grouped.indices
+
+# groupped obj slice a column then use series methods
+######################################################
+grouped["C"].sum()  # aggregation method
+grouped["C"].transform(lambda x: (x - x.mean()) / x.std())  # transformation
+grouped["C"].filter(lambda x: x.mean() > 0)  # filtering
+grouped["C"].apply(lambda x: x.describe())  # apply
+
+df
+
+# other series methods
+grouped["C"].pct_change()
+grouped["C"].rank()
+grouped["C"].diff()
+grouped["C"].shift()
+grouped["C"].cumsum()
+grouped["C"].cumprod()
+grouped["C"].cummax()
+grouped["C"].cummin()
+
+# expanding and rolling
+grouped["C"].expanding().sum()
+grouped["C"].rolling(3).sum()
+
+
 # groupby with multiple columns
+##########################################
 grouped = df.groupby("A")
 grouped.agg({"C": "sum", "D": "mean"})
 
