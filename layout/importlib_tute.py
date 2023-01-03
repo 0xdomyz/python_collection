@@ -24,12 +24,10 @@ from pathlib import Path
 path = Path(".") / "layout" / "importlib_tute_module.py"
 
 spec = importlib.util.spec_from_file_location("importlib_tute_module", path)
-
 module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
 
 module.func()
-
-# spec.loader.exec_module(module)
 
 # use __import__ to import a module
 ##########################################
