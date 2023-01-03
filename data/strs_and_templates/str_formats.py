@@ -41,6 +41,13 @@ f"abc {1.03+2*10:.2g} def"
 # percentage
 f"abc {1.03+2*10:.2%} def"
 
+# \! is conversion flag, r is repr
+f"abc {object} def"
+f"abc {object!r} def"  # same as repr(object)
+f"abc {object!s} def"  # same as str(object)
+f"abc {object!a} def"  # same as ascii(object)
+
+
 # alpha numeric
 ######################
 
