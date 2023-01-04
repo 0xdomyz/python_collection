@@ -35,7 +35,8 @@ df.loc[df.index.get_level_values("A").isin([1, 2, 3])]
 df.loc[(slice(None), [1, 2, 3]), :]
 # pd.indexSlice
 df.loc[pd.IndexSlice[:, [1, 2, 3]], :]
-
+# loc with axis arg
+df.loc(axis=0)[[1, 2, 3], :]
 
 # select cols based on col names
 df[["C", "D"]]
