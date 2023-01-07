@@ -98,8 +98,10 @@ if __name__ == "__main__":
     assert sys.version_info >= (3, 7), "Script requires Python 3.7+."
     here = pathlib.Path(__file__).parent
 
-    with open(here.joinpath("urls.txt")) as infile:
-        urls = set(map(str.strip, infile))
+    # with open(here.joinpath("urls.txt")) as infile:
+    #     urls = set(map(str.strip, infile))
+
+    urls = set(["https://regex101.com/", "https://www.google.com/"])
 
     outpath = here.joinpath("foundurls.txt")
     with open(outpath, "w") as outfile:
