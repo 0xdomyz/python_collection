@@ -163,3 +163,6 @@ def snake_to_camel(name: str) -> str:
     'SnakeCaseName'
     """
     return "".join(word.title() for word in name.split("_"))
+
+
+HREF_RE = re.compile(r'href="(.*?)"')
