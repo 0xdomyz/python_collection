@@ -13,6 +13,7 @@ configs/files/*
 fig.png
 *.mp3
 asyncio_tute/*/foundurls.txt
+web/scrap_pi/*.txt
 
 #torch
 model/torch_tute/data/*
