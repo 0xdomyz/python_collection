@@ -2,6 +2,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
+import talib
 
 # timestamps
 #################
@@ -51,8 +52,20 @@ r.max()
 r.apply(lambda x: x.max() - x.min())
 r.sum()
 
+# iterate over a rolling window, get the dataframe
+for i in r:
+    print(i)
+
 # expanding
-df.expanding(3).mean()
+e = df.expanding(3)
+# expanding is the same as rolling, but the window size is the entire dataframe
+e.sum()
+e.mean()
+
+# iterate over a expanding window, get the dataframe
+for i in e:
+    print(i)
+
 
 # shift, lag
 df.shift(3)
@@ -63,3 +76,34 @@ df.diff(4)
 
 # pct_change
 df.pct_change(3)
+
+# talib wma
+df.apply(lambda x: talib.WMA(x, timeperiod=3))
+# weighted moving average via pandas formula
+df.apply(lambda x: x.rolling(3).apply(lambda y: np.average(y, weights=[1, 2, 3])))
+
+# rolling rank
+df.apply(lambda x: x.rolling(3).apply(lambda y: y.rank().iloc[-1]))
+# why iloc[-1]? because the rank is calculated on the entire window, not just the last value
+
+# rolling correlation
+df.apply(lambda x: x.rolling(3).corr(df["A"]))
+
+# rolling covariance
+df.apply(lambda x: x.rolling(3).cov(df["A"]))
+
+# rolling product
+df.apply(lambda x: x.rolling(3).apply(lambda y: y.product()))
+
+# rolling formula
+df.apply(lambda x: x.rolling(3).apply(lambda y: y.iloc[0] * y.iloc[1] * y.iloc[2]))
+
+# rolling apply np argmax
+df.apply(lambda x: x.rolling(3).apply(lambda y: y.argmax()))
+# add 1 to the result to get the correct index
+df.apply(lambda x: x.rolling(3).apply(lambda y: y.argmax() + 1))
+# np argmax example
+np.argmax([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+# rolling apply np argmin
+df.apply(lambda x: x.rolling(3).apply(lambda y: y.argmin()))
