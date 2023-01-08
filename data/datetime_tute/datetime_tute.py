@@ -194,3 +194,29 @@ def get_quarter_diff(dt1: datetime.datetime, dt2: datetime.datetime) -> int:
     q1 = (dt1.year - 1) * 4 + (dt1.month - 1) // 3 + 1
     q2 = (dt2.year - 1) * 4 + (dt2.month - 1) // 3 + 1
     return q1 - q2
+
+
+# find 3 month earlier date if the date is last day of the month
+def get_3m_earlier(dt: datetime.datetime) -> datetime.datetime:
+    """
+    Examples
+    ------------
+    >>> import datetime
+    >>>
+    >>> get_3m_earlier(datetime.datetime(2022, 12, 31))
+    datetime.datetime(2022, 9, 30, 0, 0)
+    >>> get_3m_earlier(datetime.datetime(2022, 9, 30))
+    datetime.datetime(2022, 6, 30, 0, 0)
+    >>> get_3m_earlier(datetime.datetime(2022, 6, 30))
+    datetime.datetime(2022, 3, 31, 0, 0)
+    >>> get_3m_earlier(datetime.datetime(2022, 3, 31))
+    datetime.datetime(2021, 12, 31, 0, 0)
+    """
+    dt = dt + datetime.timedelta(days=1)
+    month = dt.month
+    if month < 4:
+        month = 12 + month - 3
+    else:
+        month -= 3
+    dt = dt.replace(month=month)
+    return dt - datetime.timedelta(days=1)
