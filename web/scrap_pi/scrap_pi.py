@@ -3,39 +3,6 @@ from pathlib import Path
 # __file__ = "web/scrap_pi/scrap_pi.py"
 here = Path(__file__).parent.absolute()
 
-# via requests
-###################
-import os
-import urllib.request
-
-import requests
-from bs4 import BeautifulSoup
-
-url = "https://www.pinterest.com/search/pins/?q=food&rs=typed&term_meta[]=food%7Ctyped"
-
-headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"
-}
-
-
-def scrap_pinterest(url):
-    page = requests.get(url, headers=headers)
-    soup = BeautifulSoup(page.content, "html.parser")
-
-    # layout structure of the soup object, write to a file
-    with open("soup.txt", "w") as f:
-        f.write(soup.prettify())
-
-    images = soup.find_all("jpg")
-    for image in images:
-        image_url = image["src"]
-        # get image
-        urllib.request.urlretrieve(image_url, os.path.basename(image_url))
-
-
-scrap_pinterest(url)
-
-
 # use selenium
 ###################################
 import os
@@ -44,7 +11,9 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-url = "https://www.pinterest.com.au/search/pins/?q=jetfighter&rs=typed"
+word = "jetfighter"
+
+url = f"https://www.pinterest.com.au/search/pins/?q={word}&rs=typed"
 
 driver = webdriver.Firefox()
 
@@ -57,6 +26,8 @@ for i in range(10):
 
 # get the page source
 page_source = driver.page_source
+# with open("page_source.txt", "w") as f:
+#     f.write(page_source)
 
 # get image tags
 soup = BeautifulSoup(page_source, "lxml")
@@ -82,32 +53,28 @@ import asyncio
 from aiohttp import ClientSession
 
 
-async def fetch(url, session):
+async def fetch(image, session):
+    url = image["src"]
     async with session.get(url) as response:
-        return await response.read()
+        image["content"] = await response.read()
 
 
-async def run(urls):
+async def run(images):
     tasks = []
     async with ClientSession() as session:
-        for url in urls:
-            task = asyncio.ensure_future(fetch(url, session))
+        for image in images:
+            task = asyncio.ensure_future(fetch(image, session))
             tasks.append(task)
-        responses = await asyncio.gather(*tasks)
-        return responses
+        await asyncio.gather(*tasks)
 
 
 # limit how many aync requests are made at once
 
 loop = asyncio.get_event_loop()
-future = asyncio.ensure_future(run(image_urls))
-responses = loop.run_until_complete(future)
+future = asyncio.ensure_future(run(images))
+loop.run_until_complete(future)
 
 # save images to a folder
-for i, response in enumerate(responses):
-    with open(here / "images" / f"image_{i}.jpg", "wb") as f:
-        f.write(response)
-
-# write to a file
-with open("page_source.txt", "w") as f:
-    f.write(page_source)
+for image in images:
+    with open(here / "images" / image["filename"], "wb") as f:
+        f.write(image["content"])
