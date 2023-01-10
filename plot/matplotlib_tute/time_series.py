@@ -72,6 +72,16 @@ plt.legend()
 plt.xticks(df.index[::2])
 plt.show()
 
+# same as above, but more automated
+cols = ["A", "B", "C"]
+bottom = np.zeros(len(df.index))
+for col in cols:
+    plt.bar(df.index, df[col], label=col, bottom=bottom)
+    bottom += df[col]
+plt.legend()
+plt.xticks(df.index[::2])
+plt.show()
+
 
 # time series stacked bar with line in secondary axis chart
 ###########################################################
