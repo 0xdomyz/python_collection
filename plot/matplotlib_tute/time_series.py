@@ -104,19 +104,25 @@ plt.show()
 # plot df_q's A column as time series bar charts, via matplotlib
 x_pos = range(len(df_q.index))
 plt.bar(x_pos, df_q["A"], label="A", color="gray")
+plt.legend(loc="upper left")
 # secondary axis
 plt.twinx()
-plt.plot(x_pos, df2["A"], label="A", color="red", linestyle="-")
+plt.plot(x_pos, df2["B"], label="B_pct", color="red", linestyle="-")
 # xticks less dense and show as date
 index_as_date_str = df_q.index.strftime("%Y-%m-%d")
 plt.xticks(x_pos[::2], index_as_date_str[::2], rotation=45)
 # x axis from after 2001-03-31
 left_pos = df_q.index.get_loc("2001-03-31")
 plt.xlim(left=left_pos)
+# title
+plt.title("Bar and Line")
+# legend show line
+plt.legend(loc="upper right")
 # tight layout
 plt.tight_layout()
 plt.show()
-
+# save figure instead of showing
+plt.savefig("bar_and_line.png")
 
 # time series line chart with two subplots
 ############################################
