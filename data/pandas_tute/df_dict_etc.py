@@ -45,3 +45,30 @@ df = pd.DataFrame.from_dict(d, orient="index")
 df.reset_index(inplace=True)
 df.columns = ["col1", "col2"]
 df
+
+# series to df
+#################
+a = pd.Series([1, 2, 3])
+b = pd.Series([4, 5, 6])
+
+# series to rows
+pd.DataFrame([a, b])
+
+# series as cols
+df = pd.DataFrame({"a": a, "b": b})
+df
+
+# df to series
+#################
+df.columns
+df["a"]
+df["b"]
+
+for i in df.columns:
+    print(df[i])
+
+# as dict of dict
+df.to_dict()
+
+# as dict of series
+df.to_dict("series")
