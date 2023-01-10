@@ -13,10 +13,27 @@ df.index.name = index_name
 
 df
 
+# example data, of time series data
+df2 = pd.DataFrame(
+    {
+        "A": [1, 2, 3, 4, 5],
+        "B": [2, 3, 4, 5, 6],
+        "C": [3, 4, 5, 6, 7],
+    }
+)
+df2.set_index(pd.date_range("2022-01-01", periods=5), inplace=True)
+df2
+# last row as a series
+bar_series = df2.iloc[-1]
+
 # bar chart of a column
 # ############################
 # plot df's F column as bar chart, via matplotlib
 plt.bar(df.index, df["F"])
+plt.show()
+
+# bar chart of a series
+plt.bar(bar_series.index, bar_series)
 plt.show()
 
 # staked bar chart

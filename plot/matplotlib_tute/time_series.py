@@ -29,6 +29,36 @@ plt.show()
 df[["A", "B", "C"]].plot()
 plt.show()
 
+# datetime index series
+#########################
+a = pd.Series(np.random.randn(10))
+a.index = pd.Series(pd.date_range("2000-03-04", periods=10))
+b = pd.Series(np.random.randn(10))
+# different index but have overlap periods
+b.index = pd.Series(pd.date_range("2000-03-07", periods=10))
+
+a
+b
+a + b  # has values in overlap periods
+
+# union of a.index and b.index
+np.union1d(a.index, b.index)
+union = (a + b).index
+union
+
+# diff of index
+pd.Series(sorted(list(set(a.index) - set(b.index))))
+
+# join 2 datetime series with diff index
+df = pd.DataFrame({"a": a, "b": b})
+df
+
+# join a list of datetime series with diff index
+serieses = [a, b]
+names = ["a", "b"]
+df = pd.concat(serieses, axis=1, keys=names)
+df
+
 # time series line chart
 ############################
 # plot df's A,B,C columns as time series line charts, via matplotlib
