@@ -110,6 +110,9 @@ plt.plot(x_pos, df2["A"], label="A", color="red", linestyle="-")
 # xticks less dense and show as date
 index_as_date_str = df_q.index.strftime("%Y-%m-%d")
 plt.xticks(x_pos[::2], index_as_date_str[::2], rotation=45)
+# x axis from after 2001-03-31
+left_pos = df_q.index.get_loc("2001-03-31")
+plt.xlim(left=left_pos)
 # tight layout
 plt.tight_layout()
 plt.show()
