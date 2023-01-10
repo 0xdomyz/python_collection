@@ -10,6 +10,12 @@ df = pd.DataFrame(np.abs(np.random.randn(10, 5)) * 1000, columns=list("ABCDE"))
 df.set_index(pd.date_range("1/1/2000", periods=10), inplace=True)
 df
 
+# same as above but dates are quarter ends
+df_q = pd.DataFrame(np.abs(np.random.randn(10, 5)) * 1000, columns=list("ABCDE"))
+df_q.set_index(pd.date_range("1/1/2000", periods=10, freq="Q"), inplace=True)
+df_q
+
+
 # example time series data of positive percentage rates, dim is (10 by 5)
 df2 = pd.DataFrame(np.abs(np.random.randn(10, 5)) * 0.1, columns=list("ABCDE"))
 df2.set_index(pd.date_range("1/1/2000", periods=10), inplace=True)
@@ -92,6 +98,22 @@ plt.twinx()
 plt.plot(df2.index, df2["A"], label="A", color="black", linestyle="--")
 plt.xticks(df.index[::2])
 plt.show()
+
+# bar plot and line on second axis where dates are far apart
+#####################################
+# plot df_q's A column as time series bar charts, via matplotlib
+x_pos = range(len(df_q.index))
+plt.bar(x_pos, df_q["A"], label="A", color="gray")
+# secondary axis
+plt.twinx()
+plt.plot(x_pos, df2["A"], label="A", color="red", linestyle="-")
+# xticks less dense and show as date
+index_as_date_str = df_q.index.strftime("%Y-%m-%d")
+plt.xticks(x_pos[::2], index_as_date_str[::2], rotation=45)
+# tight layout
+plt.tight_layout()
+plt.show()
+
 
 # time series line chart with two subplots
 ############################################
