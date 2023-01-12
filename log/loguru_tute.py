@@ -43,14 +43,55 @@ logger.remove()
 logger.add(sink=sys.stderr, level="INFO")
 
 # add a file handler
+###########################
+logger.remove()
 logger.add("log/loguru_tute.log", rotation="10 MB")
 
+# generate a large amount of logs
+large_text = "1" * 1000000
+for i in range(20):
+    logger.log("INFO", large_text)
+
+
+# get rid of the old log file
+import datetime
+import os
+import re
+
+old_date = datetime.datetime.now() - datetime.timedelta(days=30)
+
+# list out the log files
+log_files = os.listdir("log")
+
+# delete the old log files
+for file in log_files:
+    condition = (
+        file.endswith(".log") or file.endswith(".log.gz") or file.endswith(".log.zip")
+    ) and file.startswith("loguru_tute")
+    if condition:
+        # use RE to find the date in this format
+        # in: loguru_tute.2023-01-12_23-33-35_525469.log
+        # out: 2023-01-12
+        searched = re.search(r"\d{4}-\d{2}-\d{2}", file)
+        if searched:
+            date = searched.group()
+            date = datetime.datetime.strptime(date, "%Y-%m-%d")
+            if date < old_date:
+                print("Deleting: ", file)
+                os.remove(os.path.join("log", file))
+
+
+# add a file handler
+###########################
 # rotations via time periods
 logger.add("log/loguru_tute.log", rotation="00:00")
 logger.add("log/loguru_tute.log", rotation="1 month")
 
 # compression
 logger.add("log/loguru_tute.log", compression="zip")
+
+# rotation and compression
+logger.add("log/loguru_tute.log", rotation="10 MB", compression="zip")
 
 # log from an external module
 from log.loguru_module_tute import make_log
