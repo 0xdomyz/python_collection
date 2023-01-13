@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+# probability of having at least 1 success in 5 trials, if success rate is x chart
+###########################################################
 
 # probability of having at least 1 success in 5 trials, if success rate is x
 def prob(x, n=5):
@@ -41,3 +43,40 @@ plt.show()
 
 # how much code did i write in this script? versus how much copilot write?
 # i wrote 2 lines of code, copilot wrote 20 lines of code
+
+# probability of getting a value less than 0.5 on matrix
+###########################################################
+
+# example matrix
+mat = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]) * 0.1
+mat
+
+# normal distribution probability
+from scipy.stats import norm
+
+# probability of getting a value less than 0.5
+norm.cdf(0.5)
+
+# probability of getting a value less than 0.5, with mean 0.2 and standard deviation 0.1
+norm.cdf(0.5, loc=0.2, scale=0.1)
+
+# prob cdf applied to matrix
+res = norm.cdf(mat)
+res
+
+# get last column
+res.T[-1]
+last_col_as_array = res[:, -1]
+last_col_as_array
+
+# get all cols except last
+res.T[:-1]
+non_last_cols = res[:, :-1]
+non_last_cols
+
+
+# stitch back
+stitched = np.hstack((non_last_cols, last_col_as_array.reshape(-1, 1)))
+stitched
+
+np.allclose(stitched, res)
