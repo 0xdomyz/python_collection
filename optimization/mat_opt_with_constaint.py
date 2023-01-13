@@ -159,6 +159,68 @@ def plot_matrix_as_3d_surface(mat: np.ndarray):
 plot_matrix_as_3d_surface(mat=np.random.randint(0, 10, size=(10, 10)))
 plt.show()
 
+# save 3d surface plot
+###############################
+
+fig, ax = plot_matrix_as_3d_surface(mat=np.random.randint(0, 10, size=(10, 10)))
+
+# save 3d surface plot as png
+fig.savefig("test.png")
+
+# save 3d surface plot as svg
+fig.savefig("test.svg")
+
+# save 3d surface plot as pdf
+fig.savefig("test.pdf")
+
+# save 3d surface plot as eps
+fig.savefig("test.eps")
+
+# save 3d surface plot as ps
+fig.savefig("test.ps")
+
+# save 3d surface plot as pgf
+fig.savefig("test.pgf")
+
+# save 3d surface plot as raw data
+fig.savefig("test.raw")
+
+# save 3d surface plot as rgba
+fig.savefig("test.rgba")
+
+# save 3d surface plot as svgz
+fig.savefig("test.svgz")
+
+# save 3d surface plot as tif
+fig.savefig("test.tif")
+
+# save 3d surface plot as tiff
+fig.savefig("test.tiff")
+
+# save 3d surface plot as jpeg
+fig.savefig("test.jpeg")
+
+# save 3d surface plot as png, but at another view angle
+
+# default view
+ax.view_init(azim=-60, elev=30)
+fig.savefig("test.png")
+
+azim_range = np.arange(-360, 360, 30)
+
+for azim in azim_range:
+    ax.view_init(azim=azim, elev=30)
+    # show sign of azim in file name
+    fig.savefig(f"test_azim_{azim:+}.png")
+
+# slight to the left
+ax.view_init(azim=-20, elev=30)
+fig.savefig("test_left.png")
+
+# slight to the right
+ax.view_init(azim=-80, elev=30)
+fig.savefig("test_right.png")
+
 
 # use mystic to minimize MSE of a matrix in relation to list of matrixes
 # with constraint
