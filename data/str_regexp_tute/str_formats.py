@@ -47,6 +47,13 @@ f"abc {object!r} def"  # same as repr(object)
 f"abc {object!s} def"  # same as str(object)
 f"abc {object!a} def"  # same as ascii(object)
 
+# show sign +, -, or space
+f"abc {1+2:+} def"
+f"abc {1+2:-} def"
+number = 1 + 2
+f"abc {number:+} def"
+number = -2
+f"abc {number:+} def"
 
 # alpha numeric
 ######################
