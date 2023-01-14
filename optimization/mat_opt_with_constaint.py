@@ -159,6 +159,40 @@ def plot_matrix_as_3d_surface(mat: np.ndarray):
 plot_matrix_as_3d_surface(mat=np.random.randint(0, 10, size=(10, 10)))
 plt.show()
 
+
+# plot 2 3d surfaces using plt
+#####################################
+import matplotlib.pyplot as plt
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+
+mat1 = mats[0]
+mat2 = mats[1]
+
+# x, y coordinates of the matrixes via size
+nrows, ncols = mat1.shape
+if nrows != ncols:
+    raise ValueError("matrix must be square")
+size = nrows
+row_idx = np.arange(size)
+col_idx = np.arange(size)
+row_idx, col_idx = np.meshgrid(row_idx, col_idx)
+
+# plot
+fig = plt.figure()
+ax = Axes3D(fig, auto_add_to_figure=False)
+fig.add_axes(ax)
+
+x = row_idx.flatten()
+y = col_idx.flatten()
+
+z = mat1.flatten()
+surf = ax.plot_trisurf(x, y, z, linewidth=0.1, label="mat1", color="r", alpha=0.9)
+z = mat2.flatten()
+surf = ax.plot_trisurf(x, y, z, linewidth=0.1, label="mat2", color="b", alpha=0.4)
+fig.colorbar(surf, shrink=0.5, aspect=5)
+plt.show()
+
 # save 3d surface plot
 ###############################
 
