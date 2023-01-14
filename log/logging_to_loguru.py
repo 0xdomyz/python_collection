@@ -27,8 +27,19 @@ class InterceptHandler(logging.Handler):
 
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 
+# set log level for logging logger
 logging_logger = logging.getLogger(__name__)
 logging_logger.setLevel(logging.INFO)
+
+logging_logger.info("This is a test message")
+logging_logger.debug("This is a test message")
+
+# alternatively set log level for loguru logger
+logger.remove()
+logger.add(sys.stderr, level="INFO")
+
+logger.info("This is a test message")
+logger.debug("This is a test message")
 
 logging_logger.info("This is a test message")
 logging_logger.debug("This is a test message")
