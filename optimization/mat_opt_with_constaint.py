@@ -159,6 +159,48 @@ def plot_matrix_as_3d_surface(mat: np.ndarray):
 plot_matrix_as_3d_surface(mat=np.random.randint(0, 10, size=(10, 10)))
 plt.show()
 
+plot_matrix_as_3d_surface(mat=np.random.randint(0, 10, size=(5, 5)))
+plt.show()
+
+plot_matrix_as_3d_surface(mat=np.random.randint(0, 10, size=(4, 4)))
+plt.show()
+
+# make a saddle shape matrix
+mat = np.zeros((10, 10))
+for i in range(10):
+    for j in range(10):
+        mat[i, j] = i * j
+
+plot_matrix_as_3d_surface(mat=mat)
+plt.show()
+
+# make a matrix where the diagonal is larger than slowly decreasing values to the sides
+mat = np.zeros((10, 10))
+for i in range(10):
+    for j in range(10):
+        mat[i, j] = 10 - i - j
+
+plot_matrix_as_3d_surface(mat=mat)
+plt.show()
+
+# another
+mat = np.zeros((10, 10))
+for i in range(10):
+    for j in range(10):
+        mat[i, j] = i + j
+
+plot_matrix_as_3d_surface(mat=mat)
+plt.show()
+
+# another matrix
+mat = np.zeros((10, 10))
+for i in range(10):
+    for j in range(10):
+        mat[i, j] = 10 - abs(i - j)
+
+plot_matrix_as_3d_surface(mat=mat)
+plt.show()
+
 
 # plot 2 3d surfaces using plt
 #####################################
@@ -188,8 +230,61 @@ y = col_idx.flatten()
 
 z = mat1.flatten()
 surf = ax.plot_trisurf(x, y, z, linewidth=0.1, label="mat1", color="r", alpha=0.9)
+
 z = mat2.flatten()
 surf = ax.plot_trisurf(x, y, z, linewidth=0.1, label="mat2", color="b", alpha=0.4)
+plt.show()
+
+
+# plot mat differences
+##############################
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+
+mat_diff = mat1 - mat2
+
+# x, y coordinates of the matrixes via size
+nrows, ncols = mat_diff.shape
+if nrows != ncols:
+    raise ValueError("matrix must be square")
+size = nrows
+row_idx = np.arange(size)
+col_idx = np.arange(size)
+row_idx, col_idx = np.meshgrid(row_idx, col_idx)
+
+# plot
+fig = plt.figure()
+ax = Axes3D(fig, auto_add_to_figure=False)
+fig.add_axes(ax)
+
+x = row_idx.flatten()
+y = col_idx.flatten()
+
+z = mat_diff.flatten()
+surf = ax.plot_trisurf(
+    x, y, z, linewidth=0.1, label="mat_diff", alpha=0.9, cmap=cm.coolwarm
+)
+
+# add surface representing the zero line
+# z = np.zeros_like(z)
+# surf = ax.plot_trisurf(x, y, z, linewidth=0.1, label="zero", alpha=0.5, color="k")
+
+# add points grid representing the zero line
+# z = np.zeros_like(z)
+# ax.scatter(x, y, z, c="k", marker="o", alpha=0.5)
+
+# add lines representing the zero line
+# z = np.zeros_like(z)
+# ax.plot(x, y, z, c="k", alpha=0.5)
+
+# add lines representing a large value line and a small value line
+z = np.ones_like(z) * 10
+ax.plot_trisurf(x, y, z, linewidth=0.1, label="large", alpha=0.5, color="k")
+z = np.ones_like(z) * -10
+ax.plot_trisurf(x, y, z, linewidth=0.1, label="small", alpha=0.5, color="k")
+
 fig.colorbar(surf, shrink=0.5, aspect=5)
 plt.show()
 
@@ -253,6 +348,7 @@ fig.savefig("test_left.png")
 
 # slight to the right
 ax.view_init(azim=-80, elev=30)
+
 fig.savefig("test_right.png")
 
 
