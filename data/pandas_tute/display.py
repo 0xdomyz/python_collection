@@ -46,4 +46,8 @@ df.style.background_gradient(cmap="Blues").to_html("test.html")
 
 # cmap of red to green scale
 df = pd.DataFrame(np.random.randn(20, 20))
-df.style.background_gradient(cmap="RdYlGn").to_html("test.html")
+df = df.style.background_gradient(cmap="RdYlGn")
+df.to_html("test.html")
+
+# find out colnames
+df.columns
