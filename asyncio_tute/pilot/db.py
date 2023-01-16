@@ -8,21 +8,31 @@ from sqlalchemy.orm import sessionmaker
 
 # create the engine
 engine = create_async_engine(
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres",
+    "postgresql+asyncpg://test_db_user:1234@localhost/test_db",
     echo=True,
 )
 
 # create a configured "Session" class
 Session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
-# run the code
-async def main():
+
+# async func to run a long running query
+async def long_running_query():
     async with Session() as session:
         # run a statement
+        print("running long running query")
         result = await session.execute(
-            sa.select(sa.func.count("*")).select_from(sa.table("users"))
+            "SELECT count(*) FROM iris WHERE sepal_length > 5"
         )
+        print("long running query done")
         print(result.scalar())
+
+
+async def main():
+    res = await asyncio.gather(
+        long_running_query(), long_running_query(), long_running_query()
+    )
+    print(res)
 
 
 if __name__ == "__main__":
