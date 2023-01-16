@@ -220,3 +220,8 @@ def get_3m_earlier(dt: datetime.datetime) -> datetime.datetime:
         month -= 3
     dt = dt.replace(month=month)
     return dt - datetime.timedelta(days=1)
+
+
+# build datetime from string
+datetime.datetime.strptime("2021-12-31", "%Y-%m-%d")
+datetime.datetime.fromisoformat("2021-12-31")
