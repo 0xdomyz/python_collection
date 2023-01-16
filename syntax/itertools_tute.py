@@ -71,3 +71,10 @@ items = ["A", "B", "C"]
 accumulate_items(items)
 accumulate_items([1, 2, 3, 4])
 accumulate_items(["asdfasd", "asdfasdf", "asdfasdfasdf"])
+
+# list
+##############
+lst = [1, 2, 3, 4, 5]
+
+# find out position of 3
+lst.index(3)
