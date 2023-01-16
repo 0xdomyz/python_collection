@@ -7,6 +7,34 @@ A
 # sum over rows
 A.sum(axis=1)
 
+# test if sum over row is not 0
+A.sum(axis=1) != 0
+# as 1, else 0
+np.where(A.sum(axis=1) != 0, 1, 0)
+
+# element wise sum of 2 arrays
+A = np.array([1, 2, 3])
+B = np.array([4, 5, 6])
+
+lsts = [A, B]
+np.sum(lsts, axis=0)
+
+# matrix add 1 more row
+A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+A
+
+zeros = np.zeros(A.shape[1])
+zeros
+np.vstack((A, zeros))
+
+np.vstack((A, np.array([10, 11, 12])))
+
+# fill na with 0
+B = np.array([[1, 2, 3], [4, 5, 6], [7, 8, np.nan]])
+B
+np.nan_to_num(B)
+
+
 # ratio over sum of rows
 A / A.sum(axis=1).reshape(-1, 1)
 
@@ -108,3 +136,53 @@ A = np.array(np.random.randint(0, 10, size=(5, 5)))
 A
 A.T
 np.all(A == A.T)
+
+# sum of list of matrices
+################
+A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+B = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+C = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+lst = [A, B, C]
+
+np.sum(lst, axis=0)
+np.sum(lst, axis=1)
+
+# division
+###############
+A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+A / 2
+A / np.array([1, 2, 3])
+A / np.array([1, 2, 3]).reshape(-1, 1)
+
+
+# split matrix into smaller matrices
+####################################
+# 10 by 10
+A = np.array(range(100)).reshape(10, 10)
+A
+
+# split into 2 matrices
+np.split(A, 2, axis=1)
+
+# split into 5 matrices
+np.split(A, 5, axis=1)
+
+# split into matries of size n
+A = np.array(range(100)).reshape(10, 10)
+split_size = 4
+labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+
+matrix_size = A.shape[0]
+split_points = list(range(split_size, matrix_size, split_size))
+split_points
+if len(split_points) < matrix_size:
+    split_points.append(split_points[-1] + split_size)
+split_points
+
+for i, j in zip([0] + split_points, split_points):
+    for k, l in zip([0] + split_points, split_points):
+        print(i, j, k, l)
+        print(labels[i:j], labels[k:l])
+        print(A[i:j, k:l])
