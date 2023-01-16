@@ -134,3 +134,68 @@ a = np.datetime64("2020-01-01T00:00:00.000000000")
 b = np.datetime64(a, "s")
 # convert to datetime
 c = b.astype(datetime.datetime)
+
+
+# Array generation example
+##################################
+import numpy as np
+
+# linspace
+np.linspace(0, 10, 5)
+np.linspace(-7, 10, 5)
+np.linspace(-7, 11, 5)
+
+# arange
+np.arange(0, 10)
+np.arange(0, 10, 2)
+
+list(range(0, 11, 2))
+np.arange(0, 11, 2)
+
+number = 11
+size = 2
+number_of_sizes_included = number // size
+numbers_left = number % size
+if numbers_left > 0:
+    number_of_sizes_included_to_cover_all = number_of_sizes_included + 1
+number_of_sizes_included_to_cover_all
+
+# logspace
+np.logspace(0, 10, 5)  # 10^0 to 10^10
+
+# geomspace
+res = np.geomspace(1, 1000, 5)  # 1 to 1000, 5 numbers, evenly spaced on a log scale
+res
+np.log10(res)
+
+# random
+np.random.rand(3, 3)
+
+# random choice
+np.random.choice(range(5), 3)
+
+# random normal
+######################
+np.random.normal(0, 1, 3)  # mean, std, size
+
+np.random.normal(0, 1, (3, 3))
+sample = np.random.normal(0, 1, 100)
+
+# histogram
+bin_value, bin_edges = np.histogram(sample, bins=10)
+
+# plot histogram
+import matplotlib.pyplot as plt
+
+plt.hist(sample, bins=10)
+plt.show()
+
+# plot histogram with bin edges
+plt.hist(sample, bins=bin_edges)
+plt.show()
+
+# plot histogram with bin edges and bin values
+# have spaces of a size between bars
+size = (bin_edges[1] - bin_edges[0]) * 0.9
+plt.bar(bin_edges[:-1], bin_value, width=size, align="edge")
+plt.show()
