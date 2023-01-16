@@ -72,3 +72,12 @@ df.to_dict()
 
 # as dict of series
 df.to_dict("series")
+
+
+# pd df to np matrix
+######################
+df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
+df
+
+# df to matrix
+df.values
