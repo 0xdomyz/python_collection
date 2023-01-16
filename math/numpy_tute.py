@@ -115,3 +115,22 @@ def func(x):
 b = np.vectorize(func)(a)
 
 print(b)
+
+
+# numpy datetime64 to datetime
+################################
+import datetime
+
+import numpy as np
+
+a = np.datetime64("2020-01-01")
+b = a.astype(datetime.datetime)
+
+b == a
+
+# datetime 64 with T and decimal seconds
+a = np.datetime64("2020-01-01T00:00:00.000000000")
+# remove decimal seconds
+b = np.datetime64(a, "s")
+# convert to datetime
+c = b.astype(datetime.datetime)
