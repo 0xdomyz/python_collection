@@ -174,6 +174,34 @@ np.random.rand(3, 3)
 # random choice
 np.random.choice(range(5), 3)
 
+# meshgrid
+import numpy as np
+
+x = np.linspace(0, 10, 5)
+y = np.linspace(0, 10, 5) * -1
+x
+y
+
+a, b = np.meshgrid(x, y)
+a
+b
+
+a, b = np.meshgrid(x, y, indexing="xy")
+a
+b
+
+a, b = np.meshgrid(x, y, indexing="ij")  # vertical first
+a
+b
+
+# ravel/flatten
+##########################
+a = np.array([[1, 2, 3], [4, 5, 6]])
+a.ravel()  # flatten
+
+a.flatten()
+
+
 # random normal
 ######################
 np.random.normal(0, 1, 3)  # mean, std, size
