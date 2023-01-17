@@ -54,3 +54,31 @@ df[df.D.isin(values)]
 
 # filter rows based on date col
 df[df.date.between("2013-01-01", "2013-01-03")]
+
+# build grid df
+###########################################
+df = pd.DataFrame({"a": np.linspace(1, 10, 10), "b": np.linspace(1, 10, 10)})
+df["C"] = df.a + df.b + np.random.randint(1, 10, 10)
+df["D"] = df.a + df.b + np.random.randint(1, 10, 10)
+df
+
+# set index of 2 column, then unstack
+grid = df.set_index(["a", "b"]).unstack().loc[:, "C"]
+grid
+grid.values
+
+# df from meshgrid
+a = np.linspace(1, 10, 10)
+b = np.linspace(1, 10, 10)
+
+a, b = np.meshgrid(a, b)
+
+df = pd.DataFrame({"a": a.flatten(), "b": b.flatten()})
+df["C"] = df.a + df.b + np.random.randint(1, 10, 100)
+df["D"] = df.a + df.b + np.random.randint(1, 10, 100)
+
+df
+
+grid = df.set_index(["a", "b"]).unstack().loc[:, "C"]
+grid
+grid.values
