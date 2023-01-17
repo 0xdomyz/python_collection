@@ -51,3 +51,35 @@ df.to_html("test.html")
 
 # find out colnames
 df.columns
+
+# multiple dataframe on 1 html page
+#########################################
+df1 = pd.DataFrame(np.random.randn(20, 20))
+df2 = pd.DataFrame(np.random.randn(20, 20))
+df3 = pd.DataFrame(np.random.randn(20, 20))
+
+df1 = df1.style.background_gradient(cmap="RdYlGn")
+df2 = df2.style.background_gradient(cmap="RdYlGn")
+df3 = df3.style.background_gradient(cmap="RdYlGn")
+
+html1 = df1.to_html()
+html2 = df2.to_html()
+html3 = df3.to_html()
+
+# combine html
+lst = [html1, html2, html3]
+html = "<br>".join(lst)
+
+# add title above each table
+html = (
+    "<h1>Table 1</h1>"
+    + html1
+    + "<br><h1>Table 2</h1>"
+    + html2
+    + "<br><h1>Table 3</h1>"
+    + html3
+)
+
+# save html
+with open("test.html", "w") as f:
+    f.write(html)
