@@ -236,3 +236,17 @@ np.linalg.matrix_rank(A)
 
 # matrix eigenvalues
 np.linalg.eigvals(A)
+
+# mean across matrixes
+#######################
+
+A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+B = np.array([[1, 2, 3], [4, 5, 6], [7, 8, np.nan]])
+C = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+lst = [A, B, C]
+
+np.mean(lst, axis=0)
+
+# mean with nan
+np.nanmean(lst, axis=0)

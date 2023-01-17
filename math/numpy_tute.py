@@ -199,3 +199,19 @@ plt.show()
 size = (bin_edges[1] - bin_edges[0]) * 0.9
 plt.bar(bin_edges[:-1], bin_value, width=size, align="edge")
 plt.show()
+
+# max min with nan
+######################
+import numpy as np
+
+a = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan])
+np.nanmax(a)
+np.nanmin(a)
+
+# sort with nan
+######################
+import numpy as np
+
+a = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, np.nan])
+
+np.sort(a)
