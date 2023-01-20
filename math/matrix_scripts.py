@@ -8,6 +8,16 @@ A
 ####################
 A.sum(axis=1)
 
+# nan to 0
+np.nan_to_num(A.cumsum(axis=1))
+
+# total of all elements
+####################
+A.sum()
+
+# with nan
+np.nansum(A)
+
 # condition
 ######################
 
@@ -62,6 +72,7 @@ A - A.mean(axis=1).reshape(-1, 1)
 # cumulative sum over rows
 ################################
 A.cumsum(axis=1)
+
 
 # cumulative sum over rows reversed
 A[:, ::-1].cumsum(axis=1)[:, ::-1]
@@ -250,3 +261,10 @@ np.mean(lst, axis=0)
 
 # mean with nan
 np.nanmean(lst, axis=0)
+
+# sumproduct of 2 arrays
+########################
+A = np.array([1, 2, 3])
+B = np.array([1, 2, 3])
+
+np.sum(A * B)
