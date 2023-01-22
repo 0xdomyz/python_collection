@@ -10,6 +10,7 @@ f"abc {1+2} def"
 # format number with 2 decimal places
 f"abc {1+2:.2f} def"
 
+
 # format number with 2 decimal places and 10 spaces
 f"abc {1+2:10.2f} def"
 
@@ -66,6 +67,30 @@ f"abc {1+2:<10s} def"
 
 # right align
 f"abc {1+2:>10s} def"
+
+# parameterized format specifier
+##################################
+# format number with x decimal places
+x = 4
+f"abc {1+2:.{x}f} def"
+
+# format number with x decimal places and y spaces
+x = 4
+y = 10
+f"abc {1+2:{y}.{x}f} def"
+
+# format number with x decimal places and y spaces and z fill
+x = 4
+y = 10
+z = "0"
+f"abc {1+2:{z}{y}.{x}f} def"
+
+# format number with x decimal places and y spaces and z fill and as a type
+x = 4
+y = 10
+z = "0"
+a = "f"
+f"abc {1+2:{z}{y}.{x}{a}} def"
 
 # template string
 ######################
