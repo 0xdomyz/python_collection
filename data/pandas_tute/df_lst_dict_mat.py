@@ -58,6 +58,17 @@ pd.DataFrame([a, b])
 df = pd.DataFrame({"a": a, "b": b})
 df
 
+# series with index
+a = pd.Series([1, 2, 3], index=["a", "b", "c"])
+# to dataframe with index as col
+df = pd.DataFrame(
+    a
+)  # alternatively, df = pd.DataFrame(a, columns=["a"]), df = pd.DataFrame(a, index=["a"])
+# df = a.to_frame()
+df.reset_index(inplace=True)
+df.columns = ["a", "counts"]
+df
+
 # df to series
 #################
 df.columns
