@@ -83,3 +83,14 @@ html = (
 # save html
 with open("test.html", "w") as f:
     f.write(html)
+
+
+# df to string
+######################
+df = pd.DataFrame(np.random.randn(20, 20))
+df
+
+df[0].to_string()
+
+# col to string without index
+df[0].to_string(index=False)
