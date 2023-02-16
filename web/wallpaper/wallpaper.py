@@ -67,7 +67,7 @@ def get_run_date():
         return datetime.datetime.strptime(date, "%Y-%m-%d").date()
 
 
-def save_date_actions(date: datetime.date):
+def use_saved_date_actions(date: datetime.date):
     prior_date = get_run_date()
 
     if prior_date is None:
@@ -96,15 +96,17 @@ if __name__ == "__main__":
     )
     # optional argument to save date to file and use saved date to get weeks prior
     parser.add_argument(
-        "--save_date",
+        "--use_saved_date",
         action="store_true",
         help="Save date to file to auto use weeks prior, weeks prior must not be set",
     )
 
     # make sure weeks prior is not set if save date is set
     args = parser.parse_args()
-    if args.save_date and args.weeks_prior is not None:
-        parser.error("--save_date and --weeks_prior cannot be set at the same time")
+    if args.use_saved_date and args.weeks_prior is not None:
+        parser.error(
+            "--use_saved_date and --weeks_prior cannot be set at the same time"
+        )
 
     # if date is not set, use today's date
     if args.date is None:
@@ -114,7 +116,7 @@ if __name__ == "__main__":
         date = datetime.date(int(year), int(month), int(day))
 
     # vanilla run, get wallpaper for date
-    if args.weeks_prior is None and not args.save_date:
+    if args.weeks_prior is None and not args.use_saved_date:
         get_wallpaper(date)
         open_folder()
         exit()
@@ -131,7 +133,7 @@ if __name__ == "__main__":
         exit()
 
     # if save date is set, do save date actions
-    if args.save_date:
-        save_date_actions(date)
+    if args.use_saved_date:
+        use_saved_date_actions(date)
         open_folder()
         exit()
