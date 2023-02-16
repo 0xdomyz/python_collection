@@ -6,6 +6,9 @@
 *.zip
 configs/files/*
 
+# intermediate files
+web/wallpaper/run_date.txt
+
 #outputs
 *.c
 *.html
