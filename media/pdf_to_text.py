@@ -1,14 +1,14 @@
 # convert pdf to text
 from pathlib import Path
 
-import PyPDF2
+import pypdf
 
 here = Path("media/")
 
 # read pdf file
 def read_pdf(filename):
     pdf_file = open(filename, "rb")
-    read_pdf = PyPDF2.PdfFileReader(pdf_file)
+    read_pdf = pypdf.PdfFileReader(pdf_file)
     number_of_pages = read_pdf.getNumPages()
     page = read_pdf.getPage(0)
     page_content = page.extractText()
