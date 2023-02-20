@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
 
 # use a library to run R codes without cmd
-import rpy2.robjects as robjects
+# import rpy2.robjects as robjects
 
 # install r on linux:
 # sudo apt-get install r-base
