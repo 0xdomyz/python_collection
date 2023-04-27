@@ -5,6 +5,7 @@
 !data/toydata/*.csv
 *.zip
 configs/files/*
+*.pptx
 
 # intermediate files
 web/wallpaper/run_date.txt
