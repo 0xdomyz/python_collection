@@ -6,6 +6,9 @@
 *.zip
 configs/files/*
 *.pptx
+*.xlsx
+*.xls
+*.docx
 
 # intermediate files
 web/wallpaper/run_date.txt
