@@ -1,3 +1,5 @@
+# rewrite in jupyter notebook
+
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
@@ -34,7 +36,6 @@ def displot_cats(data, cols: list[str] = None):
 
 
 if __name__ == "__main__":
-
     # Apply the default theme
     sns.set_theme()
 
