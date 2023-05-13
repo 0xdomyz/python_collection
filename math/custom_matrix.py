@@ -76,7 +76,8 @@ class CustomMatrix(object):
         if isinstance(other, CustomMatrix):
             if self.matrix.shape != other.matrix.shape:
                 raise ValueError(
-                    f"Matrices have different shapes: {self.matrix.shape} and {other.matrix.shape}"
+                    f"Matrices have different shapes: {self.matrix.shape} "
+                    f"and {other.matrix.shape}"
                 )
             return CustomMatrix(self.matrix + other.matrix)
         elif isinstance(other, np.ndarray):
@@ -86,7 +87,8 @@ class CustomMatrix(object):
             return CustomMatrix(self.matrix + other)
         else:
             raise TypeError(
-                f"Cannot add a CustomMatrix to a {type(other)} object. Try converting it to a CustomMatrix first."
+                f"Cannot add a CustomMatrix to a {type(other)} object. "
+                "Try converting it to a CustomMatrix first."
             )
 
     # allow multiplying to a scalar
@@ -211,7 +213,8 @@ if __name__ == "__main__":
             return res
 
         def _combine_potential_infos(self, other):
-            # if both are CustomMatrix2 and both have info and info differ, give "no info"
+            # if both are CustomMatrix2 and both have info and info differ,
+            # give "no info"
             if hasattr(self, "info") and hasattr(other, "info"):
                 if self.info != other.info:
                     info = "no info"
@@ -236,7 +239,8 @@ if __name__ == "__main__":
         def calculate2(self, other):
             if not isinstance(other, CustomMatrix):
                 raise TypeError(
-                    f"cannot calculate2 with a {type(other)} object. Try converting it to a CustomMatrix first."
+                    f"cannot calculate2 with a {type(other)} object. "
+                    "Try converting it to a CustomMatrix first."
                 )
             res = self * 2 - other
             return CustomMatrix2(res.matrix, info=self.info)
