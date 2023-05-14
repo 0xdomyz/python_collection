@@ -5,19 +5,25 @@ import pandas as pd
 # CustomMatrix class, represented by a numpy 2D array (matrix)
 class CustomMatrix(object):
     # constructor from a numpy 2D array
-    def __init__(self, matrix: np.ndarray | np.matrix):
-        matrix = matrix.copy()
-        self.check_matrix(matrix)
-        self.matrix = self.invariant(matrix)
-
-    # check if the input is a numpy 2D array
-    def check_matrix(self, matrix):
-        if not isinstance(matrix, np.ndarray) and not isinstance(matrix, np.matrix):
+    def __init__(self, matrix: np.ndarray | np.matrix | int | float):
+        if isinstance(matrix, np.matrix):
+            matrix = self.clean_array(matrix)
+        elif isinstance(matrix, np.ndarray):
+            if matrix.ndim != 2:
+                raise TypeError(f"Input array is not a 2D array, but {matrix.ndim}D")
+            matrix = self.clean_array(matrix)
+        elif isinstance(matrix, int):
+            matrix = np.array([[matrix]])
+            matrix = self.clean_array(matrix)
+        elif isinstance(matrix, float):
+            matrix = np.array([[matrix]])
+            matrix = self.clean_array(matrix)
+        else:
             raise TypeError(
-                f"Input matrix is not a numpy array or matrix, but {type(matrix)}"
+                "Input matrix is not a numpy array or matrix or int or float, "
+                f"but {type(matrix)}"
             )
-        if matrix.ndim != 2:
-            raise TypeError(f"Input matrix is not a 2D array, but {matrix.ndim}D")
+        self.matrix = matrix
 
     # initialize from a pandas DataFrame
     # require all numeric
@@ -28,8 +34,8 @@ class CustomMatrix(object):
         if not df.select_dtypes(include=np.number).columns.equals(df.columns):
             raise TypeError("Not all columns are numeric")
 
-        # convert to numpy array
-        matrix = df.to_numpy()
+        # convert to numpy array, each row in df becomes rows in the matrix
+        matrix = df.to_numpy()  # .T
         return cls(matrix)
 
     # initialize list of mat from a pandas dataframe with a column of label that
@@ -48,7 +54,8 @@ class CustomMatrix(object):
     # clean the input matrix
     #   fill all sorts of nan, NA, None with 0
     #   convert to float
-    def invariant(self, matrix):
+    def clean_array(self, matrix):
+        matrix = matrix.copy()
         matrix = np.nan_to_num(matrix)
         matrix = matrix.astype(float)
         return matrix
@@ -133,6 +140,9 @@ class CustomMatrix(object):
     def count_nonzero(self, axis=None):
         return np.count_nonzero(self.matrix == 0, axis=axis)
 
+    def row_all_zero(self):
+        return np.all(self.matrix == 0, axis=1)
+
     # some numpy methods that return a CustomMatrix: todo
 
     # allow adding and subtracting
@@ -181,6 +191,72 @@ class CustomMatrix(object):
         return self._dispatch_to_numpy(other, np.divide)
 
 
+class CustomMatrix2(CustomMatrix):
+    def __init__(self, matrix, info=None):
+        super().__init__(matrix)
+        self.info = info
+
+    def __str__(self):
+        parent_str = super().__str__()
+        # replace the class name
+        res = parent_str.replace("CustomMatrix", "CustomMatrix2")
+        # add the info
+        res += f"\n{self.info}"
+        return res
+
+    @classmethod
+    def from_dataframe_with_label(cls, df: pd.DataFrame, label: str):
+        res = super().from_dataframe_with_label(df, label)
+        labels = np.sort(df[label].unique())
+        for i, cm in enumerate(res):
+            cm.info = labels[i]
+        return res
+
+    def _combine_potential_infos(self, other):
+        # if both are CustomMatrix2 and both have info not none
+        if isinstance(other, CustomMatrix2) and (
+            self.info is not None and hasattr(other, "info") and other.info is not None
+        ):
+            if self.info != other.info:
+                info = None
+            else:
+                info = self.info
+        else:
+            info = self.info
+        return info
+
+    # override copy and dispatch
+    def __copy__(self):
+        return self.__class__(self.matrix, info=self.info)
+
+    def _dispatch_to_numpy(self, other, func):
+        info = self._combine_potential_infos(other)
+        res = super()._dispatch_to_numpy(other, func)
+        return self.__class__(res.matrix, info=info)
+
+    def calculate(self):
+        res = self * 2
+        return self.__class__(res.matrix, info=self.info)
+
+    def calculate2(self, other):
+        if not isinstance(other, CustomMatrix):
+            raise TypeError(
+                f"cannot calculate2 with a {type(other)} object. "
+                "Try converting it to a CustomMatrix first."
+            )
+        res = self * 2 - other
+        return self.__class__(res.matrix, info=self.info)
+
+    def calculate3(self, other):
+        if not isinstance(other, CustomMatrix):
+            raise TypeError(
+                f"cannot calculate3 with a {type(other)} object. "
+                "Try converting it to a CustomMatrix first."
+            )
+        res = self.matrix * 2 - other.matrix
+        return self.__class__(res, info=self.info)
+
+
 if __name__ == "__main__":
     # if run interactively
     """
@@ -188,6 +264,7 @@ if __name__ == "__main__":
 
         python3.11
         from custom_matrix import CustomMatrix
+        from custom_matrix import CustomMatrix2
         import numpy as np
         import pandas as pd
     """
@@ -281,6 +358,10 @@ if __name__ == "__main__":
     # dividing by a scalar
     assert (cm / 2)[0, 0] == 0.5
 
+    # divide by array
+    assert (cm / np.array([1, 2, 3]))[0, 1] == 1
+    assert (cm / np.array([1, 2, 3]).reshape(-1, 1))[0, 1] == 2
+
     # unary minus
     assert (-cm)[0, 0] == -1
 
@@ -325,70 +406,27 @@ if __name__ == "__main__":
     assert cm.median() == 5
 
     # subclassing
-    class CustomMatrix2(CustomMatrix):
-        def __init__(self, matrix, info=None):
-            super().__init__(matrix)
-            self.info = info
-
-        def __str__(self):
-            parent_str = super().__str__()
-            # replace the class name
-            res = parent_str.replace("CustomMatrix", "CustomMatrix2")
-            # add the info
-            res += f"\n{self.info}"
-            return res
-
-        def _combine_potential_infos(self, other):
-            # if both are CustomMatrix2 and both have info not none
-            if isinstance(other, CustomMatrix2) and (
-                self.info is not None
-                and hasattr(other, "info")
-                and other.info is not None
-            ):
-                if self.info != other.info:
-                    info = None
-                else:
-                    info = self.info
-            else:
-                info = self.info
-            return info
-
-        # override copy and dispatch
-        def __copy__(self):
-            return self.__class__(self.matrix, info=self.info)
-
-        def _dispatch_to_numpy(self, other, func):
-            info = self._combine_potential_infos(other)
-            res = super()._dispatch_to_numpy(other, func)
-            return self.__class__(res.matrix, info=info)
-
-        def calculate(self):
-            res = self * 2
-            return self.__class__(res.matrix, info=self.info)
-
-        def calculate2(self, other):
-            if not isinstance(other, CustomMatrix):
-                raise TypeError(
-                    f"cannot calculate2 with a {type(other)} object. "
-                    "Try converting it to a CustomMatrix first."
-                )
-            res = self * 2 - other
-            return self.__class__(res.matrix, info=self.info)
-
-        def calculate3(self, other):
-            if not isinstance(other, CustomMatrix):
-                raise TypeError(
-                    f"cannot calculate3 with a {type(other)} object. "
-                    "Try converting it to a CustomMatrix first."
-                )
-            res = self.matrix * 2 - other.matrix
-            return self.__class__(res, info=self.info)
-
     m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     prnt = CustomMatrix(m)
     cm = CustomMatrix2(m, info="cm")
     cm2 = CustomMatrix2(m * 2, info="cm2")
     cm_noinfo = CustomMatrix2(m * 3)
+
+    # list of df with labels
+    df = pd.DataFrame(
+        {
+            "a": [1, 1, 2, 2],
+            "b": [1, 2, 3, 4],
+            "c": [5, 6, 7, 8],
+            "label": ["a", "a", "b", "b"],
+        }
+    )
+    df
+    cm_list = CustomMatrix2.from_dataframe_with_label(df, "label")
+    assert cm_list[0].info == "a"
+    assert cm_list[1].info == "b"
+    # row number
+    assert cm_list[0].shape[0] == 2
 
     # print
     print(cm)
