@@ -32,6 +32,15 @@ class CustomMatrix(object):
         matrix = df.to_numpy()
         return cls(matrix)
 
+    # initialize list of mat from a pandas dataframe with a column of label that
+    #  will be used as the index for matrixes
+    @classmethod
+    def from_dataframe_with_label(cls, df: pd.DataFrame, label: str):
+        labels = np.sort(df[label].unique())
+        df_list = [df[df[label] == l].drop(columns=label).copy() for l in labels]
+        matrixes = [cls.from_dataframe(df) for df in df_list]
+        return matrixes
+
     # copy
     def copy(self):
         return self.__class__(self.matrix)
@@ -232,6 +241,12 @@ if __name__ == "__main__":
     cm_list[0]
     cm_list[1]
     cm_list[2]
+
+    # from df with labels
+    lst = CustomMatrix.from_dataframe_with_label(df=df, label="date")
+    lst[0]
+    lst[1]
+    lst[2]
 
     # clean one
     # also as invariant for testing
