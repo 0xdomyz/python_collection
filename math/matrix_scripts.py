@@ -98,14 +98,31 @@ norm.ppf(A_row_pct)
 # diagonals
 ####################
 
+# the diagonal
+np.diag(A)
+
+# make diagonal to be 0
+A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+np.fill_diagonal(A, 0)
+
+# fill diagonal if entire row is zero
+# loop thru each row, if sum of row is 0, fill diagonal for that row with 1
+A = np.array([[1, 2, 3], [4, 5, 6], [0, 0, 0]])
+for i in range(A.shape[0]):
+    if A[i, :].sum() == 0:
+        A[i, i] = 1
+
+A
+
+# trigangles
+####################
+
 # upper diagonal
 np.triu(A, k=1)
 
 # lower diagonal
 np.tril(A, k=-1)
-
-# the diagonal
-np.diag(A)
 
 # upper diagonal including the diagonal
 np.triu(A, k=0)
@@ -121,7 +138,6 @@ np.where(np.tril(np.ones(A.shape), k=0) == 1, A, 0)
 # fill lower triangular matrix with diagonal with True, else False
 np.tril(np.ones(A.shape, dtype=bool), k=0)
 
-
 # upper triangular matrix with diagonal,
 # with lower triangular without diagonal filled with 100
 A
@@ -129,6 +145,7 @@ np.triu(A, k=0) + np.tril(np.ones(A.shape), k=-1) * 100
 
 # test a condition only on upper triangular matrix incl diagonal
 np.triu(A, k=0) > 5
+
 
 # conditions and diagonals
 #########################
@@ -218,6 +235,14 @@ for i, j in zip([0] + split_points, split_points):
         print(i, j, k, l)
         print(labels[i:j], labels[k:l])
         print(A[i:j, k:l])
+
+# split then combine back
+A = np.array(range(100)).reshape(10, 10)
+A
+
+mats = np.split(A, 2, axis=0)
+
+np.concatenate(mats, axis=0) == A
 
 # matrix algebra
 ####################
