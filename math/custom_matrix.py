@@ -3,6 +3,19 @@ import pandas as pd
 
 
 class CustomMatrix(object):
+    """
+    CustomMatrix is a wrapper around numpy array or matrix
+    With some additional functionalities:
+        - clean data
+        - display the matrix
+        - from and to pandas DataFrame, to csv
+        - dispatch operations to numpy, so that can be used in numpy operations,
+            similar to numpy array or matrix
+        - to be used as a base class for more specialized matrixes, with more
+            functionalities
+
+    """
+
     # invariant: matrix is a numpy array or matrix
     def __init__(self, matrix: np.ndarray | np.matrix | int | float):
         if isinstance(matrix, np.matrix):
@@ -80,18 +93,16 @@ class CustomMatrix(object):
     #   the whole matrix if the matrix is small
     def __str__(self):
         if self.ndim == 1:
-            row, col = self.shape[0], 0
+            payload = f"CustomMatrix: {self.shape[0]}"
+            payload += f"\n{self.matrix}"
         else:
+            payload = f"CustomMatrix: {self.shape}"
             row, col = self.shape
-
-        payload = f"CustomMatrix: ({row}, {col})"
-        if col is None:
-            payload += f"\n{self.matrix}"
-        elif row > 5 or col > 5:
-            payload += ", Top 5 rows and columns:"
-            payload += f"\n{self.matrix[:5, :5]}"
-        else:
-            payload += f"\n{self.matrix}"
+            if row > 5 or col > 5:
+                payload += ", Top 5 rows and columns:"
+                payload += f"\n{self.matrix[:5, :5]}"
+            else:
+                payload += f"\n{self.matrix}"
 
         return payload
 
@@ -274,6 +285,7 @@ class CustomMatrix2(CustomMatrix):
         return info
 
     # override usage of self.__class__
+
     def __copy__(self):
         return self.__class__(self.matrix, info=self.info)
 
@@ -296,8 +308,7 @@ class CustomMatrix2(CustomMatrix):
     def reshape(self, *args, **kwargs):
         return self.__class__(self.matrix.reshape(*args, **kwargs), info=self.info)
 
-    # def __class__(self):
-    #     return self.__class__(self.matrix, info=self.info)
+    # new methods
 
     def calculate(self):
         res = self * 2
@@ -576,14 +587,23 @@ if __name__ == "__main__":
     print(one_d_has_all_zero)
 
     # overriding method
-    cm + cm2
-    cm + cm_noinfo
-    cm + prnt
-    cm * 2
+    _ = cm + cm2
+    assert _.info is None
+
+    _ = cm + cm_noinfo
+    assert _.info == "cm"
+
+    _ = cm + prnt
+    assert _.info == "cm"
+
+    _ = cm * 2
+    assert _.info == "cm"
+
     cm == 3
     cm.copy() == cm
     assert cm[0, 1] == 2
     assert cm.T[0, 1] == 4
+    assert cm.T.info == "cm"
 
     # overriding method with right info
     assert (cm + cm2).info is None
