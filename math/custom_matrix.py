@@ -99,8 +99,10 @@ class CustomMatrix(object):
 
     # some magical methods
     def __getitem__(self, key):
-        # return self.matrix[key]
-        return self.__class__(self.matrix[key])
+        res = self.matrix[key]
+        if isinstance(res, np.ndarray):
+            res = self.__class__(res)
+        return res
 
     def __setitem__(self, key, value):
         self.matrix[key] = value
@@ -140,6 +142,21 @@ class CustomMatrix(object):
     @property
     def shape(self):
         return self.matrix.shape
+
+    @property
+    def size(self):
+        return self.matrix.size
+
+    @property
+    def ndim(self):
+        return self.matrix.ndim
+
+    @property
+    def T(self):
+        return self.__class__(self.matrix.T)
+
+    def reshape(self, *args, **kwargs):
+        return self.__class__(self.matrix.reshape(*args, **kwargs))
 
     def mean(self, axis=None):
         return self.matrix.mean(axis=axis)
@@ -237,7 +254,7 @@ class CustomMatrix2(CustomMatrix):
             info = self.info
         return info
 
-    # override copy and dispatch
+    # override usage of self.__class__
     def __copy__(self):
         return self.__class__(self.matrix, info=self.info)
 
@@ -245,6 +262,23 @@ class CustomMatrix2(CustomMatrix):
         info = self._combine_potential_infos(other)
         res = super()._dispatch_to_numpy(other, func)
         return self.__class__(res.matrix, info=info)
+
+    def __getitem__(self, key):
+        res = super().__getitem__(key)
+        if isinstance(res, CustomMatrix):
+            res = self.__class__(res.matrix, info=self.info)
+        return res
+
+    @property
+    def T(self):
+        return self.__class__(self.matrix.T, info=self.info)
+
+    @property
+    def reshape(self, *args, **kwargs):
+        return self.__class__(self.matrix.reshape(*args, **kwargs), info=self.info)
+
+    # def __class__(self):
+    #     return self.__class__(self.matrix, info=self.info)
 
     def calculate(self):
         res = self * 2
@@ -354,7 +388,17 @@ if __name__ == "__main__":
     cm
 
     # indexing
-    assert cm[0, 0] == 1
+    res = cm[0, 0]
+    assert res == 1
+    assert isinstance(res, np.float64)
+
+    res = cm[0, :]
+    assert isinstance(res, CustomMatrix)
+    assert res.shape == (3,)
+
+    res = cm[:, 0]
+    assert isinstance(res, CustomMatrix)
+    assert res.shape == (3,)
 
     # setting and copying
     cm2 = cm.copy()
@@ -379,9 +423,25 @@ if __name__ == "__main__":
     # dividing by a scalar
     assert (cm / 2)[0, 0] == 0.5
 
-    # divide by array
+    # mul/divide by array
+    m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    cm = CustomMatrix(m)
+
     assert (cm / np.array([1, 2, 3]))[0, 1] == 1
     assert (cm / np.array([1, 2, 3]).reshape(-1, 1))[0, 1] == 2
+
+    one_d = cm[:, 0]
+    cm
+    one_d
+    _ = cm / one_d
+    assert _[0, 1] == 0.5
+    _ = cm / one_d.reshape(-1, 1)
+    assert _[0, 1] == 2
+
+    _ = cm * one_d
+    assert _[0, 1] == 8
+    _ = cm * one_d.reshape(-1, 1)
+    assert _[0, 1] == 2
 
     # power
     assert ((cm**2 == cm * cm) - 1).sum() == 0
@@ -442,6 +502,7 @@ if __name__ == "__main__":
     assert (cm.row_all_zero() == np.array([False, True, False])).sum() == 3
 
     # subclassing
+    ########################
     m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     prnt = CustomMatrix(m)
     cm = CustomMatrix2(m, info="cm")
@@ -475,6 +536,9 @@ if __name__ == "__main__":
     cm + prnt
     cm * 2
     cm == 3
+    cm.copy() == cm
+    assert cm[0, 1] == 2
+    assert cm.T[0, 1] == 4
 
     # overriding method with right info
     assert (cm + cm2).info is None
