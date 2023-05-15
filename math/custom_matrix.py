@@ -2,21 +2,23 @@ import numpy as np
 import pandas as pd
 
 
-# CustomMatrix class, represented by a numpy 2D array (matrix)
+# CustomMatrix class, represented by a numpy 1D or 2D array
 class CustomMatrix(object):
     # constructor from a numpy 2D array
     def __init__(self, matrix: np.ndarray | np.matrix | int | float):
         if isinstance(matrix, np.matrix):
             matrix = self.clean_array(matrix)
         elif isinstance(matrix, np.ndarray):
-            if matrix.ndim != 2:
-                raise TypeError(f"Input array is not a 2D array, but {matrix.ndim}D")
+            if matrix.ndim > 2:
+                raise TypeError(
+                    f"Input array is not a 1D or 2D array, but {matrix.ndim}D"
+                )
             matrix = self.clean_array(matrix)
         elif isinstance(matrix, int):
-            matrix = np.array([[matrix]])
+            matrix = np.array([matrix])
             matrix = self.clean_array(matrix)
         elif isinstance(matrix, float):
-            matrix = np.array([[matrix]])
+            matrix = np.array([matrix])
             matrix = self.clean_array(matrix)
         else:
             raise TypeError(
@@ -56,8 +58,9 @@ class CustomMatrix(object):
     #   convert to float
     def clean_array(self, matrix):
         matrix = matrix.copy()
-        matrix = np.nan_to_num(matrix)
+        matrix = np.where(matrix == None, 0, matrix)
         matrix = matrix.astype(float)
+        matrix = np.nan_to_num(matrix)
         return matrix
 
     # display the matrix
@@ -79,9 +82,25 @@ class CustomMatrix(object):
             payload += f"\n{self.matrix}"
         return payload
 
+    # despatch various operations to numpy
+    def _dispatch_to_numpy(self, other, method):
+        if isinstance(other, CustomMatrix):
+            return self.__class__(method(self.matrix, other.matrix))
+        elif isinstance(other, np.ndarray):
+            res = method(self.matrix, other)
+            return self.__class__(res)
+        elif isinstance(other, (int, float)):
+            return self.__class__(method(self.matrix, other))
+        else:
+            raise TypeError(
+                f"Cannot operate on a CustomMatrix and a {type(other)} object. "
+                "Try converting it to a CustomMatrix first."
+            )
+
     # some magical methods
     def __getitem__(self, key):
-        return self.matrix[key]
+        # return self.matrix[key]
+        return self.__class__(self.matrix[key])
 
     def __setitem__(self, key, value):
         self.matrix[key] = value
@@ -138,7 +157,7 @@ class CustomMatrix(object):
         return np.median(self.matrix, axis=axis)
 
     def count_nonzero(self, axis=None):
-        return np.count_nonzero(self.matrix == 0, axis=axis)
+        return np.count_nonzero(self.matrix, axis=axis)
 
     def row_all_zero(self):
         return np.all(self.matrix == 0, axis=1)
@@ -164,21 +183,6 @@ class CustomMatrix(object):
     def __neg__(self):
         return self._dispatch_to_numpy(-1, np.multiply)
 
-    # despatch various arithmetic operations to numpy
-    def _dispatch_to_numpy(self, other, method):
-        if isinstance(other, CustomMatrix):
-            return self.__class__(method(self.matrix, other.matrix))
-        elif isinstance(other, np.ndarray):
-            res = method(self.matrix, other)
-            return self.__class__(res)
-        elif isinstance(other, (int, float)):
-            return self.__class__(method(self.matrix, other))
-        else:
-            raise TypeError(
-                f"Cannot operate on a CustomMatrix and a {type(other)} object. "
-                "Try converting it to a CustomMatrix first."
-            )
-
     # allow multiplying to a scalar
     def __mul__(self, other):
         return self._dispatch_to_numpy(other, np.multiply)
@@ -189,6 +193,14 @@ class CustomMatrix(object):
     # allow dividing by a scalar
     def __truediv__(self, other):
         return self._dispatch_to_numpy(other, np.divide)
+
+    # power
+    def __pow__(self, other):
+        return self._dispatch_to_numpy(other, np.power)
+
+    # matrix multiplication
+    def __matmul__(self, other):
+        return self._dispatch_to_numpy(other, np.matmul)
 
 
 class CustomMatrix2(CustomMatrix):
@@ -263,10 +275,7 @@ if __name__ == "__main__":
     ::
 
         python3.11
-        from custom_matrix import CustomMatrix
-        from custom_matrix import CustomMatrix2
-        import numpy as np
-        import pandas as pd
+        from custom_matrix import *
     """
 
     # dirty one
@@ -325,6 +334,18 @@ if __name__ == "__main__":
     lst[1]
     lst[2]
 
+    # from int or float
+    m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    cm = CustomMatrix(m)
+    cm_float = CustomMatrix(1.2)
+    cm_float_matrix = CustomMatrix(np.array([[1.2]]))
+
+    cm + cm_float
+    cm * cm_float
+
+    cm + cm_float_matrix
+    cm * cm_float_matrix
+
     # clean one
     # also as invariant for testing
     m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -361,6 +382,13 @@ if __name__ == "__main__":
     # divide by array
     assert (cm / np.array([1, 2, 3]))[0, 1] == 1
     assert (cm / np.array([1, 2, 3]).reshape(-1, 1))[0, 1] == 2
+
+    # power
+    assert ((cm**2 == cm * cm) - 1).sum() == 0
+
+    # matrix multiplication
+    assert (cm @ cm)[0, 0] == 30
+    cm[:, -1] @ cm
 
     # unary minus
     assert (-cm)[0, 0] == -1
@@ -402,8 +430,16 @@ if __name__ == "__main__":
     assert cm.min() == 1
     assert cm.max() == 9
     assert cm.mean() == 5
+    assert (cm.mean(axis=0) == np.array([4, 5, 6])).sum() == 3
+    assert (cm.mean(axis=1) == np.array([2, 5, 8])).sum() == 3
     assert cm.sum() == 45
     assert cm.median() == 5
+    assert cm.count_nonzero() == 9
+
+    m = np.array([[1, 2, 3], [0, np.nan, None], [7, 8, np.nan]])
+    cm = CustomMatrix(m)
+    assert cm.count_nonzero() == 5
+    assert (cm.row_all_zero() == np.array([False, True, False])).sum() == 3
 
     # subclassing
     m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
