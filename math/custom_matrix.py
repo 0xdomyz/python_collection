@@ -2,9 +2,8 @@ import numpy as np
 import pandas as pd
 
 
-# CustomMatrix class, represented by a numpy 1D or 2D array
 class CustomMatrix(object):
-    # constructor from a numpy 2D array
+    # invariant: matrix is a numpy array or matrix
     def __init__(self, matrix: np.ndarray | np.matrix | int | float):
         if isinstance(matrix, np.matrix):
             matrix = self.clean_array(matrix)
@@ -40,6 +39,12 @@ class CustomMatrix(object):
         matrix = df.to_numpy()  # .T
         return cls(matrix)
 
+    def to_dataframe(self):
+        return pd.DataFrame(self.matrix)
+
+    def to_csv(self, path, **kwargs):
+        self.to_dataframe().to_csv(path, **kwargs)
+
     # initialize list of mat from a pandas dataframe with a column of label that
     #  will be used as the index for matrixes
     @classmethod
@@ -71,15 +76,23 @@ class CustomMatrix(object):
     # display the matrix
     #   "CustomMatrix"
     #   dimensions
-    #   top 5 rows and columns if the matrix is large
+    #   5 rows and columns if the matrix is large
     #   the whole matrix if the matrix is small
     def __str__(self):
-        payload = f"CustomMatrix: {self.matrix.shape}"
-        if self.matrix.size > 25:
+        if self.ndim == 1:
+            row, col = self.shape[0], 0
+        else:
+            row, col = self.shape
+
+        payload = f"CustomMatrix: ({row}, {col})"
+        if col is None:
+            payload += f"\n{self.matrix}"
+        elif row > 5 or col > 5:
             payload += ", Top 5 rows and columns:"
             payload += f"\n{self.matrix[:5, :5]}"
         else:
             payload += f"\n{self.matrix}"
+
         return payload
 
     # despatch various operations to numpy
@@ -177,7 +190,11 @@ class CustomMatrix(object):
         return np.count_nonzero(self.matrix, axis=axis)
 
     def row_all_zero(self):
-        return np.all(self.matrix == 0, axis=1)
+        if self.ndim == 1:
+            axis = 0
+        else:
+            axis = 1
+        return np.all(self.matrix == 0, axis=axis)
 
     # some numpy methods that return a CustomMatrix: todo
 
@@ -229,8 +246,10 @@ class CustomMatrix2(CustomMatrix):
         parent_str = super().__str__()
         # replace the class name
         res = parent_str.replace("CustomMatrix", "CustomMatrix2")
-        # add the info
+        # add info and others
         res += f"\n{self.info}"
+        res += f", non-zeros: {self.count_nonzero()}"
+        res += f", all zero rows: {self.row_all_zero().sum()}"
         return res
 
     @classmethod
@@ -337,6 +356,18 @@ if __name__ == "__main__":
     assert cm3[0, 0] == 1
     cm3
 
+    # to dataframe
+    m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    df = pd.DataFrame(m)
+    cm3 = CustomMatrix.from_dataframe(df)
+    df2 = cm3.to_dataframe()
+    assert df.astype(float).equals(df2.astype(float))
+
+    # to csv
+    m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    df = CustomMatrix(m).to_dataframe()
+    df.to_csv("test.csv", index=False)
+
     # snippet to go from stack of dataframe matrixes to list of CustomMatrix
     m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, np.nan]])
     df = pd.DataFrame(m)
@@ -367,6 +398,11 @@ if __name__ == "__main__":
     lst[0]
     lst[1]
     lst[2]
+
+    # from 1d array
+    m = np.array([1, 2, 3])
+    cm = CustomMatrix(m)
+    print(cm)
 
     # from int or float
     m = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -529,6 +565,15 @@ if __name__ == "__main__":
     print(cm)
     print(cm2)
     print(cm_noinfo)
+
+    cm_has_all_zero = CustomMatrix2(np.zeros((3, 3)), info="cm_has_all_zero")
+    print(cm_has_all_zero)
+
+    one_d = cm[:, 0]
+    print(one_d)
+
+    one_d_has_all_zero = CustomMatrix2(np.zeros((1, 3)), info="one_d_has_all_zero")
+    print(one_d_has_all_zero)
 
     # overriding method
     cm + cm2
