@@ -248,6 +248,9 @@ class CustomMatrix(object):
         return self._dispatch_to_numpy(other, np.matmul)
 
 
+import custom_matrix_support
+
+
 class CustomMatrix2(CustomMatrix):
     def __init__(self, matrix, info=None):
         super().__init__(matrix)
@@ -311,7 +314,7 @@ class CustomMatrix2(CustomMatrix):
     # new methods
 
     def calculate(self):
-        res = self * 2
+        res = calculate(matrix=self)
         return self.__class__(res.matrix, info=self.info)
 
     def calculate2(self, other):
@@ -320,7 +323,7 @@ class CustomMatrix2(CustomMatrix):
                 f"cannot calculate2 with a {type(other)} object. "
                 "Try converting it to a CustomMatrix first."
             )
-        res = self * 2 - other
+        res = custom_matrix_support.calculate2(self, other)
         return self.__class__(res.matrix, info=self.info)
 
     def calculate3(self, other):
@@ -329,8 +332,13 @@ class CustomMatrix2(CustomMatrix):
                 f"cannot calculate3 with a {type(other)} object. "
                 "Try converting it to a CustomMatrix first."
             )
-        res = self.matrix * 2 - other.matrix
-        return self.__class__(res, info=self.info)
+        res = custom_matrix_support.calculate3(self, other)
+        return self.__class__(res.matrix, info=self.info)
+
+
+def calculate(matrix):
+    res = matrix**2
+    return res
 
 
 if __name__ == "__main__":
