@@ -1,5 +1,6 @@
 import custom_matrix2_support
 import numpy as np
+import openpyxl
 import pandas as pd
 from custom_matrix import CustomMatrix
 
@@ -88,6 +89,11 @@ class CustomMatrix2(CustomMatrix):
         res = custom_matrix2_support.calculate3(self, other)
         return self.__class__(res.matrix, info=self.info)
 
+    def to_excel_with_color_scale(self) -> openpyxl.Workbook:
+        df = self.to_dataframe()
+        wb = custom_matrix2_support.to_excel_with_color_scale(df)
+        return wb
+
 
 def calculate(matrix):
     res = matrix**2
@@ -164,3 +170,7 @@ if __name__ == "__main__":
 
     # another new mthod with binary operator
     cm.calculate3(cm2)
+
+    # to excel
+    wb = cm.to_excel_with_color_scale()
+    wb.save("test.xlsx")
