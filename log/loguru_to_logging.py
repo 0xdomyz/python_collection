@@ -11,6 +11,7 @@ logging.basicConfig()
 logging_logger.info("This is a test message")
 logging_logger.debug("This is a test message")
 
+
 # propagate loguru to logging
 ####################################
 class PropagateHandler(logging.Handler):

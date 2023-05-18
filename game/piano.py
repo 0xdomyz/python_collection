@@ -4,6 +4,7 @@ import pygame
 # Define the notes for the piano
 notes = ["C", "D", "E", "F", "G", "A", "B"]
 
+
 # Create a function to play a note
 def play_note(note):
     # Use the Pygame library to play the specified note

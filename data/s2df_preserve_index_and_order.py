@@ -30,7 +30,6 @@ def s2df_preserve_index_and_order():
     def decorate(func):
         @functools.wraps(func)
         def new_func(input_series):
-
             input_series = input_series.copy()
 
             original_index = input_series.index

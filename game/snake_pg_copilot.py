@@ -41,6 +41,7 @@ changeto = direction
 
 score = 0
 
+
 # Game Over function
 def gameOver():
     myFont = pygame.font.SysFont("monaco", 72)

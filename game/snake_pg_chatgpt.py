@@ -12,6 +12,7 @@ RIGHT = 1
 DOWN = 2
 LEFT = 3
 
+
 # Define the Snake class
 class Snake:
     # Initialize the snake

@@ -236,6 +236,7 @@ async def main():
 
 asyncio.run(main())
 
+
 # example of using barrier
 async def example_barrier():
     # barrier with 3 parties

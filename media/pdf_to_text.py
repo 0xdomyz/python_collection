@@ -5,6 +5,7 @@ import pypdf
 
 here = Path("media/")
 
+
 # read pdf file
 def read_pdf(filename):
     pdf_file = open(filename, "rb")

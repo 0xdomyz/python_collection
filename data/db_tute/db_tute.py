@@ -101,7 +101,6 @@ bind("select {a} from dual", {"a": "x"})
 
 
 if __name__ == "__main__":
-
     run_exploration = False
 
     if run_exploration:

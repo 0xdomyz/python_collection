@@ -19,7 +19,6 @@ class Client(object):
 
 
 if __name__ == "__main__":
-
     Client("http://www.google.com").get()
 
     check_authorization(Client("http://www.google.com").get2)()

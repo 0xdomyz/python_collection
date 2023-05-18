@@ -7,6 +7,7 @@ import numpy as np
 mats = [np.random.randint(0, 10, size=(5, 5)) for i in range(5)]
 mats
 
+
 # function to be minimized
 def objective(x: np.ndarray):
     """
@@ -366,6 +367,7 @@ size = 10
 n_mats = 5
 mats = [np.random.randint(0, 50, size=(size, size)) for i in range(n_mats)]
 
+
 # function to be minimized
 def objective(x: np.ndarray):
     """
@@ -382,6 +384,7 @@ def objective(x: np.ndarray):
 max_in_mats = max([mat.max() for mat in mats])
 min_in_mats = min([mat.min() for mat in mats])
 bounds = [(min_in_mats, max_in_mats) for i in range(size**2)]
+
 
 # penalty
 def penalty_0_or_large(x: np.ndarray):

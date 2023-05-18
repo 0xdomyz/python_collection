@@ -80,7 +80,6 @@ def update_table(
 
 
 if __name__ == "__main__":
-
     logging.basicConfig()
     logging.getLogger("dwopt.dbo").setLevel(logging.INFO)
 

@@ -29,7 +29,6 @@ def sns_data(name: str):
 
 
 if __name__ == "__main__":
-
     sklearn_data("diabetes", sklearn.datasets.load_diabetes(as_frame=True))
     sklearn_data("iris", sklearn.datasets.load_iris(as_frame=True))
     sklearn_data("wine", sklearn.datasets.load_wine(as_frame=True))

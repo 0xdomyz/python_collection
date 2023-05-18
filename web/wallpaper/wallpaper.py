@@ -15,6 +15,7 @@ path = Path(__file__).parent
 with open(path / "config.toml", "r") as f:
     endpoint = toml.load(f)["url"]["url"]
 
+
 # get wallpaper
 def get_wallpaper(date: datetime.date):
     day = date.day

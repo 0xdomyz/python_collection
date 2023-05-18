@@ -19,6 +19,7 @@ async def run(cmd):
 asyncio.run(run("ls /zzz"))
 asyncio.run(run("ls -la"))
 
+
 # parallel
 async def main():
     await asyncio.gather(run("ls /zzz"), run('sleep 1; echo "hello"'))

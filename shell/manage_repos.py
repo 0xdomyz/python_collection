@@ -71,7 +71,6 @@ def make_html_all():
             ]
 
             if all(file.exists() for file in sphinx_build_files):
-
                 print(f"on: {dir.resolve()}")
                 print("-" * 80)
                 run_cmd_on_path("make html", dir / "docs")

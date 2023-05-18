@@ -115,6 +115,7 @@ plot(-10, 10, f, res)
 res = minimize(f, 0, method="trust-krylov", jac=df, hess=ddf, options={"disp": True})
 plot(-10, 10, f, res)
 
+
 # minimize the function using the custom algorithm
 def custom_minimize(f, x0, jac, hess, options):
     print("Running custom minimization algorithm")

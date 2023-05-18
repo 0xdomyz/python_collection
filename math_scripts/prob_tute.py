@@ -4,6 +4,7 @@ import numpy as np
 # probability of having at least 1 success in 5 trials, if success rate is x chart
 ###########################################################
 
+
 # probability of having at least 1 success in 5 trials, if success rate is x
 def prob(x, n=5):
     return 1 - (1 - x) ** n

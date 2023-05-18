@@ -3,7 +3,6 @@ import itertools
 
 # count
 for i in itertools.count(10, 2):
-
     if i == 20:
         break
     else:
@@ -58,6 +57,7 @@ result = []
 for i in range(len(items)):
     result.append(items[: i + 1])
 print(result)
+
 
 # accumulate items
 def accumulate_items(items):

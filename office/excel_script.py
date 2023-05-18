@@ -1,5 +1,6 @@
 # pandas example table
 import numpy as np
+import openpyxl
 import pandas as pd
 
 data = pd.DataFrame(
@@ -14,7 +15,6 @@ data.to_excel(f"{here}/table.xlsx", index=True)
 
 # conditional formatting on existing excel
 ################################################
-import openpyxl
 
 wb = openpyxl.load_workbook(f"{here}/table.xlsx")
 

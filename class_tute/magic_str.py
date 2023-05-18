@@ -17,7 +17,6 @@ class Fruit2(object):
 
 
 if __name__ == "__main__":
-
     f = Fruit("apple")
     f
     str(f)
