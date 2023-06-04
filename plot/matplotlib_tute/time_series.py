@@ -5,62 +5,73 @@ import pandas as pd
 # set seed
 np.random.seed(123)
 
-# example time series data of large positive values, dim is (10 by 5)
+# time series df
 df = pd.DataFrame(np.abs(np.random.randn(10, 5)) * 1000, columns=list("ABCDE"))
 df.set_index(pd.date_range("1/1/2000", periods=10), inplace=True)
 df
 
-# same as above but dates are quarter ends
+# quarterly time series df
 df_q = pd.DataFrame(np.abs(np.random.randn(10, 5)) * 1000, columns=list("ABCDE"))
 df_q.set_index(pd.date_range("1/1/2000", periods=10, freq="Q"), inplace=True)
 df_q
 
 
-# example time series data of positive percentage rates, dim is (10 by 5)
+# percentage ts df
 df2 = pd.DataFrame(np.abs(np.random.randn(10, 5)) * 0.1, columns=list("ABCDE"))
 df2.set_index(pd.date_range("1/1/2000", periods=10), inplace=True)
 df2
 
-# plot df's A,B,C,D,E columns as time series line charts
+# plot ts line charts
 df.plot()
-plt.show()
+plt.savefig("test.png")
+plt.close()
+plt.savefig("test.png")
+plt.close()
+plt.close()
 
-# plot df's A,B,C columns as time series line charts
+# plot ts line charts for selected columns
 df[["A", "B", "C"]].plot()
-plt.show()
+plt.savefig("test.png")
+plt.close()
 
 # datetime index series
 #########################
-a = pd.Series(np.random.randn(10))
-a.index = pd.Series(pd.date_range("2000-03-04", periods=10))
-b = pd.Series(np.random.randn(10))
+srs_a = pd.Series(np.random.randn(10))
+srs_a.index = pd.Series(pd.date_range("2000-03-04", periods=10))
+srs_b = pd.Series(np.random.randn(10))
 # different index but have overlap periods
-b.index = pd.Series(pd.date_range("2000-03-07", periods=10))
+srs_b.index = pd.Series(pd.date_range("2000-03-07", periods=10))
 
-a
-b
-a + b  # has values in overlap periods
+srs_a
+srs_b
+srs_a + srs_b  # has values in overlap periods
 
-# union of a.index and b.index
-np.union1d(a.index, b.index)
-union = (a + b).index
+# union of srs_a.index and srs_b.index
+np.union1d(srs_a.index, srs_b.index)
+union = (srs_a + srs_b).index
 union
 
 # diff of index
-pd.Series(sorted(list(set(a.index) - set(b.index))))
+pd.Series(sorted(list(set(srs_a.index) - set(srs_b.index))))
 
 # join 2 datetime series with diff index
-df = pd.DataFrame({"a": a, "b": b})
+df = pd.DataFrame({"srs_a": srs_a, "srs_b": srs_b})
 df
 
-# join a list of datetime series with diff index
-serieses = [a, b]
-names = ["a", "b"]
+# join srs_a list of datetime series with diff index
+serieses = [srs_a, srs_b]
+names = ["srs_a", "srs_b"]
 df = pd.concat(serieses, axis=1, keys=names)
+df.plot()
+plt.savefig("test.png")
+plt.close()
+
+# time series line chart with custom tickers, grid lines, title
+###################################################################
+df = pd.DataFrame(np.abs(np.random.randn(10, 5)) * 1000, columns=list("ABCDE"))
+df.set_index(pd.date_range("1/1/2000", periods=10, freq="Q"), inplace=True)
 df
 
-# time series line chart
-############################
 # plot df's A,B,C columns as time series line charts, via matplotlib
 # horizontal axis tickers less dense
 # vertical axis tickers less dense
@@ -74,10 +85,16 @@ plt.xticks(df.index[::2])
 plt.yticks(np.arange(0, 3000, 500))
 plt.grid()
 plt.title("Time Series Plot")
-plt.show()
+plt.savefig("test.png")
+plt.close()
 
 # time series stacked line chart
 ####################################
+df = pd.DataFrame(np.abs(np.random.randn(10, 5)) * 1000, columns=list("ABCDE"))
+df.set_index(pd.date_range("1/1/2000", periods=10, freq="Q"), inplace=True)
+df.index = df.index.strftime("%Y-%m-%d")
+df
+
 # legend text show A, A+B, A+B+C
 plt.plot(df.index, df["A"], label="A")
 plt.plot(df.index, df["B"] + df["A"], label="B")
@@ -88,11 +105,17 @@ plt.xticks(df.index[::2])
 plt.yticks(np.arange(0, 3000, 500))
 plt.grid()
 plt.title("Time Series Stacked Plot")
-plt.show()
+plt.savefig("test.png")
+plt.close()
 
 
 # time series stacked bar chart
 ####################################
+df = pd.DataFrame(np.abs(np.random.randn(10, 5)) * 1000, columns=list("ABCDE"))
+df.set_index(pd.date_range("1/1/2000", periods=10, freq="Q"), inplace=True)
+df.index = df.index.strftime("%Y-%m-%d")
+df
+
 # plot df's A,B,C columns as time series stacked bar charts, via matplotlib
 # horizontal axis tickers less dense
 plt.bar(df.index, df["A"], label="A", color="red")
@@ -100,7 +123,8 @@ plt.bar(df.index, df["B"], label="B", color="green", bottom=df["A"])
 plt.bar(df.index, df["C"], label="C", color="blue", bottom=df["B"] + df["A"])
 plt.legend()
 plt.xticks(df.index[::2])
-plt.show()
+plt.savefig("test.png")
+plt.close()
 
 # same as above, but more automated
 cols = ["A", "B", "C"]
@@ -110,7 +134,8 @@ for col in cols:
     bottom += df[col]
 plt.legend()
 plt.xticks(df.index[::2])
-plt.show()
+plt.savefig("test.png")
+plt.close()
 
 
 # time series stacked bar with line in secondary axis chart
@@ -126,7 +151,8 @@ plt.plot(df2.index, df2["A"], label="A", color="red", linestyle="--")
 plt.plot(df2.index, df2["B"], label="B", color="green", linestyle="--")
 plt.plot(df2.index, df2["C"], label="C", color="blue", linestyle="--")
 plt.xticks(df.index[::2])
-plt.show()
+plt.savefig("test.png")
+plt.close()
 
 # time series bar with line in secondary axis chart
 ###########################################################
@@ -137,7 +163,8 @@ plt.bar(df.index, df["A"], label="A", color="red")
 plt.twinx()
 plt.plot(df2.index, df2["A"], label="A", color="black", linestyle="--")
 plt.xticks(df.index[::2])
-plt.show()
+plt.savefig("test.png")
+plt.close()
 
 # bar plot and line on second axis where dates are far apart
 #####################################
@@ -160,7 +187,8 @@ plt.title("Bar and Line")
 plt.legend(loc="upper right")
 # tight layout
 plt.tight_layout()
-plt.show()
+plt.savefig("test.png")
+plt.close()
 # save figure instead of showing
 plt.savefig("bar_and_line.png")
 
@@ -177,4 +205,30 @@ ax[1].plot(df2.index, df2["A"], label="A", color="red", linestyle="--")
 ax[1].plot(df2.index, df2["B"], label="B", color="green", linestyle="--")
 ax[1].plot(df2.index, df2["C"], label="C", color="blue", linestyle="--")
 plt.xticks(df.index[::2])
-plt.show()
+plt.savefig("test.png")
+plt.close()
+
+
+# ts line chart on 4 subplots, vertically arranged
+###################################################
+df = pd.DataFrame(
+    {"series1": [1, 2, 3], "series2": [4, 5, 6], "series3": [7, 8, 9]},
+    index=pd.date_range("20220101", periods=3),
+)
+
+fig, axs = plt.subplots(3)
+df["series1"].plot(ax=axs[0])
+df["series2"].plot(ax=axs[1])
+df["series3"].plot(ax=axs[2])
+
+plt.savefig("test.png")
+plt.close()
+
+# same as above, y axis shared as well
+fig, axs = plt.subplots(3, sharey=True)
+df["series1"].plot(ax=axs[0])
+df["series2"].plot(ax=axs[1])
+df["series3"].plot(ax=axs[2])
+
+plt.savefig("test.png")
+plt.close()
