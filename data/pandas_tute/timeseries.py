@@ -107,3 +107,25 @@ np.argmax([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
 # rolling apply np argmin
 df.apply(lambda x: x.rolling(3).apply(lambda y: y.argmin()))
+
+
+# monthly to quarterly
+# #################################
+
+# last of the month
+df = pd.DataFrame(np.random.randn(15, 3), columns=list("ABC"))
+df["month"] = pd.date_range("2022-01-01 00:00:00", periods=15, freq="M")
+df = df.set_index("month")
+df
+
+df.resample("Q").first()
+df.resample("Q").last()
+
+# first of the month
+df = pd.DataFrame(np.random.randn(15, 3), columns=list("ABC"))
+df["month"] = pd.date_range("2022-01-01 00:00:00", periods=15, freq="MS")
+df = df.set_index("month")
+df
+
+df.resample("QS").first()
+df.resample("QS").last()
