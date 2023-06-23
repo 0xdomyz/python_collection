@@ -8,7 +8,7 @@ data = pd.DataFrame(
     columns=list("ABCD"),
 )
 
-here = "office"
+here = "office/excel"
 
 # make an excel with the table
 data.to_excel(f"{here}/table.xlsx", index=True)

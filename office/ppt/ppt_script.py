@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-here = "office"
+here = "office/ppt"
 
 # seed
 np.random.seed(123)
