@@ -44,7 +44,7 @@ def run_cmd_on_path(cmd: str, path: Path) -> subprocess.CompletedProcess[str]:
 def pull_all():
     for dir in path.iterdir():
         if dir.is_dir():
-            if (dir / ".gitignore").exists():
+            if (dir / ".git").exists():
                 print(f"on: {dir.resolve()}")
                 print("-" * 80)
                 run_cmd_on_path("git pull", dir)
@@ -54,7 +54,7 @@ def pull_all():
 def run_cmds(cmd: str):
     for dir in path.iterdir():
         if dir.is_dir():
-            if (dir / ".gitignore").exists():
+            if (dir / ".git").exists():
                 print(f"on: {dir.resolve()}")
                 print("-" * 80)
                 run_cmd_on_path(cmd, dir)
