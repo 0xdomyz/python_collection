@@ -293,3 +293,75 @@ A = np.array([1, 2, 3])
 B = np.array([1, 2, 3])
 
 np.sum(A * B)
+
+
+
+# solve linear regression problem
+#######################################
+y = np.array([1, 2, 3])
+X = np.array([[1, 1.2, 2], [1, 2.4, 2], [1, 3.9, 5]])
+
+estimate = np.linalg.inv(X.T @ X) @ X.T @ y
+estimate
+# X is a matrix of features
+# y is a vector of target values
+# estimate is a vector of coefficients
+
+# interprete the equation
+# estimate = np.linalg.inv(X.T @ X) @ X.T @ y
+
+# X.T @ X is the covariance matrix of X
+# np.linalg.inv(X.T @ X) is the inverse of the covariance matrix of X
+
+# X.T @ y is the covariance matrix of X and y
+
+# another formation in terms of cov matrixes
+cov_X = X.T @ X
+cov_X_y = X.T @ y
+estimate = np.linalg.inv(cov_X) @ cov_X_y
+
+error = y - X @ estimate
+error
+
+# plot various estimates and their errors
+import matplotlib.pyplot as plt
+
+estimates = [np.array([estimate[0],x,estimate[2]]) for x in np.linspace(-0.5,2,100)]
+errors = [y - X @ estimate for estimate in estimates]
+
+# plot the estimator against the squared error
+plt.plot([estimate[1] for estimate in estimates], [np.sum(error**2) for error in errors])
+plt.savefig("test.png")
+plt.close()
+
+# markov chain
+#####################
+
+import numpy as np
+
+# Define the transition matrix
+P = np.array([[0.7, 0.3], [0.4, 0.6]])
+# this mean 70% chance of staying in state 1 and 30% chance of moving to state 2
+# if in state 1
+# and 40% chance of moving to state 1 and 60% chance of moving to state 2
+# if in state 2
+
+# Define the initial state distribution
+x = np.array([0.1, 0.9])
+
+# Simulate the Markov chain for 10 steps
+res = []
+for i in range(10):
+    # Print the current state
+    print(f"Step {i}: {x}")
+    res.append(x)
+
+    # Update the state distribution
+    x = x @ P
+
+# plot
+import matplotlib.pyplot as plt
+
+plt.plot(res)
+plt.savefig("test.png")
+plt.close()
