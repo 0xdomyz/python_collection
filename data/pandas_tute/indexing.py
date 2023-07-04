@@ -82,3 +82,33 @@ df
 grid = df.set_index(["a", "b"]).unstack().loc[:, "C"]
 grid
 grid.values
+
+
+# multi index on cols
+###########################################
+
+# make pct df with multi index cols
+import itertools
+
+dim1 = ["a", "b", "c"]
+dim2 = ["x", "y", "z"]
+dim3 = ["i", "j", "k"]
+cols = list(itertools.product(dim1, dim2, dim3))
+col = [x[0] for x in cols]
+col2 = [x[1] for x in cols]
+col3 = [x[2] for x in cols]
+
+df = pd.DataFrame({"col": col, "col2": col2, "col3": col3})
+df["values"] = np.random.randint(1, 10, 27)
+pvt = df.pivot(index="col", columns=["col2","col3"], values="values")
+
+pvt
+
+# multi index column into column, with concatenated names
+pvt.columns = ["_".join(x) for x in pvt.columns]
+
+# remove index name
+pvt.index.name = None
+
+pvt
+
