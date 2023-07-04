@@ -295,7 +295,6 @@ B = np.array([1, 2, 3])
 np.sum(A * B)
 
 
-
 # solve linear regression problem
 #######################################
 y = np.array([1, 2, 3])
@@ -326,11 +325,13 @@ error
 # plot various estimates and their errors
 import matplotlib.pyplot as plt
 
-estimates = [np.array([estimate[0],x,estimate[2]]) for x in np.linspace(-0.5,2,100)]
+estimates = [np.array([estimate[0], x, estimate[2]]) for x in np.linspace(-0.5, 2, 100)]
 errors = [y - X @ estimate for estimate in estimates]
 
 # plot the estimator against the squared error
-plt.plot([estimate[1] for estimate in estimates], [np.sum(error**2) for error in errors])
+plt.plot(
+    [estimate[1] for estimate in estimates], [np.sum(error**2) for error in errors]
+)
 plt.savefig("test.png")
 plt.close()
 

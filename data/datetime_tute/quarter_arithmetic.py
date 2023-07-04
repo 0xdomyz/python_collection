@@ -107,7 +107,6 @@ def get_3m_earlier(dt: datetime.datetime) -> datetime.datetime:
     return dt - datetime.timedelta(days=1)
 
 
-
 def yearquarter(dt: datetime.datetime | datetime.date) -> str:
     """
     Examples
@@ -130,15 +129,15 @@ def yearquarter(dt: datetime.datetime | datetime.date) -> str:
     >>> import pandas as pd
     >>> df = pd.DataFrame({
     ...     "dt": [datetime.datetime(2022, 12, 31, 0, 1, 2, 3),
-    ...            datetime.datetime(2022, 9, 30, 0, 1, 2, 3), 
-    ...            datetime.datetime(2022, 6, 30, 0, 1, 2, 3), 
+    ...            datetime.datetime(2022, 9, 30, 0, 1, 2, 3),
+    ...            datetime.datetime(2022, 6, 30, 0, 1, 2, 3),
     ...            datetime.datetime(2022, 3, 31, 0, 1, 2, 3)],
     ...     "dte": [datetime.date(2022, 12, 31),
     ...             datetime.date(2022, 9, 30),
-    ...             datetime.date(2022, 6, 30), 
+    ...             datetime.date(2022, 6, 30),
     ...             datetime.date(2022, 3, 31)]
     ... })
-    >>> 
+    >>>
     >>> df["dte"].apply(lambda x: yearquarter(x+datetime.timedelta(days=1)))
     0    2023 Q1
     1    2022 Q4
@@ -172,4 +171,3 @@ def yearquarter(dt: datetime.datetime | datetime.date) -> str:
         raise ValueError(f"Invalid quarter month: {quarter_dte.month}")
 
     return quarter_str
-

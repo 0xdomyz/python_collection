@@ -6,9 +6,11 @@ import pandas as pd
 
 here = "office/excel"
 
+
 # iris data
-def iris_df()->pd.DataFrame:
+def iris_df() -> pd.DataFrame:
     from sklearn.datasets import load_iris
+
     _ = load_iris()
     data = pd.DataFrame(
         _.data,
@@ -26,6 +28,7 @@ def iris_df()->pd.DataFrame:
     data.columns = [x.replace("(", "") for x in data.columns]
     data.columns = [x.replace(")", "") for x in data.columns]
     return data
+
 
 iris = iris_df()
 
@@ -151,6 +154,7 @@ for i in range(data.shape[0]):
 
 # todo: make above into a function: dataframe_to_excel(data, filename, sheetname, index=True)
 
+
 # calculate the table area in A1 notation
 def get_table_area(data: pd.DataFrame, include_index=True) -> str:
     if include_index:
@@ -164,12 +168,14 @@ def get_table_area(data: pd.DataFrame, include_index=True) -> str:
     down_right_letter = openpyxl.utils.get_column_letter(max_col)
     return f"{top_left_letter}{min_row}:{down_right_letter}{max_row}"
 
+
 get_table_area(data=data, include_index=True)
 
+
 def close_open_to_close_close(
-        start:int,
-        end:int,
-)-> tuple:
+    start: int,
+    end: int,
+) -> tuple:
     """
     close_open_to_close_close(0, 0)
     close_open_to_close_close(0, 1)
@@ -181,8 +187,11 @@ def close_open_to_close_close(
     else:
         return start, end - 1
 
+
 # column start and end pass 1 number and data, output the range
-def get_column_range(data: pd.DataFrame, start: int, end:int, include_index=True) -> str:
+def get_column_range(
+    data: pd.DataFrame, start: int, end: int, include_index=True
+) -> str:
     # convert to excel index
     start, end = start + 1, end
     if include_index:
@@ -194,15 +203,16 @@ def get_column_range(data: pd.DataFrame, start: int, end:int, include_index=True
     max_row = data.shape[0] + 1
     return f"{top_left_letter}{min_row}:{down_right_letter}{max_row}"
 
+
 get_column_range(data=data, start=1, end=4)
 
 # add the chart
 chart = openpyxl.chart.LineChart()
 chart.title = "Iris sepal length vs other measures"
-chart.style = 13 # use a preset style: https://openpyxl.readthedocs.io/en/stable/charts/pie.html#pie-chart-styles
+chart.style = 13  # use a preset style: https://openpyxl.readthedocs.io/en/stable/charts/pie.html#pie-chart-styles
 chart.x_axis.title = "sepal length (cm)"
 chart.y_axis.title = "other measures"
-chart.legend.position = "r" # legend on the right
+chart.legend.position = "r"  # legend on the right
 
 # values are the lines to plot
 _ = get_column_range(data=data, start=1, end=4)
@@ -229,15 +239,15 @@ data.to_csv(f"{here}/iris.csv")
 
 # func
 def add_line_chart(
-        ws: openpyxl.worksheet.worksheet.Worksheet,
-        values_range: str,
-        x_values_range: str,
-        title: str,
-        x_axis_title: str,
-        y_axis_title: str,
-        legend_position: str,
-        chart_style: int,
-        chart_location: str,
+    ws: openpyxl.worksheet.worksheet.Worksheet,
+    values_range: str,
+    x_values_range: str,
+    title: str,
+    x_axis_title: str,
+    y_axis_title: str,
+    legend_position: str,
+    chart_style: int,
+    chart_location: str,
 ):
     chart = openpyxl.chart.LineChart()
     chart.title = title
@@ -256,12 +266,13 @@ def add_line_chart(
     # add the chart to the sheet
     ws.add_chart(chart, chart_location)
 
+
 import csv
 
 
 def copy_csv_into_ws(
-        ws: openpyxl.worksheet.worksheet.Worksheet,
-        csv_path: str,
+    ws: openpyxl.worksheet.worksheet.Worksheet,
+    csv_path: str,
 ):
     with open(csv_path, "r") as f:
         for row in csv.reader(f):
@@ -281,11 +292,17 @@ wb = openpyxl.Workbook()
 ws = wb.create_sheet("iris")
 
 # add the csv to the sheet
-copy_csv_into_ws(ws = ws, csv_path = f"{here}/iris.csv",)
+copy_csv_into_ws(
+    ws=ws,
+    csv_path=f"{here}/iris.csv",
+)
 
 # make another sheets
 ws2 = wb.create_sheet("iris2")
-copy_csv_into_ws(ws = ws2, csv_path = f"{here}/iris.csv",)
+copy_csv_into_ws(
+    ws=ws2,
+    csv_path=f"{here}/iris.csv",
+)
 
 # another charts sheet
 ws3 = wb.create_sheet("charts")
@@ -293,8 +310,8 @@ ws3 = wb.create_sheet("charts")
 # add the chart
 add_line_chart(
     ws=ws3,
-    values_range = f"{ws.title}!C1:E151",
-    x_values_range = f"{ws.title}!B1:B151",
+    values_range=f"{ws.title}!C1:E151",
+    x_values_range=f"{ws.title}!B1:B151",
     title="Iris sepal length vs other measures",
     x_axis_title="sepal length (cm)",
     y_axis_title="other measures",
@@ -305,8 +322,8 @@ add_line_chart(
 
 add_line_chart(
     ws=ws3,
-    values_range = f"{ws2.title}!C1:E151",
-    x_values_range = f"{ws2.title}!B1:B151",
+    values_range=f"{ws2.title}!C1:E151",
+    x_values_range=f"{ws2.title}!B1:B151",
     title="Iris sepal length vs other measures",
     x_axis_title="sepal length (cm)",
     y_axis_title="other measures",
@@ -316,8 +333,3 @@ add_line_chart(
 )
 
 wb.save(f"{here}/charts.xlsx")
-
-
-
-
-

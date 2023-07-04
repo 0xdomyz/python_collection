@@ -6,7 +6,6 @@ here = Path("D:/")
 # get all files as a list of dict
 files = []
 for i in [i for i in here.iterdir() if i.is_file() and i.name.endswith(".mp3")]:
-    
     file = {}
     file["name"] = i.name
     file["size"] = i.stat().st_size

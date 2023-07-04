@@ -93,5 +93,3 @@ dt.replace(tzinfo=datetime.timezone.utc).timestamp()
 dte = datetime.date.today()
 
 print("\n" * 5)
-
-
