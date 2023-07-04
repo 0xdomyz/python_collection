@@ -1,5 +1,32 @@
 import datetime
 
+import numpy as np
+import pandas as pd
+
+dt = datetime.datetime.now()
+dte = datetime.date.today()
+
+df = pd.DataFrame({"dt": [dt] * 5, "dte": [dte] * 5})
+df
+df.loc[5, :] = None
+df.dtypes
+df
+
+df2 = df.copy()
+idx = df2["dt"].isna()
+df2["dt"] = df2["dt"].astype(str)
+df2.loc[idx, "dt"] = ""
+df2.loc[lambda x: x["dte"].isna(), "dte"] = ""
+df2.dtypes
+df2
+
+
+# build datetime from string
+datetime.datetime.strptime("2021-12-31", "%Y-%m-%d")
+datetime.datetime.fromisoformat("2021-12-31")
+
+import datetime
+
 import pandas as pd
 
 df = pd.DataFrame({"modified": [datetime.datetime(2022, 12, 31), datetime.datetime(2022, 9, 30), datetime.datetime(2022, 6, 30), datetime.datetime(2022, 3, 31), datetime.datetime(2021, 12, 31)]})
