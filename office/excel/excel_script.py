@@ -217,3 +217,107 @@ chart.set_categories(x_values)
 ws.add_chart(chart, "H2")
 
 wb.save(f"{here}/table5.xlsx")
+
+
+# add xlsx with chart to existing csv
+######################################
+
+# save a csv
+data = iris
+data.to_csv(f"{here}/iris.csv")
+
+
+# func
+def add_line_chart(
+        ws: openpyxl.worksheet.worksheet.Worksheet,
+        values_range: str,
+        x_values_range: str,
+        title: str,
+        x_axis_title: str,
+        y_axis_title: str,
+        legend_position: str,
+        chart_style: int,
+        chart_location: str,
+):
+    chart = openpyxl.chart.LineChart()
+    chart.title = title
+    chart.style = chart_style
+    chart.x_axis.title = x_axis_title
+    chart.y_axis.title = y_axis_title
+    chart.legend.position = legend_position
+
+    # values are the lines to plot
+    values = openpyxl.chart.Reference(ws, range_string=values_range)
+    x_values = openpyxl.chart.Reference(ws, range_string=x_values_range)
+
+    chart.add_data(values, titles_from_data=True)
+    chart.set_categories(x_values)
+
+    # add the chart to the sheet
+    ws.add_chart(chart, chart_location)
+
+import csv
+
+
+def copy_csv_into_ws(
+        ws: openpyxl.worksheet.worksheet.Worksheet,
+        csv_path: str,
+):
+    with open(csv_path, "r") as f:
+        for row in csv.reader(f):
+            cleaned = []
+            for i in row:
+                try:
+                    cleaned.append(float(i))
+                except:
+                    cleaned.append(i)
+            ws.append(cleaned)
+
+
+# make new workbook
+wb = openpyxl.Workbook()
+
+# make new sheets
+ws = wb.create_sheet("iris")
+
+# add the csv to the sheet
+copy_csv_into_ws(ws = ws, csv_path = f"{here}/iris.csv",)
+
+# make another sheets
+ws2 = wb.create_sheet("iris2")
+copy_csv_into_ws(ws = ws2, csv_path = f"{here}/iris.csv",)
+
+# another charts sheet
+ws3 = wb.create_sheet("charts")
+
+# add the chart
+add_line_chart(
+    ws=ws3,
+    values_range = f"{ws.title}!C1:E151",
+    x_values_range = f"{ws.title}!B1:B151",
+    title="Iris sepal length vs other measures",
+    x_axis_title="sepal length (cm)",
+    y_axis_title="other measures",
+    legend_position="r",
+    chart_style=13,
+    chart_location="A1",
+)
+
+add_line_chart(
+    ws=ws3,
+    values_range = f"{ws2.title}!C1:E151",
+    x_values_range = f"{ws2.title}!B1:B151",
+    title="Iris sepal length vs other measures",
+    x_axis_title="sepal length (cm)",
+    y_axis_title="other measures",
+    legend_position="r",
+    chart_style=13,
+    chart_location="A10",
+)
+
+wb.save(f"{here}/charts.xlsx")
+
+
+
+
+
