@@ -29,11 +29,8 @@ eng.run("select * from dual")
 # oracledb
 url = f"oracle+oracledb://{url_base}"
 bin_path = r"C:\app\User\product\21c\dbhomeXE\bin"
-eng = alc.create_engine(url, echo=True, thick_mode = {"lib_dir": bin_path})
+eng = alc.create_engine(url, echo=True, thick_mode={"lib_dir": bin_path})
 
 eng.dialect.driver
 
 eng.run("select * from dual")
-
-
-

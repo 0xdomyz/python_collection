@@ -5,8 +5,8 @@ import json
 # list, dict, str, int, float, True, False, None, tuple
 json.dumps(["foo", {"bar": ("baz", None, 1.0, 2)}])
 
-json.dumps([1,2,3])
-json.dumps((1,2,3))# no difference between tuple and list
+json.dumps([1, 2, 3])
+json.dumps((1, 2, 3))  # no difference between tuple and list
 
 print(json.dumps('"foo\bar'))
 
@@ -28,14 +28,14 @@ io.getvalue()
 import json
 
 json.dumps([1, 2, 3, {"4": 5, "6": 7}])
-json.dumps([1, 2, 3, {"4": 5, "6": 7}], separators=(",", ":"))# get rid of space
+json.dumps([1, 2, 3, {"4": 5, "6": 7}], separators=(",", ":"))  # get rid of space
 
 # pretty
 import json
 
 print(json.dumps({"4": 5, "6": 7}, sort_keys=True))
 json.dumps({"4": 5, "6": 7}, sort_keys=True, indent=4)
-print(json.dumps({"4": 5, "6": 7}, sort_keys=True, indent=4))# spaces and \n
+print(json.dumps({"4": 5, "6": 7}, sort_keys=True, indent=4))  # spaces and \n
 
 # decode
 import json

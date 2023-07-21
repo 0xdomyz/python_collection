@@ -100,7 +100,7 @@ col3 = [x[2] for x in cols]
 
 df = pd.DataFrame({"col": col, "col2": col2, "col3": col3})
 df["values"] = np.random.randint(1, 10, 27)
-pvt = df.pivot(index="col", columns=["col2","col3"], values="values")
+pvt = df.pivot(index="col", columns=["col2", "col3"], values="values")
 
 pvt
 
@@ -111,4 +111,3 @@ pvt.columns = ["_".join(x) for x in pvt.columns]
 pvt.index.name = None
 
 pvt
-
