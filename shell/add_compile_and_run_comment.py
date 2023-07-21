@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
 from typing import Iterable
 
@@ -56,7 +56,7 @@ def mass_touch(file_with_names: Path, suffix: str):
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
+    parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument(
         "--touch", action="store_true", help="mass touch files from spec file"
     )
@@ -64,7 +64,8 @@ if __name__ == "__main__":
 
     # add example usages to parser to be shown with -h
     parser.epilog = """
-    example usages:
+    Example usages:
+    
     python add_compile_and_run_comment.py /home/user/Projects/cpp_collection/the_cpp_book/intro/contain_algo
     python add_compile_and_run_comment.py --touch test_acrc/test.txt
     """
