@@ -1,9 +1,11 @@
 from pathlib import Path
+from typing import Iterable
 
 root = Path("/home/user/Projects/rust_collection/example/")
 
 
-def iter_dir_and_files(root):
+# returns iterator of all files in root, recursively
+def iter_dir_and_files(root: Path) -> Iterable[Path]:
     for path in root.iterdir():
         if path.is_dir():
             yield from iter_dir_and_files(path)
