@@ -3,9 +3,18 @@ Examples
 ------------
 ::
 
-    py layout\argparse_tute\positional.py
-    py layout\argparse_tute\positional.py 1 5
-    py layout\argparse_tute\positional.py -h
+    py positional.py -h
+    py positional.py abcderf 5
+    py positional.py "abcde rf" 5
+
+use a windows variable::
+
+    set var=abcde34
+    py positional.py %var% 5
+
+    set var="abcde rf"
+    py positional.py %var% 5
+    py positional.py %var% 6
 """
 import argparse
 
