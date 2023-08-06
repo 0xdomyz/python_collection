@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 
 # create an engine to connect to a database
-engine = create_engine('sqlite:///example.db', echo=True)
+engine = create_engine("sqlite:///example.db", echo=True)
 
 # create a session factory
 Session = sessionmaker(bind=engine)
@@ -12,9 +12,10 @@ Session = sessionmaker(bind=engine)
 # create a base class for declarative models
 Base = declarative_base()
 
+
 # define a model for a table
 class MyTable(Base):
-    __tablename__ = 'my_table'
+    __tablename__ = "my_table"
 
     id = Column(Integer, primary_key=True)
     column1 = Column(String)
@@ -22,11 +23,18 @@ class MyTable(Base):
     column3 = Column(Integer)
     column4 = Column(String)
 
+
 # create a session
 session = Session()
 
 # create a query that selects, filters, and groups data
-query = session.query(MyTable.column1, MyTable.column2, func.sum(MyTable.column3).label('total')).filter(MyTable.column4 == 'value').group_by(MyTable.column1, MyTable.column2)
+query = (
+    session.query(
+        MyTable.column1, MyTable.column2, func.sum(MyTable.column3).label("total")
+    )
+    .filter(MyTable.column4 == "value")
+    .group_by(MyTable.column1, MyTable.column2)
+)
 
 # execute the query and print the results
 for row in query:
