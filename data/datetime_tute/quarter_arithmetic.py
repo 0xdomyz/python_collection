@@ -96,16 +96,77 @@ def get_3m_earlier(dt: datetime.datetime) -> datetime.datetime:
     datetime.datetime(2022, 3, 31, 0, 0)
     >>> get_3m_earlier(datetime.datetime(2022, 3, 31))
     datetime.datetime(2021, 12, 31, 0, 0)
+    >>> get_3m_earlier(datetime.datetime(2022, 1, 31))
+    datetime.datetime(2021, 10, 31, 0, 0)
     """
     dt = dt + datetime.timedelta(days=1)
+    year = dt.year
     month = dt.month
     if month < 4:
         month = 12 + month - 3
+        year -= 1
     else:
         month -= 3
-    dt = dt.replace(month=month)
+    dt = dt.replace(month=month).replace(year=year)
     return dt - datetime.timedelta(days=1)
 
+def get_3m_later(dt: datetime.datetime) -> datetime.datetime:
+    """
+    3 month later date if the date is last day of the month.
+
+    Examples
+    ------------
+    >>> import datetime
+    >>>
+    >>> get_3m_later(datetime.datetime(2022, 12, 31))
+    datetime.datetime(2023, 3, 31, 0, 0)
+
+    list of dates::
+
+        for i in range(1, 13):
+            start = get_3m_later(datetime.datetime(2022, i, 1) - datetime.timedelta(days=1))
+            print(f"{start}, {get_3m_later(start)}")
+        
+        2022-03-31 00:00:00, 2022-06-30 00:00:00
+        2022-04-30 00:00:00, 2022-07-31 00:00:00
+        2022-05-31 00:00:00, 2022-08-31 00:00:00
+        2022-06-30 00:00:00, 2022-09-30 00:00:00
+        2022-07-31 00:00:00, 2022-10-31 00:00:00
+        2022-08-31 00:00:00, 2022-11-30 00:00:00
+        2022-09-30 00:00:00, 2022-12-31 00:00:00
+        2022-10-31 00:00:00, 2023-01-31 00:00:00
+        2022-11-30 00:00:00, 2023-02-28 00:00:00
+        2022-12-31 00:00:00, 2023-03-31 00:00:00
+        2023-01-31 00:00:00, 2023-04-30 00:00:00
+        2023-02-28 00:00:00, 2023-05-31 00:00:00
+    
+    using start and end dates::
+
+        start_date = datetime.datetime(2021, 1, 31)
+        end_date = datetime.datetime(2022, 12, 31)
+
+        result = []
+        while start_date <= end_date:
+            result.append(start_date)
+            start_date = get_3m_later(start_date)
+
+        if start_date != end_date:
+            result.append(end_date) # add end date if it is not the last day of the month
+
+        for i in result:
+            print(i)
+
+    """
+    dt = dt + datetime.timedelta(days=1)
+    year = dt.year
+    month = dt.month
+    if month > 9:
+        month = month - 9
+        year += 1
+    else:
+        month += 3
+    dt = dt.replace(month=month).replace(year=year)
+    return dt - datetime.timedelta(days=1)
 
 def yearquarter(dt: datetime.datetime | datetime.date) -> str:
     """
