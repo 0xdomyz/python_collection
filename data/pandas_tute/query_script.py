@@ -90,3 +90,21 @@ df.query("~bools")
 df.query("not bools")
 df.query("not bools") == df[~df["bools"]]
 df.query("a < b < c and (not bools) or bools > 2")
+
+
+# subset based on string value
+df = pd.DataFrame(
+    {
+        "a_a": ["a_asdf", "b_asdf", "c_asdf"],
+        "nb_b": [1, 2, 3],
+    }
+)
+df
+
+# select columns based on column name string value
+df.filter(like="a_")
+df.filter(regex="a_")
+
+# select rows based on column string value
+df.loc[df.a_a.str.contains("a_"), :]
+df.query("a_a.str.contains('a_')", engine="python")
