@@ -92,6 +92,19 @@ z = "0"
 a = "f"
 f"abc {1+2:{z}{y}.{x}{a}} def"
 
+# percetnage in formt string
+###############################
+
+name = "John"
+age = 30
+height = 1.75
+
+# Using the % operator
+print(
+    "My name is %s, I'm %d years old, and I'm %.2f meters tall." % (name, age, height)
+)
+
+
 # template string
 ######################
 
