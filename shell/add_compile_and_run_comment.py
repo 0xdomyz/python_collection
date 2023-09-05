@@ -51,6 +51,9 @@ def mass_touch(file_with_names: Path, suffix: str):
         name = f"{name.strip()}{suffix}"
         target = file_with_names.parent / name
         if not target.exists():
+            if not target.parent.exists():
+                print(f"creating {target.parent!s}")
+                target.parent.mkdir(parents=True)
             print(f"touching {target!s}")
             target.touch()
 
@@ -58,34 +61,57 @@ def mass_touch(file_with_names: Path, suffix: str):
 if __name__ == "__main__":
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument(
-        "--touch", action="store_true", help="mass touch files from spec file"
+        "--touch", action="store_true",
+        help="mass touch files from spec file in spec file location"
     )
     parser.add_argument("location", type=Path, help="location of the files")
+    parser.add_argument(
+        "--lang", type=str, default="cpp", 
+        help="language of the files, can be cpp, py or rs, default is cpp")
+
+    parser.description = """
+    Add compile and run comment to all files in location recursively.
+    Also can touch files from spec file in spec file location, often used prior to
+    adding compile and run comment.
+    """
 
     # add example usages to parser to be shown with -h
     parser.epilog = """
     Example usages:
     
+    # add compile and run comment
     python add_compile_and_run_comment.py /home/user/Projects/cpp_collection/the_cpp_book/intro/contain_algo
+    python3 add_compile_and_run_comment.py /home/user/Projects/fluent_python/. --lang py
+
+    # touch mode
     python add_compile_and_run_comment.py --touch test_acrc/test.txt
+    python3 add_compile_and_run_comment.py --touch /home/user/Projects/fluent_python/config.txt --lang py
     """
-
-    TEMPLATE = "// g++ {0}.cpp -o {0} && ./{0}\n"
-    SUFFIX = ".cpp"
-
-    # TEMPLATE += "// rustc {0}.rs && ./{0}\n"
-    # SUFFIX = ".rs"
 
     args = parser.parse_args()
 
+    # decide on suffix and template based on language
+    if args.lang == "cpp":
+        template = "// g++ {0}.cpp -o {0} && ./{0}\n"
+        suffix = ".cpp"
+    elif args.lang == "py":
+        template = "# python3 {0}.py\n"
+        suffix = ".py"
+    elif args.lang == "rs":
+        template = "// rustc {0}.rs && ./{0}\n"
+        suffix = ".rs"
+    else:
+        raise ValueError(f"unknown language {args.lang}")
+
+    # actions
     if args.touch:
         mass_touch(
             file_with_names=args.location,
-            suffix=SUFFIX,
+            suffix=suffix,
         )
     else:
         add_compile_and_run_comment(
             location=args.location,
-            suffix=SUFFIX,
-            template=TEMPLATE,
+            suffix=suffix,
+            template=template,
         )
