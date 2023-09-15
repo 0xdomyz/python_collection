@@ -63,11 +63,16 @@ def add_pngs(prs, pngs):
 
 
 def add_2pngs(prs, png1, png2):
+    """wip"""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     # add pic left and right
     left = pptx.util.Inches(1)
     top = pptx.util.Inches(1)
+    # resize
     pic = slide.shapes.add_picture(png1, left, top)
+    pic.width = pptx.util.Inches(4)
+    pic.height = pptx.util.Inches(4)
+
     left = pptx.util.Inches(4)
     top = pptx.util.Inches(1)
     pic = slide.shapes.add_picture(png2, left, top)
