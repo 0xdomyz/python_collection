@@ -62,6 +62,17 @@ def add_pngs(prs, pngs):
         pic = slide.shapes.add_picture(png, left, top)
 
 
+def add_2pngs(prs, png1, png2):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    # add pic left and right
+    left = pptx.util.Inches(1)
+    top = pptx.util.Inches(1)
+    pic = slide.shapes.add_picture(png1, left, top)
+    left = pptx.util.Inches(4)
+    top = pptx.util.Inches(1)
+    pic = slide.shapes.add_picture(png2, left, top)
+
+
 # a title page
 ######################################################
 # make ppt
