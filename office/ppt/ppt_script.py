@@ -33,6 +33,39 @@ from pathlib import Path
 import pptx.util
 from pptx import Presentation
 
+
+def add_a_png_slide(prs, png: str):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])  # layout 6 is blank
+
+    # add pic in the middle of the slide
+    # then resize
+    # total height is 7.5 inches
+    # title height is 0.5 inches
+    # total width is 10 inches
+    left = pptx.util.Inches(2)
+    top = pptx.util.Inches(1)
+    pic_size = 6
+    pic = slide.shapes.add_picture(png, left, top)
+    pic.width = pptx.util.Inches(pic_size)
+    pic.height = pptx.util.Inches(pic_size)
+
+
+def add_a_2pngs_slide(prs, png1, png2):
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+    # add pic left and right then resize
+    top = pptx.util.Inches(1)
+    pic_size = 4
+    left_margin = 0.5
+
+    left = pptx.util.Inches(left_margin)
+    pic = slide.shapes.add_picture(png1, left, top)
+    pic.width = pic.height = pptx.util.Inches(pic_size)
+
+    top = pptx.util.Inches(left_margin + pic_size + 1)
+    pic.width = pic.height = pptx.util.Inches(pic_size)
+
+
 # get pngs
 pngs = [i.as_posix() for i in Path(here).glob("*.png")]
 
@@ -45,37 +78,9 @@ if ppt.exists():
 prs = Presentation()
 
 for png in pngs:
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    # add pic in the middle of the slide
-    left = top = pptx.util.Inches(1)
-    pic = slide.shapes.add_picture(png, left, top)
+    add_a_png_slide(prs, png)
 
 prs.save(f"{here}/ts.pptx")
-
-
-# functionalise
-def add_pngs(prs, pngs):
-    for png in pngs:
-        slide = prs.slides.add_slide(prs.slide_layouts[6])
-        # add pic in the middle of the slide
-        left = top = pptx.util.Inches(1)
-        pic = slide.shapes.add_picture(png, left, top)
-
-
-def add_2pngs(prs, png1, png2):
-    """wip"""
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    # add pic left and right
-    left = pptx.util.Inches(1)
-    top = pptx.util.Inches(1)
-    # resize
-    pic = slide.shapes.add_picture(png1, left, top)
-    pic.width = pptx.util.Inches(4)
-    pic.height = pptx.util.Inches(4)
-
-    left = pptx.util.Inches(4)
-    top = pptx.util.Inches(1)
-    pic = slide.shapes.add_picture(png2, left, top)
 
 
 # a title page
