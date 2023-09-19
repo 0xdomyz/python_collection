@@ -1,23 +1,45 @@
-"""
-Spec
----------
+# Spec
+# ---------
 
+import re
+
+"""
 metacharacters, escape with \
     \^$.|?*+()[{
+"""
 
+metacharacters = r"abc\^$.|?*+()[{123"
+
+re.findall(r"\^", metacharacters)
+re.findall(r"\\", metacharacters)
+re.findall(r"\.", metacharacters)
+re.findall(r"\$", metacharacters)
+
+"""
 Non-printable characters
     \t\r\n\a\e\f\v\
     \r\n
     \n
     \uFFFF
     \xA9
+"""
 
+"""
 Character classes
     [abc]	any of a, b, or c
     [^abc]	not a, b, or c
     [a-g]	character between a & g
     [0-9a-fA-F] hexadecimal digit
+"""
 
+alphabet = "abcdefghijklmnopqrstuvwxyz"
+
+re.findall("[abc]", alphabet)
+re.findall("[^abc]", alphabet)
+re.findall("[a-g]", alphabet)
+re.findall("[0-9a-fA-F]", "0123456789abcdefABCDEF")
+
+"""
 Shorthand character classes
     .	any character except line break
     \d      - Digit (0-9)
@@ -28,16 +50,39 @@ Shorthand character classes
     \S      - Not Whitespace (space, tab, newline)
     \b      - Word Boundary
     \B      - Not a Word Boundary
+"""
 
+re.findall(r"\d", "fa34q")
+re.findall(r"\D", "fa34q")
+re.findall(r"\w", "1!, . rA3")
+re.findall(r"\W", "1!, . rA3")
+re.findall(r"\s", "1!, . rA3")
+re.findall(r"\S", "1!, . rA3")
+# re.findall(r"\b", "apple")
+# for m in re.finditer(r"\B", "apple"):
+#     print(m.start(), m.end(), m.group())
+
+
+"""
 Anchors
     ^       - Beginning of a String
     $       - End of a String
+"""
 
+re.findall(r"^a", "apple")
+re.findall(r"e$", "apple")
+
+"""
 Alternation
     |       - Either Or
     (cat | dog) food
     cat | dog food
+"""
 
+re.findall(r"cat|dog", "cat food")
+re.findall(r"cat|dog", "dog food")
+
+"""
 Repetition
     *       - 0 or More
     +       - 1 or More
@@ -45,27 +90,52 @@ Repetition
     {3}     - Exact Number
     {3,4}   - Range of Numbers (Minimum, Maximum)
     \b[1-9][0-9]{2,4}\b
+"""
 
+re.findall(r"ab*", "aababbb")
+re.findall(r"ab+", "aababbb")
+re.findall(r"ab?", "aababbb")
+re.findall(r"ab{3}", "aababbb")
+re.findall(r"ab{3,4}", "aababbb")
+
+"""
 Greedy and lazy repetition
     <.+> 
     <.+?> 
     <[^<>]+>
 
+Add a ? to a quantifier to make it ungreedy i.e lazy
+"""
+
+re.findall(
+    r"<.+>", "<html><title>My Title</title></html>"
+)  # greedy, as long as possible
+re.findall(r"<.+?>", "<html><title>My Title</title></html>")  # lazy, shorter
+
+"""
 Grouping and capturing
     ( )     - Group
     Set(Value)?
     Set(?:Value)?
     \0
+"""
 
+"""
 Backreferences
     ([abc])=\1
+"""
 
+"""
 Named groups and backreferences
     (?<mygroup>[abc])=\k<mygroup>
+"""
 
+"""
 Unicode prop
     \p{L}
+"""
 
+"""
 Lookaround
     q(?=u)	positive lookahead
     u(?!q)	negative lookahead
@@ -73,11 +143,6 @@ Lookaround
     (?<!a)b
 
 """
-
-# https://docs.python.org/3/library/re.html#regular-expression-examples
-
-
-import re
 
 
 def camel_to_snake(name: str) -> str:
