@@ -25,6 +25,7 @@ web/scrap_pi/*.txt
 web/scrap_pi/images/*.jpg
 *.jpeg
 *.png
+!sphinx_tute/*.png
 
 #torch
 model/torch_tute/data/*
