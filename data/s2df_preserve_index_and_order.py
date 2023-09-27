@@ -3,15 +3,6 @@ import functools
 
 import pandas as pd
 
-times = pd.Series(
-    [
-        datetime.datetime(year=2022, month=10, day=12),
-        datetime.datetime(year=2022, month=10, day=1),
-        datetime.datetime(year=2022, month=10, day=13),
-    ]
-)
-times.index = [0, 3, 0]
-
 
 def s2df_preserve_index_and_order():
     """
@@ -68,5 +59,27 @@ def left_join(s):
     return res
 
 
+def left_join2(s):
+    df = pd.DataFrame(dict(col=s))
+    res = duckdb.connect().execute("select * from df where 1=1 order by col").df()
+    return res
+
+
 if __name__ == "__main__":
+    times = pd.Series(
+        [
+            datetime.datetime(year=2022, month=10, day=12),
+            datetime.datetime(year=2022, month=10, day=1),
+            datetime.datetime(year=2022, month=10, day=13),
+        ]
+    )
+    times.index = [0, 3, 0]
+
+    # original
+    times
+
+    # func sorted data and added fresh index
+    left_join2(times)
+
+    # preserved index and order
     left_join(times)
