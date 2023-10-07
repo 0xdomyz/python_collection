@@ -58,9 +58,16 @@ df["modified_month_first_or_second_half"] = (
 # date to year quarter
 import pandas as pd
 
-df = pd.DataFrame({"date": ["2022-03-31", "2022-06-30", "2022-09-30", "2022-12-31"]})
+df = pd.DataFrame(
+    {"date": ["2022-12-31", "2022-03-31", "2022-03-27", "2022-06-30", "2022-09-30"]}
+)
 df["date"] = pd.to_datetime(df["date"])
+
 df["year_quarter"] = df["date"].dt.to_period("Q")
 df["year_quarter"] = df["year_quarter"].astype(str)
+
+# to year month
+df.date.dt.to_period("M").value_counts()
+df.date.dt.to_period("M").value_counts().sort_index()
 
 print(df)
