@@ -14,3 +14,7 @@ Out put the first 10 pages of in1.pdf to out1.pdf::
 Get the number of pages in in1.pdf::
 
     pdftk in1.pdf dump_data | grep NumberOfPages
+
+Combine 2 pdf::
+
+    pdftk in1.pdf in2.pdf cat output out1.pdf
