@@ -83,6 +83,14 @@ df1.dropna(how="any")
 df1.fillna(value=5)
 pd.isna(df1)
 
+# drop certain rows
+df2 = df1.fillna(1)
+df2.iloc[0, 4] = np.NaN
+df2
+targets = df2.loc[:, "E"].isna()
+df2.drop(df2.index[targets], inplace=True)
+df2
+
 # operations
 df.mean()
 
