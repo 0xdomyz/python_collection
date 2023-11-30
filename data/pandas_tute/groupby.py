@@ -139,6 +139,37 @@ s.groupby(level=["first", "second"]).sum()
 
 s.groupby(["first", "second"]).sum()
 
+# rowise
+####################
+df = pd.DataFrame(
+    {
+        "C": np.random.randn(8),
+        "D": np.random.randn(8),
+        "E": np.random.randn(8),
+        "F": np.random.randn(8),
+    }
+)
+
+df
+
+# rowise sum and show columns as percentage contribution
+cols = df.columns
+df["sum"] = df.sum(axis=1)
+for col in cols:
+    df[col] = df[col] / df["sum"]
+
+df
+
+
+def count_to_percent(df):
+    cols = df.columns
+    df["sum"] = df.sum(axis=1)
+    for col in cols:
+        df[col] = df[col] / df["sum"]
+    df.drop(columns=["sum"], inplace=True)
+    return df
+
+
 # example of groupby with multiindex
 #########################################
 arrays = [
