@@ -47,6 +47,17 @@ df["modified"] = df["modified"].apply(
 df["modified_week"] = df["modified"].apply(
     lambda x: x - datetime.timedelta(days=x.weekday())
 )
+
+
+def minus_month(x):
+    if x.month == 1:
+        return datetime.datetime(x.year - 1, 12, x.day)
+    else:
+        return datetime.datetime(x.year, x.month - 1, x.day)
+
+
+df["minus_a_month"] = minus_month(df["modified"])
+
 df["modified_month"] = df["modified"].apply(lambda x: x.replace(day=1))
 df["modified_month_part"] = df["modified"].apply(
     lambda x: "first" if x.day <= 15 else "second"
