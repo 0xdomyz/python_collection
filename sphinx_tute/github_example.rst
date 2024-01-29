@@ -57,7 +57,7 @@ local picture for github rendering
 
    pic text 2
 
-math formula
+math formula (not work)
 -----------------------
 
 .. math::
