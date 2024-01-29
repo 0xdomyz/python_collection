@@ -49,11 +49,11 @@ picture
 
    python logo
 
-local picture
+local picture for github rendering
 
-.. figure:: ../../pic.png
-   :alt: alt text
+.. figure:: pic.png
+   :alt: alt text 2
    :width: 200
 
-   pic text
+   pic text 2
 
