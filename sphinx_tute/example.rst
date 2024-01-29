@@ -57,3 +57,20 @@ local picture
 
    pic text
 
+math formula
+-----------------------
+
+.. math::
+
+    \int_{-\infty}^\infty g(x) dx
+
+.. math::
+
+    \sum_{i=1}^n a_i=0
+
+normal distribution pdf:
+
+.. math::
+
+    f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{(x-\mu)^2}{2\sigma^2}}
+
