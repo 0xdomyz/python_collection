@@ -1,8 +1,8 @@
-import custom_matrix2_support
+import math_scripts.matrix.custom_matrix2_support as custom_matrix2_support
 import numpy as np
 import openpyxl
 import pandas as pd
-from custom_matrix import CustomMatrix
+from math_scripts.matrix.custom_matrix import CustomMatrix
 
 
 class CustomMatrix2(CustomMatrix):

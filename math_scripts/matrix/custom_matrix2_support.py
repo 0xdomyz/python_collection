@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from custom_matrix import CustomMatrix
+from math_scripts.matrix.custom_matrix import CustomMatrix
 
 
 def calculate2(left: CustomMatrix, right: CustomMatrix):
