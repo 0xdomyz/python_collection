@@ -64,3 +64,34 @@ p.write_text("hello world", append=True)
 import pandas as pd
 
 print(pd.__file__)
+
+
+# create files if not exist in a directory
+from pathlib import Path
+
+dir = Path() / "example"
+
+for sub_dir in dir.iterdir():
+    target = sub_dir / ".gitkeep"
+    if not target.exists():
+        target.touch()
+
+# find all .ipynb files in a directory
+from pathlib import Path
+
+
+def find_ipynb_files(directory: Path):
+
+     ipynb_files = []
+
+     for file_path in directory.rglob("*.ipynb"):
+
+         ipynb_files.append(file_path)
+
+     return ipynb_files
+
+directory_path = Path("/path/to/your/folder")
+ipynb_files_list = find_ipynb_files(directory_path)
+for file in ipynb_files_list:
+
+     print(file)
