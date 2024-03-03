@@ -13,6 +13,36 @@ df = pd.DataFrame(np.random.randn(10, 3), columns=list("ABC"))
 round_to_n = lambda x, n: round(x, -int(floor(log10(x))) + (n - 1))
 np.round(3.141592653589793, 2)
 
+#mod, int division
+######################
+
+# Python
+a = [10, 20, 30]
+b = [3, 7, 10]
+
+print([x % y for x, y in zip(a, b)])  # Output: [1, 6, 0]
+print([x // y for x, y in zip(a, b)])  # Output: [3, 2, 3]
+
+# NumPy
+a_np = np.array([10, 20, 30])
+b_np = np.array([3, 7, 10])
+
+print(np.mod(a_np, b_np))  # Output: [1 6 0]
+print(np.floor_divide(a_np, b_np))  # Output: [3 2 3]
+
+# pandas
+a_pd = pd.Series([10, 20, 30])
+b_pd = pd.Series([3, 7, 10])
+
+print(a_pd.mod(b_pd))  # Output: 0    1
+                        #         1    6
+                        #         2    0
+                        #         dtype: int64
+print(a_pd.floordiv(b_pd))  # Output: 0    3
+                            #         1    2
+                            #         2    3
+                            #         dtype: int64
+
 # np log functions
 ######################
 np.log(2.718281828459045)
