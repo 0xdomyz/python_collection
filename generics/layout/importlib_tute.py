@@ -21,7 +21,9 @@ importlib.import_module("os.path", "/usr/lib/python3.9")
 ##########################################
 from pathlib import Path
 
-path = Path(".") / "layout" / "importlib_tute_module.py"
+Path(".").resolve().as_posix()
+
+path = Path(r"C:\Users\yzdom\Projects\python_collection\generics\layout\importlib_tute_module.py")
 
 spec = importlib.util.spec_from_file_location("importlib_tute_module", path)
 module = importlib.util.module_from_spec(spec)
