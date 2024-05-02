@@ -3,15 +3,37 @@
     // description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
     // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
     // same ids are connected.
-    // Example:
-    // "Print to console": {
-    //     "prefix": "log",
-    //     "body": [
-    //         "console.log('$1');",
-    //         "$2"
-    //     ],
-    //     "description": "Log output to console"
-    // }
+
+// general python
+
+"loop and print": {
+    "prefix": "loopprint",
+    "body": [
+        "for i in range($1):",
+        "    print(i)",
+    ],
+},
+
+"setup Path object": {
+    "prefix": "setuppath",
+    "body": [
+        "from pathlib import Path",
+        "path = Path('$1')",
+    ],
+},
+
+// datascience related
+
+"import datascience libs":{
+    "prefix": "importds",
+    "body": [
+        "import pandas as pd",
+        "import numpy as np",
+        "import matplotlib.pyplot as plt",
+    ],
+},
+
+// saspy related
 
 "setup SAS": {
     "prefix": "sassetup",
@@ -24,8 +46,9 @@
 "Submit SAS": {
     "prefix": "sassubmit",
     "body": [
-        "sas.submitLST(f\"\"\"\n    $1\n\"\"\")",
-        "$2"
+        "sas.submitLST(f\"\"\"",
+        "    $1",
+        "\"\"\")",
     ],
 },
 
@@ -36,6 +59,79 @@
     ],
 },
 
+"sas data head":{
+    "prefix": "sasdatahead",
+    "body": [
+        "sas.sasdata(\"$1\",\"work$2\").head()",
+    ],
+},
 
+"sas proc sql count(1) simple version": {
+    "prefix": "psqlcount1",
+    "body": [
+        "sas.submitLST(f\"\"\"",
+        "proc sql;",
+        "    select count(*) as n",
+        "    from $1",
+        "    where",
+        "        $2",
+        "    ;",
+        "\"\"\")",
+    ],
+},
+"sas proc sql create table simple version": {
+    "prefix": "psqlsimple",
+    "body": [
+        "sas.submitLST(f\"\"\"",
+        "proc sql;",
+        "create table df as",
+        "    select",
+        "        *",
+        "    from $1",
+        "    where",
+        "        $2",
+        "    ;",
+        "\"\"\")",
+    ],
+},
+"sas proc sql create table group by version": {
+    "prefix": "psqlgroup",
+    "body": [
+        "sas.submitLST(f\"\"\"",
+        "proc sql;",
+        "create table df as",
+        "    select",
+        "        $1",
+        "    from $2",
+        "    where",
+        "        $3",
+        "    group by 1,2",
+        "    order by 1,2",
+        "    ;",
+        "\"\"\")",
+    ],
+},
+"sas proc sql create table full version": {
+    "prefix": "psqlfull",
+    "body": [
+        "sas.submitLST(f\"\"\"",
+        "proc sql;",
+        "create table df as",
+        "    select",
+        "        a.*,",
+        "        b.*",
+        "    from $1 a",
+        "    left join $2 b",
+        "    on",
+        "        a.id = b.id and",
+        "        a.date = b.date",
+        "    where",
+        "        $3",
+        "    group by 1,2",
+        "    order by 1,2",
+        "    ;",
+        "\"\"\")",
+    ],
+},
 
 }
