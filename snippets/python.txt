@@ -18,7 +18,7 @@
     "prefix": "setuppath",
     "body": [
         "from pathlib import Path",
-        "path = Path(r'$1')",
+        "path = Path('$1')",
     ],
 },
 
@@ -49,6 +49,17 @@
         "sas.submitLST(f\"\"\"",
         "    $1",
         "\"\"\")",
+    ],
+},
+
+"Submit SAS and receive df": {
+    "prefix": "sasgetdf",
+    "body": [
+        "sas.submitLST(f\"\"\"",
+        "    $1",
+        "\"\"\")",
+        "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+        "df"
     ],
 },
 
