@@ -15,7 +15,7 @@
 },
 
 "setup Path object": {
-    "prefix": "setuppath",
+    "prefix": "pathsetup",
     "body": [
         "from pathlib import Path",
         "path = Path('$1')",
@@ -46,8 +46,10 @@
 "Submit SAS": {
     "prefix": "sassubmit",
     "body": [
-        "sas.submitLST(f\"\"\"",
-        "    $1",
+        "sas.submitLST(",
+        "f\"\"\"",
+        "$1",
+        "run;",
         "\"\"\")",
     ],
 },
@@ -55,18 +57,13 @@
 "Submit SAS and receive df": {
     "prefix": "sasgetdf",
     "body": [
-        "sas.submitLST(f\"\"\"",
-        "    $1",
+        "sas.submitLST(",
+        "f\"\"\"",
+        "$1",
+        "run;",
         "\"\"\")",
         "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
         "df"
-    ],
-},
-
-"comment SAS": {
-    "prefix": "sascomment",
-    "body": [
-        "/*$1*/",
     ],
 },
 
@@ -80,20 +77,23 @@
 "sas proc sql count(1) simple version": {
     "prefix": "psqlcount1",
     "body": [
-        "sas.submitLST(f\"\"\"",
+        "sas.submitLST(",
+        "f\"\"\"",
         "proc sql;",
         "    select count(*) as n",
         "    from $1",
         "    where",
         "        $2",
         "    ;",
+        "run;",
         "\"\"\")",
     ],
 },
 "sas proc sql create table simple version": {
     "prefix": "psqlsimple",
     "body": [
-        "sas.submitLST(f\"\"\"",
+        "sas.submitLST(",
+        "f\"\"\"",
         "proc sql;",
         "create table df as",
         "    select",
@@ -102,13 +102,15 @@
         "    where",
         "        $2",
         "    ;",
+        "run;",
         "\"\"\")",
     ],
 },
 "sas proc sql create table group by version": {
     "prefix": "psqlgroup",
     "body": [
-        "sas.submitLST(f\"\"\"",
+        "sas.submitLST(",
+        "f\"\"\"",
         "proc sql;",
         "create table df as",
         "    select",
@@ -119,13 +121,15 @@
         "    group by 1,2",
         "    order by 1,2",
         "    ;",
+        "run;",
         "\"\"\")",
     ],
 },
 "sas proc sql create table full version": {
     "prefix": "psqlfull",
     "body": [
-        "sas.submitLST(f\"\"\"",
+        "sas.submitLST(",
+        "f\"\"\"",
         "proc sql;",
         "create table df as",
         "    select",
@@ -141,6 +145,7 @@
         "    group by 1,2",
         "    order by 1,2",
         "    ;",
+        "run;",
         "\"\"\")",
     ],
 },
