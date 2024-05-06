@@ -9,7 +9,7 @@
 "loop and print": {
     "prefix": "loopprint",
     "body": [
-        "for i in $1:",
+        "for i in $0:",
         "    print(i)",
     ],
 },
@@ -39,7 +39,7 @@
     "prefix": "sassetup",
     "body": [
         "import saspy",
-        "sas = saspy.SASsession(colorLOG=True)$1",
+        "sas = saspy.SASsession(colorLOG=True)",
     ],
 },
 
@@ -48,7 +48,7 @@
     "body": [
         "sas.submitLST(",
         "f\"\"\"",
-        "$1",
+        "$0",
         "run;",
         "\"\"\")",
     ],
@@ -59,10 +59,11 @@
     "body": [
         "sas.submitLST(",
         "f\"\"\"",
-        "$1",
+        "$0",
         "run;",
         "\"\"\")",
         "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+        "df.columns = df.columns.str.lower()",
         "df"
     ],
 },
@@ -74,6 +75,8 @@
     ],
 },
 
+// proc sql
+
 "sas proc sql count(1) simple version": {
     "prefix": "psqlcount1",
     "body": [
@@ -83,9 +86,9 @@
         "    select count(*) as n",
         "    from $1",
         "    where",
-        "        $2",
+        "        $0",
         "    ;",
-        "run;",
+        "quit;",
         "\"\"\")",
     ],
 },
@@ -100,9 +103,9 @@
         "        *",
         "    from $1",
         "    where",
-        "        $2",
+        "        $0",
         "    ;",
-        "run;",
+        "quit;",
         "\"\"\")",
     ],
 },
@@ -117,11 +120,11 @@
         "        $1",
         "    from $2",
         "    where",
-        "        $3",
+        "        $0",
         "    group by 1,2",
         "    order by 1,2",
         "    ;",
-        "run;",
+        "quit;",
         "\"\"\")",
     ],
 },
@@ -141,11 +144,11 @@
         "        a.id = b.id and",
         "        a.date = b.date",
         "    where",
-        "        $3",
+        "        $0",
         "    group by 1,2",
         "    order by 1,2",
         "    ;",
-        "run;",
+        "quit;",
         "\"\"\")",
     ],
 },
