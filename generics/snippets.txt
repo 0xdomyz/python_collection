@@ -39,7 +39,7 @@
     "prefix": "sassetup",
     "body": [
         "import saspy",
-        "sas = saspy.SASsession(colorLOG=True)",
+        "sas = saspy.SASsession()",
     ],
 },
 
