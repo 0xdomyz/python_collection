@@ -68,12 +68,21 @@
     ],
 },
 
+
 "sas data head":{
     "prefix": "sasdatahead",
     "body": [
         "sas.sasdata(\"$1\",\"work$2\").head()",
     ],
 },
+
+"sas last log":{
+    "prefix": "saslastlog",
+    "body": [
+        "print(sas.lastlog())$0",
+    ],
+},
+
 
 // proc sql
 
