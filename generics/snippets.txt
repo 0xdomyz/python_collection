@@ -33,6 +33,13 @@
     ],
 },
 
+"pd first row":{
+    "prefix": "top",
+    "body": [
+        "print(df.iloc[0,:].to_string())",
+    ],
+},
+
 // saspy related
 
 "setup SAS": {
@@ -50,24 +57,9 @@
         "f\"\"\"",
         "$0",
         "run;",
-        "\"\"\")",
+        "\"\"\", method=\"listorlog\")",
     ],
 },
-
-"Submit SAS and receive df": {
-    "prefix": "sasgetdf",
-    "body": [
-        "sas.submitLST(",
-        "f\"\"\"",
-        "$0",
-        "run;",
-        "\"\"\")",
-        "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
-        "df.columns = df.columns.str.lower()",
-        "df"
-    ],
-},
-
 
 "sas data head":{
     "prefix": "sasdatahead",
@@ -84,66 +76,71 @@
 },
 
 
-// proc sql
+// proc data
 
-"sas proc sql count(1) simple version": {
-    "prefix": "psqlcount1",
+"porc freq and receive df": {
+    "prefix": "pfreqdf",
     "body": [
         "sas.submitLST(",
         "f\"\"\"",
-        "proc sql;",
-        "    select count(*) as n",
-        "    from $1",
-        "    where",
-        "        $0",
-        "    ;",
-        "quit;",
-        "\"\"\")",
+        "proc freq data=$1 noprint;",
+        "    tables $2 / missing out=_tmp;",
+        "run;",
+        "\"\"\", method=\"listonly\")",
+        "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+        "df.columns = df.columns.str.lower()",
+        "df"
     ],
 },
-"sas proc sql create table simple version": {
+
+"porc summary and receive df": {
+    "prefix": "psumdf",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "proc sort data=$1 out=_sorted;",
+        "    by $2;",
+        "",
+        "proc summary data=_sorted;",
+        "    by $2;",
+        "    var $3;",
+        "    output out=_tmp",
+        "        mean($3) = mean_$3",
+        "    ;",
+        "run;",
+        "\"\"\", method=\"listonly\")",
+        "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+        "df.columns = df.columns.str.lower()",
+        "df"
+    ],
+},
+
+
+// proc sql
+
+"sas proc sql simple version": {
     "prefix": "psqlsimple",
     "body": [
         "sas.submitLST(",
         "f\"\"\"",
         "proc sql;",
-        "create table df as",
         "    select",
-        "        *",
+        "        count(*) as n",
         "    from $1",
         "    where",
         "        $0",
         "    ;",
         "quit;",
-        "\"\"\")",
+        "\"\"\", method=\"listorlog\")",
     ],
 },
-"sas proc sql create table group by version": {
-    "prefix": "psqlgroup",
-    "body": [
-        "sas.submitLST(",
-        "f\"\"\"",
-        "proc sql;",
-        "create table df as",
-        "    select",
-        "        $1",
-        "    from $2",
-        "    where",
-        "        $0",
-        "    group by 1,2",
-        "    order by 1,2",
-        "    ;",
-        "quit;",
-        "\"\"\")",
-    ],
-},
-"sas proc sql create table full version": {
+"sas proc sql full version": {
     "prefix": "psqlfull",
     "body": [
         "sas.submitLST(",
         "f\"\"\"",
         "proc sql;",
-        "create table df as",
+        "create table _tmp as",
         "    select",
         "        a.*,",
         "        b.*",
@@ -158,7 +155,10 @@
         "    order by 1,2",
         "    ;",
         "quit;",
-        "\"\"\")",
+        "\"\"\", method=\"listorlog\")",
+        "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+        "df.columns = df.columns.str.lower()",
+        "df",
     ],
 },
 
