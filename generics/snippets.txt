@@ -61,6 +61,28 @@
     ],
 },
 
+"submit sas lst and log": {
+    "prefix": "sassubmitlstlog",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "$0",
+        "run;",
+        "\"\"\", method=\"listandlog\")",
+    ],
+},
+
+"submit sas log and lst": {
+    "prefix": "sassubmitloglst",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "$0",
+        "run;",
+        "\"\"\", method=\"logandlist\")",
+    ],
+},
+
 "sas data head":{
     "prefix": "sasdatahead",
     "body": [
