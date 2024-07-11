@@ -83,10 +83,30 @@
     ],
 },
 
+"SAS print": {
+    "prefix": "sasprint",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "proc print data = $1;",
+        "run;",
+        "\"\"\", method=\"listorlog\")$0",
+    ],
+},
+
+
 "sas data head":{
     "prefix": "sasdatahead",
     "body": [
         "sas.sasdata(\"$1\",\"work$2\").head()",
+    ],
+},
+
+"sas df":{
+    "prefix": "sasdf",
+    "body": [
+        "df = sas.sasdata(\"$1\",\"work$2\").to_df()",
+        "df$0",
     ],
 },
 
