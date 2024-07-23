@@ -36,9 +36,16 @@
 "pd first row":{
     "prefix": "top",
     "body": [
-        "print(df.iloc[0,:].to_string())",
+        "print(df.iloc[0,:].to_string())$0",
     ],
 },
 
+"pd shape head 1":{
+    "prefix": "shapehead1",
+    "body": [
+        "print(f\"{df.shape}\")",
+        "df.head(1)$0",
+    ],
+},
 
 }
