@@ -4,6 +4,7 @@
 #data
 *.csv
 !data/toydata/*.csv
+generics/regexp_related/words/*
 *.zip
 configs/files/*
 *.pptx
