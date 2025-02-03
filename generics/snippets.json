@@ -13,7 +13,6 @@
     ],
 },
 
-
 "loop and print": {
     "prefix": "loopprint",
     "body": [
@@ -22,15 +21,15 @@
     ],
 },
 
+// imports
+
 "setup Path object": {
-    "prefix": "pathsetup",
+    "prefix": "importpath",
     "body": [
         "from pathlib import Path",
         "path = Path('$1')",
     ],
 },
-
-// datascience related
 
 "import datascience libs":{
     "prefix": "importds",
@@ -42,6 +41,9 @@
         "from scipy import stats",
     ],
 },
+
+
+// datascience related
 
 "pd first row":{
     "prefix": "top",
