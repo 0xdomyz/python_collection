@@ -20,6 +20,20 @@ df2.loc[lambda x: x["dte"].isna(), "dte"] = ""
 df2.dtypes
 df2
 
+# time zone and unix timestamp
+
+# fromtimestamp convert ts to local time by default, convert to same time in utc by passing tz=timezone.utc
+# to_datetime convert ts to time in utc by default, it adds tz info (maybe convert) by passing utc=True
+#
+# so simply use to_datetime to start with, mess with tz and use fromtimestamp if required
+import datetime
+
+ts = 1741552860
+print(f"{datetime.datetime.fromtimestamp(ts) = }")
+print(f"{datetime.datetime.fromtimestamp(ts, tz=datetime.timezone.utc) = }")
+print(f"{pd.to_datetime(ts, unit='s') = }")
+print(f"{pd.to_datetime(ts, unit='s',utc=True) = }")
+
 
 # build datetime from string
 datetime.datetime.strptime("2021-12-31", "%Y-%m-%d")
