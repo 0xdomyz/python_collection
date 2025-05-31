@@ -15,6 +15,9 @@ def refresh_data(k):
 (col1,) = st.columns(1)
 
 with col1:
+
+    col1.text("text\nwithin text method")
+
     slider = st.slider("Select number of rows", 1, 891, 500)  # slider
     column = st.selectbox(
         "Select column",
