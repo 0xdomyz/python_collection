@@ -40,6 +40,7 @@
         "prefix": "importmpl",
         "body": [
             "import matplotlib.pyplot as plt",
+            "import matplotlib as mpl",
         ],
     },
     // pd related
@@ -55,6 +56,7 @@
             "# vertical info view",
             "_ = pd.concat([df.head(1).T, df.dtypes, df.isna().sum()], axis=1)",
             "_.columns = ['example_value', 'dtypes', 'n_null']",
+            "_",
         ],
     },
     "dfloc": {
@@ -70,15 +72,23 @@
         ],
     },
     "dfgrp1": {
+        "prefix": "dfgrp0",
+        "body": [
+            "df.groupby(\"$1\", dropna=False, observed=False)[\"$2\"].mean()",
+        ],
+    },
+    "dfgrp1extend": {
         "prefix": "dfgrp1",
         "body": [
-            "df.groupby('$1', dropna=False, observed=False)['$2'].agg(['size', 'sum', 'mean']).round({'mean': 2})",
+            "df.groupby(\"$1\", dropna=False, observed=False).agg(",
+            "    {\"$2\": [\"size\", \"sum\", \"mean\"]}",
+            ").round({(\"$2\", \"mean\"): 2})",
         ],
     },
     "dfgrp2unstack": {
         "prefix": "dfgrp2unstack",
         "body": [
-            "df.groupby(['$1', '$2'], dropna=False, observed=False)['$3'].agg(",
+            "df.groupby([\"$1\", \"$2\"], dropna=False, observed=False)[\"$3\"].agg(",
             "    lambda x: (len(x), float(x.mean().round(2)))",
             ").unstack()",
         ],
@@ -86,14 +96,14 @@
     "dfgrpfull": {
         "prefix": "dfgrpfull",
         "body": [
-            "df.groupby(['$1', '$2'], dropna=False, observed=False).agg(",
+            "df.groupby([\"$1\", \"$2\"], dropna=False, observed=False).agg(",
             "    **{",
-            "        'n': ('$1', 'size'),",
-            "        '$3_rate': ('$3', 'mean'),",
-            "        'pct_$4': ('$4', lambda x: x.isin(['$4']).sum() / len(x)),",
-            "        '$5': ('$5', lambda x: df.loc[x.index, :]['$5'].sum(),),",
+            "        \"n\": (\"$1\", \"size\"),",
+            "        \"$3_rate\": (\"$3\", \"mean\"),",
+            "        \"pct_$4\": (\"$4\", lambda x: x.isin([\"$4\"]).sum() / len(x)),",
+            "        \"$5\": (\"$5\", lambda x: df.loc[x.index, :][\"$5\"].sum(),),",
             "    }",
-            ").round({'$3_rate': 2, 'pct_$4': 2, '$5': 2})",
+            ").round({\"$3_rate\": 2, \"pct_$4\": 2, \"$5\": 2})",
         ],
     },
 }
