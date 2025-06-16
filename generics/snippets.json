@@ -3,61 +3,97 @@
     // description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
     // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
     // same ids are connected.
-
-// general python
-
-"printfeq": {
-    "prefix": "printfeq",
-    "body": [
-        "print(f\"{$0 = }\")",
-    ],
-},
-
-"loop and print": {
-    "prefix": "loopprint",
-    "body": [
-        "for i in $0:",
-        "    print(i)",
-    ],
-},
-
-// imports
-
-"setup Path object": {
-    "prefix": "importpath",
-    "body": [
-        "from pathlib import Path",
-        "path = Path('$1')",
-    ],
-},
-
-"import datascience libs":{
-    "prefix": "importds",
-    "body": [
-        "import matplotlib.pyplot as plt",
-        "import numpy as np",
-        "import pandas as pd",
-        "import statsmodels.api as sm",
-        "from scipy import stats",
-    ],
-},
-
-
-// datascience related
-
-"pd first row":{
-    "prefix": "top",
-    "body": [
-        "print(df.iloc[0,:].to_string())$0",
-    ],
-},
-
-"pd shape head 1":{
-    "prefix": "shapehead1",
-    "body": [
-        "print(f\"{df.shape}\")",
-        "df.head(1)$0",
-    ],
-},
-
+    // general python
+    "printfeq": {
+        "prefix": "printfeq",
+        "body": [
+            "print(f\"{$0 = }\")",
+        ],
+    },
+    "loop and print": {
+        "prefix": "forprint",
+        "body": [
+            "for i in $0:",
+            "    print(i)",
+        ],
+    },
+    // imports
+    "setup Path object": {
+        "prefix": "importpathos",
+        "body": [
+            "import os",
+            "from pathlib import Path",
+            "path = Path('$1')",
+        ],
+    },
+    "import datascience libs": {
+        "prefix": "importds",
+        "body": [
+            "import matplotlib.pyplot as plt",
+            "import numpy as np",
+            "import pandas as pd",
+            "import statsmodels.api as sm",
+            "from scipy import stats",
+        ],
+    },
+    "import matplotlib libs": {
+        "prefix": "importmpl",
+        "body": [
+            "import matplotlib.pyplot as plt",
+        ],
+    },
+    // pd related
+    "df head transpose": {
+        "prefix": "dfheadt",
+        "body": [
+            "df.head(1).T",
+        ],
+    },
+    "pd vertical info": {
+        "prefix": "pdverti",
+        "body": [
+            "# vertical info view",
+            "_ = pd.concat([df.head(1).T, df.dtypes, df.isna().sum()], axis=1)",
+            "_.columns = ['example_value', 'dtypes', 'n_null']",
+        ],
+    },
+    "dfloc": {
+        "prefix": "dfloc",
+        "body": [
+            "df.loc[df['$1']$2, :]",
+        ],
+    },
+    "dfqry": {
+        "prefix": "dfqry",
+        "body": [
+            "df.query('$1')",
+        ],
+    },
+    "dfgrp1": {
+        "prefix": "dfgrp1",
+        "body": [
+            "df.groupby('$1', dropna=False, observed=False)['$2'].agg(['size', 'sum', 'mean']).round({'mean': 2})",
+        ],
+    },
+    "dfgrp2unstack": {
+        "prefix": "dfgrp2unstack",
+        "body": [
+            "df.groupby(['$1', '$2'], dropna=False, observed=False)['$3'].agg(",
+            "    lambda x: (len(x), float(x.mean().round(2)))",
+            ").unstack()",
+        ],
+    },
+    "dfgrpfull": {
+        "prefix": "dfgrpfull",
+        "body": [
+            "df.groupby(['$1', '$2'], dropna=False, observed=False).agg(",
+            "    **{",
+            "        'n': ('$1', 'size'),",
+            "        '$3_rate': ('$3', 'mean'),",
+            "        'pct_$4': ('$4', lambda x: x.isin(['$4']).sum() / len(x)),",
+            "        '$5': ('$5', lambda x: df.loc[x.index, :]['$5'].sum(),),",
+            "    }",
+            ").round({'$3_rate': 2, 'pct_$4': 2, '$5': 2})",
+        ],
+    },
 }
