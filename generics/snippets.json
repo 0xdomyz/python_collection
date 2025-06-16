@@ -30,6 +30,7 @@
         "prefix": "importds",
         "body": [
             "import matplotlib.pyplot as plt",
+            "import matplotlib as mpl",
             "import numpy as np",
             "import pandas as pd",
             "import statsmodels.api as sm",
@@ -44,66 +45,64 @@
         ],
     },
     // pd related
-    "df head transpose": {
-        "prefix": "dfheadt",
+    "head": {
+        "prefix": "head",
         "body": [
-            "df.head(1).T",
+            "$1.head(1).T",
         ],
     },
-    "pd vertical info": {
-        "prefix": "pdverti",
+    "info": {
+        "prefix": "info",
         "body": [
             "# vertical info view",
-            "_ = pd.concat([df.head(1).T, df.dtypes, df.isna().sum()], axis=1)",
+            "_ = pd.concat([$1.head(1).T, $1.dtypes, $1.isna().sum()], axis=1)",
             "_.columns = ['example_value', 'dtypes', 'n_null']",
             "_",
         ],
     },
-    "dfloc": {
-        "prefix": "dfloc",
+    "loc": {
+        "prefix": "loc",
         "body": [
-            "df.loc[df['$1']$2, :]",
+            "$1.loc[$1['$2']$3, :]",
         ],
     },
-    "dfqry": {
-        "prefix": "dfqry",
+    "qry": {
+        "prefix": "qry",
         "body": [
-            "df.query('$1')",
+            "$1.query('$2')",
         ],
     },
-    "dfgrp1": {
-        "prefix": "dfgrp0",
+    "grp0": {
+        "prefix": "grp0",
         "body": [
-            "df.groupby(\"$1\", dropna=False, observed=False)[\"$2\"].mean()",
+            "$1.groupby(\"$2\", dropna=False, observed=False)[\"$3\"].mean()",
         ],
     },
-    "dfgrp1extend": {
-        "prefix": "dfgrp1",
+    "grp1": {
+        "prefix": "grp1",
         "body": [
-            "df.groupby(\"$1\", dropna=False, observed=False).agg(",
-            "    {\"$2\": [\"size\", \"sum\", \"mean\"]}",
-            ").round({(\"$2\", \"mean\"): 2})",
+            "$1.groupby(\"$2\", dropna=False, observed=False).agg(",
+            "    {\"$3\": [\"size\", \"sum\", \"mean\"]}",
+            ")",
         ],
     },
-    "dfgrp2unstack": {
-        "prefix": "dfgrp2unstack",
+    "grp2": {
+        "prefix": "grp2",
         "body": [
-            "df.groupby([\"$1\", \"$2\"], dropna=False, observed=False)[\"$3\"].agg(",
+            "$1.groupby([\"$2\", \"$3\"], dropna=False, observed=False)[\"$4\"].agg(",
             "    lambda x: (len(x), float(x.mean().round(2)))",
             ").unstack()",
         ],
     },
-    "dfgrpfull": {
-        "prefix": "dfgrpfull",
+    "grpfull": {
+        "prefix": "grpfull",
         "body": [
-            "df.groupby([\"$1\", \"$2\"], dropna=False, observed=False).agg(",
+            "$1.groupby([\"$2\", \"$3\"], dropna=False, observed=False).agg(",
             "    **{",
-            "        \"n\": (\"$1\", \"size\"),",
-            "        \"$3_rate\": (\"$3\", \"mean\"),",
-            "        \"pct_$4\": (\"$4\", lambda x: x.isin([\"$4\"]).sum() / len(x)),",
-            "        \"$5\": (\"$5\", lambda x: df.loc[x.index, :][\"$5\"].sum(),),",
+            "        \"n\": (\"$2\", \"size\"),",
+            "        \"$4_rate\": (\"$4\", \"mean\"),",
             "    }",
-            ").round({\"$3_rate\": 2, \"pct_$4\": 2, \"$5\": 2})",
+            ")",
         ],
     },
 }
