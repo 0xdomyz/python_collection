@@ -4,14 +4,14 @@
     // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
     // same ids are connected.
     // general python
-    "printfeq": {
-        "prefix": "printfeq",
+    "print eq": {
+        "prefix": "peq",
         "body": [
             "print(f\"{$0 = }\")",
         ],
     },
     "loop and print": {
-        "prefix": "forprint",
+        "prefix": "forp",
         "body": [
             "for i in $0:",
             "    print(i)",
@@ -19,15 +19,15 @@
     },
     // imports
     "setup Path object": {
-        "prefix": "importpathos",
+        "prefix": "ipathos",
         "body": [
             "import os",
             "from pathlib import Path",
             "path = Path('$1')",
         ],
     },
-    "import datascience libs": {
-        "prefix": "importds",
+    "import stats libs": {
+        "prefix": "istats",
         "body": [
             "import matplotlib.pyplot as plt",
             "import matplotlib as mpl",
@@ -37,18 +37,17 @@
             "from scipy import stats",
         ],
     },
-    "import matplotlib libs": {
-        "prefix": "importmpl",
-        "body": [
-            "import matplotlib.pyplot as plt",
-            "import matplotlib as mpl",
-        ],
-    },
     // pd related
-    "head": {
-        "prefix": "head",
+    "headt": {
+        "prefix": "headt",
         "body": [
             "$1.head(1).T",
+        ],
+    },
+    "tops": {
+        "prefix": "tops",
+        "body": [
+            "print($1.head().to_string())",
         ],
     },
     "info": {
@@ -72,30 +71,24 @@
             "$1.query('$2')",
         ],
     },
-    "grp0": {
-        "prefix": "grp0",
-        "body": [
-            "$1.groupby(\"$2\", dropna=False, observed=False)[\"$3\"].mean()",
-        ],
-    },
-    "grp1": {
-        "prefix": "grp1",
+    "grpdict": {
+        "prefix": "grpdict",
         "body": [
             "$1.groupby(\"$2\", dropna=False, observed=False).agg(",
             "    {\"$3\": [\"size\", \"sum\", \"mean\"]}",
             ")",
         ],
     },
-    "grp2": {
-        "prefix": "grp2",
+    "grp2unstack": {
+        "prefix": "grp2unstack",
         "body": [
             "$1.groupby([\"$2\", \"$3\"], dropna=False, observed=False)[\"$4\"].agg(",
             "    lambda x: (len(x), float(x.mean().round(2)))",
             ").unstack()",
         ],
     },
-    "grpfull": {
-        "prefix": "grpfull",
+    "grpargs": {
+        "prefix": "grpargs",
         "body": [
             "$1.groupby([\"$2\", \"$3\"], dropna=False, observed=False).agg(",
             "    **{",
@@ -103,6 +96,38 @@
             "        \"$4_rate\": (\"$4\", \"mean\"),",
             "    }",
             ")",
+        ],
+    },
+    //mpl related
+    "mplfull": {
+        "prefix": "mplfull",
+        "body": [
+            "fig, ax = plt.subplots(figsize=(12, 6))",
+            "",
+            "x_ticks = $1['$2'].astype(str)",
+            "",
+            "ax.plot(x_ticks, $1['$3'], alpha=0.8, marker='x', color='red', label= $1['$3'].name)",
+            "ax.plot(x_ticks, $1['$4'], alpha=0.8, marker='o', color='green', label= $1['$4'].name)",
+            "",
+            "ax.set_title(f\"$5\", fontsize=15, fontweight='bold')",
+            "",
+            "ax.set_xticks(x_ticks)",
+            "ax.set_xticklabels(x_ticks, rotation=45)",
+            "ax.set_xlabel(x_ticks.name, loc=\"center\")",
+            "",
+            "ax.set_ylabel(f\"$6\", loc=\"center\")",
+            "ax.yaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins=10))",
+            "ax.yaxis.set_major_formatter(mpl.ticker.PercentFormatter(1.0, decimals=0))",
+            "ax.yaxis.set_minor_locator(mpl.ticker.AutoMinorLocator(2))",
+            "ax.set_ylim(0, 1)",
+            "",
+            "ax.grid(True, linestyle='--', alpha=0.5)",
+            "ax.spines['top'].set_visible(False)",
+            "ax.spines['right'].set_visible(False)",
+            "",
+            "ax.legend(loc='upper left', fontsize=10, frameon=False)",
+            "",
+            "plt.tight_layout()",
         ],
     },
 }
