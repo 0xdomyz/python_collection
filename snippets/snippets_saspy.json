@@ -1,0 +1,157 @@
+{
+
+// saspy related
+
+"setup SAS": {
+    "prefix": "sassetup",
+    "body": [
+        "import saspy",
+        "sas = saspy.SASsession()",
+    ],
+},
+
+"Submit SAS": {
+    "prefix": "sassubmit",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "$0",
+        "run;",
+        "\"\"\", method=\"listorlog\")",
+    ],
+},
+
+"submit sas lst and log": {
+    "prefix": "sassubmitlstlog",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "$0",
+        "run;",
+        "\"\"\", method=\"listandlog\")",
+    ],
+},
+
+"sas error count": {
+    "prefix": "saserrorcount",
+    "body": [
+        "print(f\"{sas.saslog().count('ERROR') = }\")$0",
+    ],
+},
+
+"SAS print": {
+    "prefix": "sasprint",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "proc print data = $1;",
+        "run;",
+        "\"\"\", method=\"listorlog\")$0",
+    ],
+},
+
+
+"sas data head":{
+    "prefix": "sasdatahead",
+    "body": [
+        "sas.sasdata(\"$1\",\"work$2\").head()",
+    ],
+},
+
+"sas df":{
+    "prefix": "sasdf",
+    "body": [
+        "df = sas.sasdata(\"$1\",\"work$2\").to_df()",
+        "df$0",
+    ],
+},
+
+"sas last log":{
+    "prefix": "saslastlog",
+    "body": [
+        "print(sas.lastlog())$0",
+    ],
+},
+
+"porc freq and receive df": {
+    "prefix": "pfreqdf",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "proc freq data=$1 noprint;",
+        "    tables $2 / missing out=_tmp;",
+        "run;",
+        "\"\"\", method=\"listonly\")",
+        "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+        "df.columns = df.columns.str.lower()",
+        "df"
+    ],
+},
+
+"porc summary and receive df": {
+    "prefix": "psumdf",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "proc sort data=sashelp.cars$1 out=_sorted;",
+        "    by type$2;",
+        "",
+        "proc summary data=_sorted;",
+        "    by type$2;",
+        "    var msrp$3;",
+        "    output out=_tmp",
+        "        mean(msrp$3) = mean_msrp$3",
+        "    ;",
+        "run;",
+        "\"\"\", method=\"listonly\")",
+        "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+        "df.columns = df.columns.str.lower()",
+        "df"
+    ],
+},
+
+"sas proc sql simple version": {
+    "prefix": "psqlsimple",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "proc sql;",
+        "    select",
+        "        count(*) as n",
+        "    from $1",
+        "    where",
+        "        $0",
+        "    ;",
+        "quit;",
+        "\"\"\", method=\"listorlog\")",
+    ],
+},
+"sas proc sql full version": {
+    "prefix": "psqlfull",
+    "body": [
+        "sas.submitLST(",
+        "f\"\"\"",
+        "proc sql;",
+        "create table _tmp as",
+        "    select",
+        "        a.*,",
+        "        b.*",
+        "    from $1 a",
+        "    left join $2 b",
+        "    on",
+        "        a.id = b.id and",
+        "        a.date = b.date",
+        "    where",
+        "        $0",
+        "    group by 1,2",
+        "    order by 1,2",
+        "    ;",
+        "quit;",
+        "\"\"\", method=\"listorlog\")",
+        "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+        "df.columns = df.columns.str.lower()",
+        "df",
+    ],
+},
+
+}
