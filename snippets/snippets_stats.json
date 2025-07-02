@@ -4,28 +4,6 @@
     // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
     // same ids are connected.
     // general python
-    "print eq": {
-        "prefix": "peq",
-        "body": [
-            "print(f\"{$0 = }\")",
-        ],
-    },
-    "loop and print": {
-        "prefix": "forp",
-        "body": [
-            "for i in $0:",
-            "    print(i)",
-        ],
-    },
-    // imports
-    "setup Path object": {
-        "prefix": "ipathos",
-        "body": [
-            "import os",
-            "from pathlib import Path",
-            "path = Path('$1')",
-        ],
-    },
     "import stats libs": {
         "prefix": "istats",
         "body": [
@@ -99,6 +77,12 @@
         ],
     },
     //mpl related
+    "figax": {
+        "prefix": "figax",
+        "body": [
+            "fig, ax = plt.subplots(1, 1, figsize=(12, 6))",
+        ],
+    },
     "mplfull": {
         "prefix": "mplfull",
         "body": [
