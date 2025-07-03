@@ -4,21 +4,28 @@
     // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
     // same ids are connected.
     // general python
-    "print eq": {
+    "peq": {
         "prefix": "peq",
         "body": [
             "print(f\"{$0 = }\")",
         ],
     },
-    "loop and print": {
+    "forp": {
         "prefix": "forp",
         "body": [
             "for i in $0:",
             "    print(i)",
         ],
     },
+    "iterdir": {
+        "prefix": "iterdir",
+        "body": [
+            "for i in ($1).iterdir():",
+            "    print(i.name)",
+        ],
+    },
     // imports
-    "setup Path object": {
+    "ipathos": {
         "prefix": "ipathos",
         "body": [
             "import os",

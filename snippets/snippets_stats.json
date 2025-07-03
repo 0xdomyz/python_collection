@@ -4,7 +4,7 @@
     // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
     // same ids are connected.
     // general python
-    "import stats libs": {
+    "istats": {
         "prefix": "istats",
         "body": [
             "import matplotlib.pyplot as plt",
@@ -16,16 +16,18 @@
         ],
     },
     // pd related
-    "headt": {
-        "prefix": "headt",
-        "body": [
-            "$1.head(1).T",
-        ],
-    },
     "tops": {
         "prefix": "tops",
         "body": [
             "print($1.head().to_string())",
+        ],
+    },
+    "read": {
+        "prefix": "read",
+        "body": [
+            "$1 = pd.read_csv($2)",
+            "print(f\"{$1.shape = }\")",
+            "$1.head()",
         ],
     },
     "info": {
