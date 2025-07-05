@@ -24,6 +24,15 @@
             "    print(i.name)",
         ],
     },
+    "today": {
+        "prefix": "today",
+        "body": [
+            "import datetime",
+            "",
+            "today_dt = datetime.datetime.now().strftime('%Y%m%d')",
+            "today_dt",
+        ],
+    },
     // imports
     "ipathos": {
         "prefix": "ipathos",
