@@ -33,6 +33,12 @@
             "today_dt",
         ],
     },
+    "pdb": {
+        "prefix": "pdb",
+        "body": [
+            "import pdb; pdb.set_trace()",
+        ],
+    },
     // imports
     "ipathos": {
         "prefix": "ipathos",
