@@ -20,6 +20,11 @@ def _supply_writer_context_for_oneoff_calls(called_flag_name: str):
         @functools.wraps(func)
         def new_func(*args, **kwargs):
             self: ExcelWriter = args[0]
+
+            logger.debug(
+                f"Writing contents on {self.sheet_name} at R{self.cur_row}, C{self.cur_col}"
+            )
+
             if self.writer is None or self.writer._status != "open":
                 logger.debug("ExcelWriter is not open, opening it now for this method.")
                 self.__enter__(
@@ -160,10 +165,6 @@ class ExcelWriter(object):
 
     @_supply_writer_context_for_oneoff_calls("_write_df_called")
     def write_df(self, df: pd.DataFrame, title: str = None, index=True):
-        logger.debug(
-            f"Writing {title} on {self.sheet_name} at R{self.cur_row}, C{self.cur_col}"
-        )
-
         self.ws.cell(
             row=self.cur_row, column=self.cur_col, value=title if title else ""
         )
