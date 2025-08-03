@@ -3,49 +3,73 @@ from pathlib import Path
 import openpyxl
 import pandas as pd
 from loguru import logger
-from contextlib import contextmanager
 import io
 from openpyxl.drawing.image import Image as XLImage
 
 
-VERSION = "2025.08.03.13"
+VERSION = "2025.08.03.23"
 
 
 def ref_from_rc(row, col):
     return openpyxl.utils.get_column_letter(col) + str(row)
 
 
-def _supply_writer_context_for_oneoff_calls(called_flag_name: str):
-    def decorate(func):
-        @functools.wraps(func)
-        def new_func(*args, **kwargs):
-            self: ExcelWriter = args[0]
+def _supply_temp_context_if_called_outside_cm(func):
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        self: ExcelWriter = args[0]
 
-            logger.debug(
-                f"Writing contents on {self.sheet_name} at R{self.cur_row}, C{self.cur_col}"
+        # enter temp context if not run within a context manager
+        if self.writer is None or self.writer._status != "open":
+            # logger.debug("ExcelWriter is not open, opening it now for this method.")
+            self.__enter__(mode=("a" if self._has_added_items else None))
+            try:
+                res = func(*args, **kwargs)
+            finally:
+                self.__exit__(None, None, None)
+        else:
+            res = func(*args, **kwargs)
+
+        return res
+
+    return new_func
+
+
+def _pre_and_post_proc_for_item_addition(func):
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        self: ExcelWriter = args[0]
+
+        # move cursor
+        _valid_locations = ["down", "right", None]
+        if "location" not in kwargs or kwargs["location"] is None:
+            if not self._cursor_ready_to_write:
+                self.move_cursor(down=True)
+        elif kwargs["location"] not in _valid_locations:
+            raise ValueError(
+                f"Invalid location {kwargs['location']}. Must be one of {_valid_locations}."
             )
+        elif kwargs["location"] == "down":
+            self.move_cursor(down=True)
+        elif kwargs["location"] == "right":
+            self.move_cursor(right=True)
+        else:
+            raise Exception("Program logic error - this should not happen.")
 
-            if self.writer is None or self.writer._status != "open":
-                logger.debug("ExcelWriter is not open, opening it now for this method.")
-                self.__enter__(
-                    mode=(
-                        "a" if getattr(self, called_flag_name) else None
-                    ),  # a if subsequent call
-                    reset_cursor=(
-                        False if getattr(self, called_flag_name) else True
-                    ),  # no reset if subsequent call
-                )
-                try:
-                    func(*args, **kwargs)
-                finally:
-                    self.__exit__(None, None, None)
-                return self
+        # log and run
+        logger.debug(
+            f"Writing item on {self.sheet_name} at R{self.cur_row}, C{self.cur_col}"
+        )
 
-            return func(*args, **kwargs)
+        res = func(*args, **kwargs)
 
-        return new_func
+        # set status flags
+        self._has_added_items = True
+        self._cursor_ready_to_write = False
 
-    return decorate
+        return res
+
+    return new_func
 
 
 class ExcelWriter(object):
@@ -74,8 +98,9 @@ class ExcelWriter(object):
         self.rows_per_inch = 5  # 6inch, 30 rows
         self.cols_per_inch = 1.6  # 12inch, 19 cols
 
-        self._write_df_called = False
-        self._write_plot_called = False
+        self._content_set_sizes = []  # a set is a row of contents
+        self._cursor_ready_to_write = True
+        self._has_added_items = False
 
     def __repr__(self):
         return (
@@ -84,26 +109,22 @@ class ExcelWriter(object):
             f" cur_row={self.cur_row}, cur_col={self.cur_col}, distance_bw_contents={self.distance_bw_contents})"
         )
 
-    # @contextmanager
-    # def open(self, mode: str = "a"):
-    #     self.__enter__(mode)
-    #     try:
-    #         yield self
-    #     finally:
-    #         self.__exit__(None, None, None)
-
-    # def close(self):
-    #     if hasattr(self, "writer"):
-    #         self.writer.close()
-    #     else:
-    #         logger.warning("ExcelWriter was not opened, nothing to close.")
-
-    def __enter__(self, mode: str = None, reset_cursor: bool = True):
+    def __enter__(self, mode: str = None):
         """
         ways to enter:
         1. obj as context manager
         2. manually first entry
         3. manually subsequent entries
+
+        mode in cases:
+        1. can be w or a
+        2. can be w or a
+        3. must be a
+
+        reset_cursor in cases:
+        1. either
+        2. False
+        3. False
         """
         mode = mode or self.mode
 
@@ -120,7 +141,7 @@ class ExcelWriter(object):
         )
         self.writer._status = "open"  # inplant
         self.switch_to_sheet(
-            self.sheet_name, create_if_not_exists=True, reset_cursor=reset_cursor
+            self.sheet_name, create_if_not_exists=True, reset_cursor=False
         )
         return self
 
@@ -137,6 +158,7 @@ class ExcelWriter(object):
         self.ws = self.writer.book.create_sheet(sheet_name)
         return self
 
+    @_supply_temp_context_if_called_outside_cm
     def switch_to_sheet(
         self,
         sheet_name: str,
@@ -144,7 +166,7 @@ class ExcelWriter(object):
         reset_cursor: bool = True,
     ):
         if create_if_not_exists and sheet_name not in self.writer.book.sheetnames:
-            logger.debug(f"Sheet {sheet_name} does not exist, creating it.")
+            # logger.debug(f"Sheet {sheet_name} does not exist, creating it.")
             self._make_new_sheet(sheet_name)
 
         logger.debug(f"Switching to sheet: {sheet_name}")
@@ -154,36 +176,67 @@ class ExcelWriter(object):
         self.ws = self.writer.sheets[sheet_name]
         self.sheet_name = sheet_name
         if reset_cursor:
-            self._reset_cursor()
+            self.move_cursor(reset=True)
         return self
 
-    def _reset_cursor(self):
-        logger.debug(f"Resetting cursor to {self.start_row}, {self.start_col}")
-        self.cur_row = self.start_row
-        self.cur_col = self.start_col
+    def move_cursor(
+        self,
+        reset: bool = False,
+        down: bool = False,
+        right: bool = False,
+        row: int = None,
+        col: int = None,
+    ):
+        if reset:
+            self.cur_row = self.start_row
+            self.cur_col = self.start_col
+            self._content_set_sizes = []  # reset if move to a new sheet
+        elif down and right:
+            raise ValueError("Cannot move cursor down and right at the same time.")
+        elif down:
+            if self._content_set_sizes:
+                max_height = max(size[0] for size in self._content_set_sizes)
+                self.cur_row += max_height + self.distance_bw_contents
+                self.cur_col = self.start_col
+                self._content_set_sizes = []  # reset after moving down
+        elif right:
+            if self._content_set_sizes:
+                last_width = self._content_set_sizes[-1][1]
+                self.cur_col += last_width + self.distance_bw_contents
+        elif row is not None or col is not None:
+            self.cur_row += row if row is not None else 0
+            self.cur_col += col if col is not None else 0
+        else:
+            raise ValueError("Must specify one of the movements.")
+
+        self._cursor_ready_to_write = True
         return self
 
-    @_supply_writer_context_for_oneoff_calls("_write_df_called")
-    def write_df(self, df: pd.DataFrame, title: str = None, index=True):
+    @_pre_and_post_proc_for_item_addition
+    @_supply_temp_context_if_called_outside_cm
+    def write_df(
+        self,
+        df: pd.DataFrame,
+        title: str = None,
+        index=True,
+        location: str = None,
+    ):
         self.ws.cell(
             row=self.cur_row, column=self.cur_col, value=title if title else ""
         )
-        self.cur_row += 1
-
         df.to_excel(
             self.writer,
             sheet_name=self.sheet_name,
             index=index,
-            startrow=self.cur_row - 1,
+            startrow=self.cur_row + 1 - 1,  # 1 for title, -1 for 0-based index
             startcol=self.cur_col - 1,
         )
-        self.cur_row += df.shape[0] + self.distance_bw_contents
-
-        self._write_df_called = True
+        self._content_set_sizes.append((df.shape[0] + 1, df.shape[1] + index))
         return self
 
-    @_supply_writer_context_for_oneoff_calls("_write_plot_called")
-    def write_plot(self, fig, title: str = None):
+    @_pre_and_post_proc_for_item_addition
+    @_supply_temp_context_if_called_outside_cm
+    def write_fig(self, fig, title: str = None, location: str = None):
         def fig_to_img(fig):
             buf = io.BytesIO()
             fig.savefig(buf, format="png")
@@ -197,10 +250,6 @@ class ExcelWriter(object):
         self.ws.cell(
             row=self.cur_row, column=self.cur_col, value=title if title else ""
         )
-        self.cur_row += 1
-
-        self.ws.add_image(fig_to_img(fig), ref_from_rc(self.cur_row, self.cur_col))
-        self.cur_row += fig_height + self.distance_bw_contents
-
-        self._write_plot_called = True
+        self.ws.add_image(fig_to_img(fig), ref_from_rc(self.cur_row + 1, self.cur_col))
+        self._content_set_sizes.append((fig_height + 1, fig_width))
         return self
