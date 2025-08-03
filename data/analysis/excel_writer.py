@@ -1,10 +1,46 @@
+import functools
 from pathlib import Path
 import openpyxl
 import pandas as pd
 from loguru import logger
 from contextlib import contextmanager
+import io
+from openpyxl.drawing.image import Image as XLImage
 
-VERSION = "2025.08.02.18"
+
+VERSION = "2025.08.03.13"
+
+
+def ref_from_rc(row, col):
+    return openpyxl.utils.get_column_letter(col) + str(row)
+
+
+def _supply_writer_context_for_oneoff_calls(called_flag_name: str):
+    def decorate(func):
+        @functools.wraps(func)
+        def new_func(*args, **kwargs):
+            self: ExcelWriter = args[0]
+            if self.writer is None or self.writer._status != "open":
+                logger.debug("ExcelWriter is not open, opening it now for this method.")
+                self.__enter__(
+                    mode=(
+                        "a" if getattr(self, called_flag_name) else None
+                    ),  # a if subsequent call
+                    reset_cursor=(
+                        False if getattr(self, called_flag_name) else True
+                    ),  # no reset if subsequent call
+                )
+                try:
+                    func(*args, **kwargs)
+                finally:
+                    self.__exit__(None, None, None)
+                return self
+
+            return func(*args, **kwargs)
+
+        return new_func
+
+    return decorate
 
 
 class ExcelWriter(object):
@@ -15,7 +51,7 @@ class ExcelWriter(object):
         sheet_name: str = "Sheet",
         cur_row: int = 1,
         cur_col: int = 1,
-        distance_bw_tables: int = 2,
+        distance_bw_contents: int = 2,
     ):
         self.file_path = file_path
         self.writer = None
@@ -25,18 +61,22 @@ class ExcelWriter(object):
         self.sheet_name = sheet_name
         self.cur_row = cur_row
         self.cur_col = cur_col
-        self.distance_bw_tables = distance_bw_tables
+        self.distance_bw_contents = distance_bw_contents
 
         # hardcoded attributes
         self.start_row = 1
         self.start_col = 1
+        self.rows_per_inch = 5  # 6inch, 30 rows
+        self.cols_per_inch = 1.6  # 12inch, 19 cols
+
         self._write_df_called = False
+        self._write_plot_called = False
 
     def __repr__(self):
         return (
             f"ExcelWriter(file_path='{self.file_path}', mode = {self.mode},"
             f" sheet_name={self.sheet_name}),"
-            f" cur_row={self.cur_row}, cur_col={self.cur_col}, distance_bw_tables={self.distance_bw_tables})"
+            f" cur_row={self.cur_row}, cur_col={self.cur_col}, distance_bw_contents={self.distance_bw_contents})"
         )
 
     # @contextmanager
@@ -118,22 +158,8 @@ class ExcelWriter(object):
         self.cur_col = self.start_col
         return self
 
+    @_supply_writer_context_for_oneoff_calls("_write_df_called")
     def write_df(self, df: pd.DataFrame, title: str = None, index=True):
-
-        if self.writer is None or self.writer._status != "open":
-            logger.debug("ExcelWriter is not open, opening it now for this method.")
-            self.__enter__(
-                mode="a" if self._write_df_called else None,
-                reset_cursor=False if self._write_df_called else True,
-            )
-            try:
-                self.write_df(df, title, index)
-            except Exception as e:
-                raise e
-            finally:
-                self.__exit__(None, None, None)
-            return self
-
         logger.debug(
             f"Writing {title} on {self.sheet_name} at R{self.cur_row}, C{self.cur_col}"
         )
@@ -150,8 +176,30 @@ class ExcelWriter(object):
             startrow=self.cur_row - 1,
             startcol=self.cur_col - 1,
         )
-
-        self.cur_row += df.shape[0] + self.distance_bw_tables
+        self.cur_row += df.shape[0] + self.distance_bw_contents
 
         self._write_df_called = True
+        return self
+
+    @_supply_writer_context_for_oneoff_calls("_write_plot_called")
+    def write_plot(self, fig, title: str = None):
+        def fig_to_img(fig):
+            buf = io.BytesIO()
+            fig.savefig(buf, format="png")
+            buf.seek(0)
+            img = XLImage(buf)
+            return img
+
+        fig_height = int(fig.get_size_inches()[1] * self.rows_per_inch)
+        fig_width = int(fig.get_size_inches()[0] * self.cols_per_inch)
+
+        self.ws.cell(
+            row=self.cur_row, column=self.cur_col, value=title if title else ""
+        )
+        self.cur_row += 1
+
+        self.ws.add_image(fig_to_img(fig), ref_from_rc(self.cur_row, self.cur_col))
+        self.cur_row += fig_height + self.distance_bw_contents
+
+        self._write_plot_called = True
         return self
