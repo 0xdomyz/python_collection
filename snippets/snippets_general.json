@@ -45,7 +45,7 @@
         "body": [
             "import os",
             "from pathlib import Path",
-            "path = Path('$1')",
+            "here = Path('$1')",
         ],
     },
 }
