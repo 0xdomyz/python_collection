@@ -54,6 +54,15 @@
             "eng.run(\"select count(*) as n from $1\").iloc[0,0]",
         ],
     },
+    "dbdrop": {
+        "prefix": "dbdrop",
+        "body": [
+            "try:",
+            "    eng.run(\"drop table $1\")",
+            "except Exception as e:",
+            "    print(f\"Table does not exist.\")",
+        ],
+    },
     "dbgrp": {
         "prefix": "dbgrp",
         "body": [
