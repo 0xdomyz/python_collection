@@ -4,6 +4,8 @@ import pandas as pd
 
 logger.remove()
 
+VERSION = "2025.08.09"
+
 
 # add run method to engine
 def run(self: alc.engine.Engine, sql: str) -> pd.DataFrame | None:
@@ -68,6 +70,9 @@ class PgInserter:
         self.eng = eng
         self.schema, self.table_name = _parse_schema_table_name(schema_table_name)
         self.pkeys = pkeys
+
+    def __repr__(self):
+        return f"PgInserter(eng={self.eng}, schema={self.schema}, table={self.table_name}, pkeys={self.pkeys})"
 
     def insert_non_duplicates(
         self, df: pd.DataFrame, potential_dups_condition: str = None
