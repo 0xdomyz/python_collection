@@ -53,6 +53,17 @@ class PgInserter:
     def __init__(
         self, eng: alc.engine.Engine, schema_table_name: str, pkeys: list[str]
     ):
+        """
+        Example table creation qry::
+
+            CREATE TABLE test_schema.taxi (
+                pk BIGINT PRIMARY KEY,
+                pickup TIMESTAMP WITHOUT TIME ZONE,
+                dropoff TIMESTAMP WITHOUT TIME ZONE,
+                passengers BIGINT,
+                distance FLOAT(53)
+            )
+        """
 
         self.eng = eng
         self.schema, self.table_name = _parse_schema_table_name(schema_table_name)
