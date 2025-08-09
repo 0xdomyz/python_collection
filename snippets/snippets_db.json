@@ -27,8 +27,8 @@
             "_",
         ],
     },
-    "dbrunmulti": {
-        "prefix": "dbrunmulti",
+    "dbqry": {
+        "prefix": "dbqry",
         "body": [
             "qry = f\"\"\"",
             "select",
