@@ -4,13 +4,15 @@ import threading
 import time
 
 # Define the directory to serve and the port
-directory_to_serve = '/path/to/your/image/directory'
+directory_to_serve = "/path/to/your/image/directory"
 port = 8000
+
 
 class TimeoutHTTPServer(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header("Access-Control-Allow-Origin", "*")
         http.server.SimpleHTTPRequestHandler.end_headers(self)
+
 
 # Change the working directory
 os.chdir(directory_to_serve)

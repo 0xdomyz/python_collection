@@ -1,2 +1,2 @@
 def func():
-    print('module2.func()', __name__)
+    print("module2.func()", __name__)

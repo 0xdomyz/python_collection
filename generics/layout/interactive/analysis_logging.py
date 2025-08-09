@@ -1,4 +1,5 @@
 """Analyse random data and make summary"""
+
 import logging
 import random
 from pathlib import Path

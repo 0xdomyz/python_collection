@@ -8,6 +8,7 @@ Examples
     py layout\argparse_tute\optional.py -v -nv aaa
     py layout\argparse_tute\optional.py -h
 """
+
 from argparse import ArgumentParser
 
 parser = ArgumentParser()

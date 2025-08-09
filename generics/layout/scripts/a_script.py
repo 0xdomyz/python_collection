@@ -8,6 +8,7 @@ Examples
     python layout\scripts\a_script.py -s abc
     python layout\scripts\a_script.py -l 1 2 3 abc
 """
+
 import logging
 from argparse import ArgumentParser
 from pathlib import Path

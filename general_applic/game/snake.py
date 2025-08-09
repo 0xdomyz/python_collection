@@ -1,4 +1,5 @@
 """snake game"""
+
 import curses
 from curses import KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP
 from random import randint

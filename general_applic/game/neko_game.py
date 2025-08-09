@@ -1,4 +1,5 @@
 """neko game"""
+
 import os
 import random
 import subprocess

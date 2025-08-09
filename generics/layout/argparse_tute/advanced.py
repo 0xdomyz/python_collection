@@ -3,7 +3,7 @@ Examples
 ------------
 ::
 
-    python advanced.py      
+    python advanced.py
     usage: advanced.py [-h] [-v | -q] x y
     advanced.py: error: the following arguments are required: x, y
 
@@ -16,6 +16,7 @@ Examples
     python advanced.py 2 3 -q
     8
 """
+
 import argparse
 
 parser = argparse.ArgumentParser(description="calculate X to the power of Y")

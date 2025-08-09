@@ -16,6 +16,7 @@ use a windows variable::
     py positional.py %var% 5
     py positional.py %var% 6
 """
+
 import argparse
 
 parser = argparse.ArgumentParser()

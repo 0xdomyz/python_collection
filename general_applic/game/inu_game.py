@@ -1,4 +1,5 @@
 """inu game"""
+
 import random
 import sys
 import time

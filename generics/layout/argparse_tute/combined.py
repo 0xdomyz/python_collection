@@ -3,12 +3,13 @@ Examples
 ------------
 ::
 
-    py layout\argparse_tute\combined.py  
+    py layout\argparse_tute\combined.py
     py layout\argparse_tute\combined.py 3
     py layout\argparse_tute\combined.py 3 -o 876
     py layout\argparse_tute\combined.py 3 -v
     py layout\argparse_tute\combined.py 3 -vv
 """
+
 import argparse
 
 parser = argparse.ArgumentParser()

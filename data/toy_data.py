@@ -6,7 +6,7 @@ import seaborn as sns
 import sklearn.datasets
 
 # _DATA_DIR = Path(__file__).parent / "toydata"
-_DATA_DIR = Path("").resolve() / "data"/"toydata"
+_DATA_DIR = Path("").resolve() / "data" / "toydata"
 
 
 def sklearn_data(name: str, bunch):

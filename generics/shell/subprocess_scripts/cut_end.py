@@ -13,10 +13,11 @@ direct usage::
 
     ffmpeg -i "audio.mp3" 2>&1 | grep "Duration" | cut -d " " -f 4
     ffmpeg -i "audio.mp3" -acodec mp3 -t 100 "audio_cut.mp3"
-    
+
     ffmpeg -i "audio.mp3" -acodec mp3 -ss 10 -t 100 "audio_cut.mp3"
 
 """
+
 from os import system
 from subprocess import PIPE, Popen
 from sys import argv

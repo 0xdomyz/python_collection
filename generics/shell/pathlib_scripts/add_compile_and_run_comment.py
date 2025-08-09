@@ -61,13 +61,17 @@ def mass_touch(file_with_names: Path, suffix: str):
 if __name__ == "__main__":
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument(
-        "--touch", action="store_true",
-        help="mass touch files from spec file in spec file location"
+        "--touch",
+        action="store_true",
+        help="mass touch files from spec file in spec file location",
     )
     parser.add_argument("location", type=Path, help="location of the files")
     parser.add_argument(
-        "--lang", type=str, default="cpp", 
-        help="language of the files, can be cpp, py or rs, default is cpp")
+        "--lang",
+        type=str,
+        default="cpp",
+        help="language of the files, can be cpp, py or rs, default is cpp",
+    )
 
     parser.description = """
     Add compile and run comment to all files in location recursively.

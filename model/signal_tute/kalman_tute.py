@@ -2,6 +2,7 @@
 An example using a kalman filter to model a car's position and velocity.
 plots predictions to illustrate how the kalman filter works.
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from filterpy.common import Q_discrete_white_noise

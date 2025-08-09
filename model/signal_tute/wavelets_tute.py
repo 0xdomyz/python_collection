@@ -1,6 +1,7 @@
 """
 example of compute the discrete wavelet transform (DWT) of a signal using PyWavelets
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pywt

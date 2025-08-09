@@ -2,13 +2,11 @@ from typing import overload
 
 
 @overload
-def my_function(x: int) -> int:
-    ...
+def my_function(x: int) -> int: ...
 
 
 @overload
-def my_function(x: str) -> str:
-    ...
+def my_function(x: str) -> str: ...
 
 
 def my_function(x):

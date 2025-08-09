@@ -82,16 +82,17 @@ from pathlib import Path
 
 def find_ipynb_files(directory: Path):
 
-     ipynb_files = []
+    ipynb_files = []
 
-     for file_path in directory.rglob("*.ipynb"):
+    for file_path in directory.rglob("*.ipynb"):
 
-         ipynb_files.append(file_path)
+        ipynb_files.append(file_path)
 
-     return ipynb_files
+    return ipynb_files
+
 
 directory_path = Path("/path/to/your/folder")
 ipynb_files_list = find_ipynb_files(directory_path)
 for file in ipynb_files_list:
 
-     print(file)
+    print(file)

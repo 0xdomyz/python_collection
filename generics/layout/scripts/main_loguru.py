@@ -21,6 +21,7 @@ Examples
     cd /d python_collection\layout\scripts
     python main.py 0 100
 """
+
 import random
 import sys
 from pathlib import Path

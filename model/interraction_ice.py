@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 boston = load_boston()
 X = pd.DataFrame(boston.data, columns=boston.feature_names)
 y = boston.target
-feature = 'LSTAT'
+feature = "LSTAT"
 
 # Train/test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
@@ -38,14 +38,14 @@ plt.figure(figsize=(10, 6))
 
 # Plot ICE lines
 for curve in ice_curves:
-    plt.plot(grid, curve, color='lightgray', linewidth=0.8, alpha=0.5)
+    plt.plot(grid, curve, color="lightgray", linewidth=0.8, alpha=0.5)
 
 # Plot PDP line
-plt.plot(grid, pdp_curve, color='blue', linewidth=2, label='PDP (Average Effect)')
+plt.plot(grid, pdp_curve, color="blue", linewidth=2, label="PDP (Average Effect)")
 
 plt.xlabel(feature)
-plt.ylabel('Predicted Price')
-plt.title(f'ICE and PDP for Feature: {feature}')
+plt.ylabel("Predicted Price")
+plt.title(f"ICE and PDP for Feature: {feature}")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
