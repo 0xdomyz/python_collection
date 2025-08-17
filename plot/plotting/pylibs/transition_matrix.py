@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+VERSION = "2025.08.17.21"
+
 
 def plot_transition_matrix(
     transition_matrix_df: pd.DataFrame,
