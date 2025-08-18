@@ -6,6 +6,7 @@ from loguru import logger
 import io
 from openpyxl.drawing.image import Image as XLImage
 
+logger.remove()
 
 VERSION = "2025.08.03.23"
 
@@ -104,9 +105,14 @@ class ExcelWriter(object):
 
     def __repr__(self):
         return (
-            f"ExcelWriter(file_path='{self.file_path}', mode = {self.mode},"
-            f" sheet_name={self.sheet_name}),"
-            f" cur_row={self.cur_row}, cur_col={self.cur_col}, distance_bw_contents={self.distance_bw_contents})"
+            f"ExcelWriter("
+            f"    file_path='{self.file_path}',"
+            f"    mode = {self.mode},"
+            f"    sheet_name={self.sheet_name}),"
+            f"    cur_row={self.cur_row},"
+            f"    cur_col={self.cur_col},"
+            f"    distance_bw_contents={self.distance_bw_contents},"
+            f")"
         )
 
     def __enter__(self, mode: str = None):
@@ -216,11 +222,19 @@ class ExcelWriter(object):
     @_supply_temp_context_if_called_outside_cm
     def write_df(
         self,
-        df: pd.DataFrame,
+        df: pd.DataFrame | pd.io.formats.style.Styler,
         title: str = None,
         index=True,
         location: str = None,
+        **kwargs,
     ):
+        if isinstance(df, pd.DataFrame):
+            df_height, df_width = df.shape
+        elif isinstance(df, pd.io.formats.style.Styler):
+            df_height, df_width = df.data.shape
+        else:
+            raise ValueError("df must be a DataFrame or Styler")
+
         self.ws.cell(
             row=self.cur_row, column=self.cur_col, value=title if title else ""
         )
@@ -229,14 +243,16 @@ class ExcelWriter(object):
             sheet_name=self.sheet_name,
             index=index,
             startrow=self.cur_row + 1 - 1,  # 1 for title, -1 for 0-based index
-            startcol=self.cur_col - 1,
+            startcol=self.cur_col,  # table starts at + 1 more col from startcol
+            **kwargs,
         )
-        self._content_set_sizes.append((df.shape[0] + 1, df.shape[1] + index))
+
+        self._content_set_sizes.append((df_height + 1, df_width + index + 1))
         return self
 
     @_pre_and_post_proc_for_item_addition
     @_supply_temp_context_if_called_outside_cm
-    def write_fig(self, fig, title: str = None, location: str = None):
+    def write_fig(self, fig, title: str = None, location: str = None, **kwargs):
         def fig_to_img(fig):
             buf = io.BytesIO()
             fig.savefig(buf, format="png")
@@ -250,6 +266,24 @@ class ExcelWriter(object):
         self.ws.cell(
             row=self.cur_row, column=self.cur_col, value=title if title else ""
         )
-        self.ws.add_image(fig_to_img(fig), ref_from_rc(self.cur_row + 1, self.cur_col))
-        self._content_set_sizes.append((fig_height + 1, fig_width))
+        self.ws.add_image(
+            fig_to_img(fig),
+            ref_from_rc(self.cur_row + 1, self.cur_col + 1),  # 1 col just for titles
+        )
+        self._content_set_sizes.append((fig_height + 1, fig_width + 1))
+        return self
+
+    @_supply_temp_context_if_called_outside_cm
+    def auto_fit_column_width(self):
+        for column in self.ws.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = max_length + 2
+            self.ws.column_dimensions[column[0].column_letter].width = adjusted_width
         return self
