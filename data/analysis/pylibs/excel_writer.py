@@ -8,7 +8,7 @@ from openpyxl.drawing.image import Image as XLImage
 
 logger.remove()
 
-VERSION = "2025.08.03.23"
+VERSION = "2025.08.19.22"
 
 
 def ref_from_rc(row, col):
@@ -222,7 +222,7 @@ class ExcelWriter(object):
     @_supply_temp_context_if_called_outside_cm
     def write_df(
         self,
-        df: pd.DataFrame | pd.io.formats.style.Styler,
+        df: pd.DataFrame,
         title: str = None,
         index=True,
         location: str = None,
@@ -230,7 +230,7 @@ class ExcelWriter(object):
     ):
         if isinstance(df, pd.DataFrame):
             df_height, df_width = df.shape
-        elif isinstance(df, pd.io.formats.style.Styler):
+        elif isinstance(df, type(pd.DataFrame().style)):
             df_height, df_width = df.data.shape
         else:
             raise ValueError("df must be a DataFrame or Styler")
@@ -284,6 +284,8 @@ class ExcelWriter(object):
                         max_length = len(str(cell.value))
                 except:
                     pass
+                if max_length > 200:  # max length
+                    break
             adjusted_width = max_length + 2
             self.ws.column_dimensions[column[0].column_letter].width = adjusted_width
         return self
