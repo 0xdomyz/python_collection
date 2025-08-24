@@ -32,16 +32,16 @@ print(f"Listening on {(host, port)}")
 lsock.setblocking(False)
 sel.register(lsock, selectors.EVENT_READ, data=None)
 
-try:
+try:  # event loop
     while True:
-        events = sel.select(timeout=None)
+        events = sel.select(timeout=None)  # blocking
         for key, mask in events:
-            if key.data is None:
+            if key.data is None:  # listener
                 accept_wrapper(key.fileobj)
-            else:
-                message = key.data
+            else:  # client
+                message: libserver.Message = key.data
                 try:
-                    message.process_events(mask)
+                    message.process_events(mask)  # entry point
                 except Exception:
                     print(
                         f"Main: Error: Exception for {message.addr}:\n"
