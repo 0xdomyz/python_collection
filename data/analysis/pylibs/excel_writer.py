@@ -8,7 +8,7 @@ from openpyxl.drawing.image import Image as XLImage
 
 logger.remove()
 
-VERSION = "2025.08.19.22"
+VERSION = "2025.08.27.00"
 
 
 def ref_from_rc(row, col):
@@ -274,7 +274,7 @@ class ExcelWriter(object):
         return self
 
     @_supply_temp_context_if_called_outside_cm
-    def auto_fit_column_width(self):
+    def auto_fit_column_width(self, max_width: int = 150):
         for column in self.ws.columns:
             max_length = 0
             column = [cell for cell in column]
@@ -284,7 +284,8 @@ class ExcelWriter(object):
                         max_length = len(str(cell.value))
                 except:
                     pass
-                if max_length > 200:  # max length
+                if max_length > max_width:
+                    max_length = max_width
                     break
             adjusted_width = max_length + 2
             self.ws.column_dimensions[column[0].column_letter].width = adjusted_width
