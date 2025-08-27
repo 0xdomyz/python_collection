@@ -106,12 +106,12 @@ class ExcelWriter(object):
     def __repr__(self):
         return (
             f"ExcelWriter("
-            f"    file_path='{self.file_path}',"
-            f"    mode = {self.mode},"
-            f"    sheet_name={self.sheet_name}),"
-            f"    cur_row={self.cur_row},"
-            f"    cur_col={self.cur_col},"
-            f"    distance_bw_contents={self.distance_bw_contents},"
+            f"file_path='{self.file_path}',"
+            f"mode = {self.mode},"
+            f"sheet_name={self.sheet_name}),"
+            f"cur_row={self.cur_row},"
+            f"cur_col={self.cur_col},"
+            f"distance_bw_contents={self.distance_bw_contents},"
             f")"
         )
 
