@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-VERSION = "2025-09-07"
+VERSION = "2025.09.07.21"
 
 
 def calc_7_numbers(dat: pd.Series) -> list[float]:
