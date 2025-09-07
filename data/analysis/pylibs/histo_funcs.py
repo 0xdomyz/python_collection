@@ -93,7 +93,7 @@ def plot_pct_interval_histogram(x_ticks, x_labels, y, ax=None) -> tuple:
     return fig, ax
 
 
-def pct_histogram_from_edges(
+def pct_histogram_from_pct_edges(
     df: pd.DataFrame, ff: callable, col: str, edges: list, ax: None
 ) -> tuple:
 
