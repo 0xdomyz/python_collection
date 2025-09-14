@@ -16,18 +16,10 @@
         ],
     },
     // pd related
-    "tops": {
-        "prefix": "tops",
+    "phstr": {
+        "prefix": "phstr",
         "body": [
             "print($1.head().to_string())",
-        ],
-    },
-    "read": {
-        "prefix": "read",
-        "body": [
-            "$1 = pd.read_csv($2)",
-            "print(f\"{$1.shape = }\")",
-            "$1.head()",
         ],
     },
     "info": {
