@@ -16,6 +16,12 @@
         ],
     },
     // pd related
+    "pstr": {
+        "prefix": "pstr",
+        "body": [
+            "print($1.to_string())",
+        ],
+    },
     "phstr": {
         "prefix": "phstr",
         "body": [
