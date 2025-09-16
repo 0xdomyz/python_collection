@@ -5,6 +5,8 @@ import pandas as pd
 from loguru import logger
 import io
 import openpyxl.drawing.image as openpyxl_image
+from openpyxl.worksheet.worksheet import Worksheet
+from openpyxl.utils import get_column_letter, get_column_letter, range_boundaries
 from PIL import Image as PILImage
 import matplotlib.pyplot as plt
 
@@ -90,7 +92,7 @@ class ExcelWriter(object):
 
         # attributes created or used by methods
         self.writer: pd.ExcelWriter = None
-        self.ws: openpyxl.worksheet.worksheet.Worksheet = None
+        self.ws: Worksheet = None
         self._content_set_sizes = []  # a set is a row of contents
         self._cursor_ready_to_write = True
         self._has_added_items = False
@@ -315,9 +317,30 @@ class ExcelWriter(object):
             sheet_name = self.sheet_name
         return read_excel_img(self.file_path, sheet_name, anchor_cell)
 
+    def read_df(
+        self,
+        sheet_name: str = None,
+        range_ref: str = None,
+        skiprows=None,
+        nrows=None,
+        usecols=None,
+        index_col=None,
+    ) -> pd.DataFrame:
+        if sheet_name is None:
+            sheet_name = self.sheet_name
+        return read_excel_df(
+            self.file_path,
+            sheet_name,
+            range_ref,
+            skiprows,
+            nrows,
+            usecols,
+            index_col=index_col,
+        )
+
 
 def row_col_to_cell_ref(row, col):
-    return openpyxl.utils.get_column_letter(col) + str(row)
+    return get_column_letter(col) + str(row)
 
 
 def read_excel_img(
@@ -342,6 +365,35 @@ def read_excel_img(
                 image = PILImage.open(io.BytesIO(image_data))
                 return image
     return None
+
+
+def read_excel_df(
+    file_path: Path,
+    sheet_name: str,
+    range_ref: str = None,
+    skiprows=None,
+    nrows=None,
+    usecols=None,
+    index_col=None,
+) -> pd.DataFrame:
+    if not file_path.exists():
+        raise FileNotFoundError(f"File {file_path} does not exist.")
+
+    if range_ref is not None:
+        min_col, min_row, max_col, max_row = range_boundaries(range_ref)
+        skiprows = range(0, min_row - 1)
+        nrows = max_row - min_row + 1
+        usecols = f"{get_column_letter(min_col)}:{get_column_letter(max_col)}"
+    logger.debug(f"skiprows={skiprows}, nrows={nrows}, usecols={usecols}")
+    df = pd.read_excel(
+        file_path,
+        sheet_name=sheet_name,
+        skiprows=skiprows,
+        nrows=nrows,
+        usecols=usecols,
+        index_col=index_col,
+    )
+    return df
 
 
 def _fig_to_img(fig: plt.Figure) -> openpyxl_image.Image:
