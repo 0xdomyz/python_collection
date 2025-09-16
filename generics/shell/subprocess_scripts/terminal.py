@@ -1,16 +1,14 @@
-"""
-from terminal import cd, run_cmd_on_path, run
-
-with cd("/home/user"):
-    run("ls")
-
-from pathlib import Path
-run_cmd_on_path("ls", Path("/home/"))
-"""
-
-import os
 import subprocess
+
+
+def run_shell_cmd(cmd: str) -> str:
+    completed_proc = subprocess.run(cmd, shell=True, capture_output=True)
+    completed_proc.check_returncode()
+    return completed_proc.stdout.decode("utf-8")
+
+
 from contextlib import contextmanager
+import os
 from pathlib import Path
 
 
@@ -24,10 +22,6 @@ def cd(newdir):
         os.chdir(prevdir)
 
 
-def run_cmd_on_path(cmd: str, path: Path) -> subprocess.CompletedProcess[str]:
+def run_shell_cmd_on_path(cmd: str, path: Path) -> str:
     with cd(path):
-        return subprocess.run(cmd, shell=True, check=True)
-
-
-def run(cmd: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, shell=True, check=True)
+        return run_shell_cmd(cmd)
