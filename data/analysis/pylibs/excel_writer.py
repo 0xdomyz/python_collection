@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 logger.remove()
 
-VERSION = "2025.09.16.00"
+VERSION = "2025.09.16.20"
 
 
 def _supply_temp_context_if_called_outside_cm(func):
@@ -220,6 +220,23 @@ class ExcelWriter(object):
         self._cursor_ready_to_write = True
         return self
 
+    def write(self, item, **kwargs):
+        if isinstance(item, pd.DataFrame) or isinstance(
+            item, type(pd.DataFrame().style)
+        ):
+            return self.write_df(item, **kwargs)
+        elif isinstance(
+            item,
+            (plt.Figure, openpyxl_image.Image, PILImage.Image),
+        ):
+            return self.write_fig(item, **kwargs)
+        elif isinstance(item, str):
+            return self.write_text(item, **kwargs)
+        else:
+            raise ValueError(
+                f"item must be a DataFrame or Styler or Figure or Image or string, you gave {type(item)}"
+            )
+
     @_pre_and_post_proc_for_item_addition
     @_supply_temp_context_if_called_outside_cm
     def write_df(
@@ -259,6 +276,9 @@ class ExcelWriter(object):
         fig: plt.Figure | openpyxl_image.Image | PILImage.Image,
         title: str = None,
         location: str = None,
+        fig_height: int = None,
+        fig_width: int = None,
+        scaler: float = None,
         **kwargs,
     ):
         if isinstance(fig, plt.Figure):
@@ -275,15 +295,43 @@ class ExcelWriter(object):
         self.ws.cell(
             row=self.cur_row, column=self.cur_col, value=title if title else ""
         )
+        if scaler is not None:
+            img.width = int(img.width * scaler)
+            img.height = int(img.height * scaler)
         self.ws.add_image(
             img,
             row_col_to_cell_ref(
                 self.cur_row + 1, self.cur_col + 1
             ),  # 1 col just for titles
         )
-        fig_height = int(round(img.height * self.rows_per_pixel, 0))
-        fig_width = int(round(img.width * self.cols_per_pixel, 0))
+        fig_height = (
+            int(round(img.height * self.rows_per_pixel, 0))
+            if fig_height is None
+            else fig_height
+        )
+        fig_width = (
+            int(round(img.width * self.cols_per_pixel, 0))
+            if fig_width is None
+            else fig_width
+        )
         self._content_set_sizes.append((fig_height + 1, fig_width + 1))
+        return self
+
+    @_pre_and_post_proc_for_item_addition
+    @_supply_temp_context_if_called_outside_cm
+    def write_text(self, text: str, title: str = None, location: str = None, **kwargs):
+        if not isinstance(text, str):
+            raise ValueError(f"text must be a string, you gave {type(text)}")
+
+        self.ws.cell(
+            row=self.cur_row, column=self.cur_col, value=title if title else ""
+        )
+        for i, line in enumerate(text.split("\n")):
+            self.ws.cell(row=self.cur_row + 1 + i, column=self.cur_col + 1, value=line)
+
+        text_height = text.count("\n") + 1
+        text_width = max(len(line) for line in text.split("\n"))
+        self._content_set_sizes.append((text_height + 1, text_width + 1))
         return self
 
     @_supply_temp_context_if_called_outside_cm
@@ -310,13 +358,6 @@ class ExcelWriter(object):
             self.ws.column_dimensions[column[0].column_letter].width = adjusted_width
         return self
 
-    def read_img(
-        self, sheet_name: str = None, anchor_cell: str = None
-    ) -> PILImage.Image | None:
-        if sheet_name is None:
-            sheet_name = self.sheet_name
-        return read_excel_img(self.file_path, sheet_name, anchor_cell)
-
     def read_df(
         self,
         sheet_name: str = None,
@@ -338,33 +379,23 @@ class ExcelWriter(object):
             index_col=index_col,
         )
 
+    def read_img(
+        self, sheet_name: str = None, anchor_cell: str = None
+    ) -> PILImage.Image | None:
+        if sheet_name is None:
+            sheet_name = self.sheet_name
+        return read_excel_img(self.file_path, sheet_name, anchor_cell)
+
+    def read_text(self, sheet_name: str = None, range_ref: str = None) -> str:
+        if sheet_name is None:
+            sheet_name = self.sheet_name
+        if range_ref is None:
+            raise ValueError("range_ref must be provided to read text.")
+        return read_excel_text(self.file_path, sheet_name, range_ref)
+
 
 def row_col_to_cell_ref(row, col):
     return get_column_letter(col) + str(row)
-
-
-def read_excel_img(
-    file_path: Path, sheet_name: str, anchor_cell: str = None
-) -> PILImage.Image | None:
-    if not file_path.exists():
-        raise FileNotFoundError(f"File {file_path} does not exist.")
-    ws = openpyxl.load_workbook(file_path)[sheet_name]
-
-    _images = getattr(ws, "_images", [])
-    logger.debug(f"Found {len(_images)} images in sheet {sheet_name}.")
-
-    for img in _images:
-        anchor = getattr(img.anchor, "_from", None)
-        if anchor:
-            col_letter = chr(65 + anchor.col)
-            row_number = anchor.row + 1
-            anchored_cell = f"{col_letter}{row_number}"
-
-            if anchor_cell is None or anchored_cell == anchor_cell:
-                image_data = img._data()
-                image = PILImage.open(io.BytesIO(image_data))
-                return image
-    return None
 
 
 def read_excel_df(
@@ -394,6 +425,46 @@ def read_excel_df(
         index_col=index_col,
     )
     return df
+
+
+def read_excel_img(
+    file_path: Path, sheet_name: str, anchor_cell: str = None
+) -> PILImage.Image | None:
+    if not file_path.exists():
+        raise FileNotFoundError(f"File {file_path} does not exist.")
+    ws = openpyxl.load_workbook(file_path)[sheet_name]
+
+    _images = getattr(ws, "_images", [])
+    logger.debug(f"Found {len(_images)} images in sheet {sheet_name}.")
+
+    for img in _images:
+        anchor = getattr(img.anchor, "_from", None)
+        if anchor:
+            col_letter = chr(65 + anchor.col)
+            row_number = anchor.row + 1
+            anchored_cell = f"{col_letter}{row_number}"
+
+            if anchor_cell is None or anchored_cell == anchor_cell:
+                image_data = img._data()
+                image = PILImage.open(io.BytesIO(image_data))
+                return image
+    return None
+
+
+def read_excel_text(file_path: Path, sheet_name: str, range_ref: str) -> str:
+    if not file_path.exists():
+        raise FileNotFoundError(f"File {file_path} does not exist.")
+    ws = openpyxl.load_workbook(file_path)[sheet_name]
+
+    min_col, min_row, max_col, max_row = range_boundaries(range_ref)
+
+    texts = []
+    for r in range(min_row, max_row + 1):
+        for c in range(min_col, max_col + 1):
+            cell_value = ws.cell(row=r, column=c).value
+            if cell_value is not None:
+                texts.append(str(cell_value))
+    return "\n".join(texts)
 
 
 def _fig_to_img(fig: plt.Figure) -> openpyxl_image.Image:
