@@ -4,15 +4,13 @@ import openpyxl
 import pandas as pd
 from loguru import logger
 import io
-from openpyxl.drawing.image import Image as XLImage
+import openpyxl.drawing.image as openpyxl_image
+from PIL import Image as PILImage
+import matplotlib.pyplot as plt
 
 logger.remove()
 
-VERSION = "2025.08.27.00"
-
-
-def ref_from_rc(row, col):
-    return openpyxl.utils.get_column_letter(col) + str(row)
+VERSION = "2025.09.16.00"
 
 
 def _supply_temp_context_if_called_outside_cm(func):
@@ -83,35 +81,37 @@ class ExcelWriter(object):
         cur_col: int = 1,
         distance_bw_contents: int = 2,
     ):
-        self.file_path = file_path
-        self.writer = None
+        self.file_path = Path(file_path)
         self.mode = mode
-
-        # custom attributes
         self.sheet_name = sheet_name
         self.cur_row = cur_row
         self.cur_col = cur_col
         self.distance_bw_contents = distance_bw_contents
+
+        # attributes created or used by methods
+        self.writer: pd.ExcelWriter = None
+        self.ws: openpyxl.worksheet.worksheet.Worksheet = None
+        self._content_set_sizes = []  # a set is a row of contents
+        self._cursor_ready_to_write = True
+        self._has_added_items = False
 
         # hardcoded attributes
         self.start_row = 1
         self.start_col = 1
         self.rows_per_inch = 5  # 6inch, 30 rows
         self.cols_per_inch = 1.6  # 12inch, 19 cols
-
-        self._content_set_sizes = []  # a set is a row of contents
-        self._cursor_ready_to_write = True
-        self._has_added_items = False
+        self.rows_per_pixel = self.rows_per_inch / 100
+        self.cols_per_pixel = self.cols_per_inch / 100
 
     def __repr__(self):
         return (
             f"ExcelWriter("
             f"file_path='{self.file_path}',"
-            f"mode = {self.mode},"
-            f"sheet_name={self.sheet_name}),"
-            f"cur_row={self.cur_row},"
-            f"cur_col={self.cur_col},"
-            f"distance_bw_contents={self.distance_bw_contents},"
+            f" mode = {self.mode},"
+            f" sheet_name={self.sheet_name}),"
+            f" cur_row={self.cur_row},"
+            f" cur_col={self.cur_col},"
+            f" distance_bw_contents={self.distance_bw_contents},"
             f")"
         )
 
@@ -156,14 +156,6 @@ class ExcelWriter(object):
         self.writer.close()
         self.writer._status = "closed"
 
-    def _make_new_sheet(self, sheet_name: str):
-        logger.debug(f"Creating new sheet: {sheet_name}")
-        assert (
-            sheet_name not in self.writer.book.sheetnames
-        ), f"Sheet {sheet_name} already exists in the workbook."
-        self.ws = self.writer.book.create_sheet(sheet_name)
-        return self
-
     @_supply_temp_context_if_called_outside_cm
     def switch_to_sheet(
         self,
@@ -183,6 +175,14 @@ class ExcelWriter(object):
         self.sheet_name = sheet_name
         if reset_cursor:
             self.move_cursor(reset=True)
+        return self
+
+    def _make_new_sheet(self, sheet_name: str):
+        logger.debug(f"Creating new sheet: {sheet_name}")
+        assert (
+            sheet_name not in self.writer.book.sheetnames
+        ), f"Sheet {sheet_name} already exists in the workbook."
+        self.ws = self.writer.book.create_sheet(sheet_name)
         return self
 
     def move_cursor(
@@ -233,7 +233,7 @@ class ExcelWriter(object):
         elif isinstance(df, type(pd.DataFrame().style)):
             df_height, df_width = df.data.shape
         else:
-            raise ValueError("df must be a DataFrame or Styler")
+            raise ValueError(f"df must be a DataFrame or Styler, you gave {type(df)}")
 
         self.ws.cell(
             row=self.cur_row, column=self.cur_col, value=title if title else ""
@@ -252,24 +252,35 @@ class ExcelWriter(object):
 
     @_pre_and_post_proc_for_item_addition
     @_supply_temp_context_if_called_outside_cm
-    def write_fig(self, fig, title: str = None, location: str = None, **kwargs):
-        def fig_to_img(fig):
-            buf = io.BytesIO()
-            fig.savefig(buf, format="png")
-            buf.seek(0)
-            img = XLImage(buf)
-            return img
-
-        fig_height = int(fig.get_size_inches()[1] * self.rows_per_inch)
-        fig_width = int(fig.get_size_inches()[0] * self.cols_per_inch)
+    def write_fig(
+        self,
+        fig: plt.Figure | openpyxl_image.Image | PILImage.Image,
+        title: str = None,
+        location: str = None,
+        **kwargs,
+    ):
+        if isinstance(fig, plt.Figure):
+            img = _fig_to_img(fig)
+        elif isinstance(fig, openpyxl_image.Image):
+            img = fig
+        elif isinstance(fig, PILImage.Image):
+            img = _pil_to_xlimage(fig)
+        else:
+            raise ValueError(
+                f"fig must be a matplotlib Figure or openpyxl Image or PIL Image, you gave {type(fig)}"
+            )
 
         self.ws.cell(
             row=self.cur_row, column=self.cur_col, value=title if title else ""
         )
         self.ws.add_image(
-            fig_to_img(fig),
-            ref_from_rc(self.cur_row + 1, self.cur_col + 1),  # 1 col just for titles
+            img,
+            row_col_to_cell_ref(
+                self.cur_row + 1, self.cur_col + 1
+            ),  # 1 col just for titles
         )
+        fig_height = int(round(img.height * self.rows_per_pixel, 0))
+        fig_width = int(round(img.width * self.cols_per_pixel, 0))
         self._content_set_sizes.append((fig_height + 1, fig_width + 1))
         return self
 
@@ -278,7 +289,13 @@ class ExcelWriter(object):
         for column in self.ws.columns:
             max_length = 0
             column = [cell for cell in column]
+            # i = 0
             for cell in column:
+                # i += 1
+                # if i % 50 == 0:
+                #     logger.debug(
+                #         f"Checked {i} cells in column {column[0].column_letter} so far, current max_length {max_length}"
+                #     )
                 try:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
@@ -290,3 +307,53 @@ class ExcelWriter(object):
             adjusted_width = max_length + 2
             self.ws.column_dimensions[column[0].column_letter].width = adjusted_width
         return self
+
+    def read_img(
+        self, sheet_name: str = None, anchor_cell: str = None
+    ) -> PILImage.Image | None:
+        if sheet_name is None:
+            sheet_name = self.sheet_name
+        return read_excel_img(self.file_path, sheet_name, anchor_cell)
+
+
+def row_col_to_cell_ref(row, col):
+    return openpyxl.utils.get_column_letter(col) + str(row)
+
+
+def read_excel_img(
+    file_path: Path, sheet_name: str, anchor_cell: str = None
+) -> PILImage.Image | None:
+    if not file_path.exists():
+        raise FileNotFoundError(f"File {file_path} does not exist.")
+    ws = openpyxl.load_workbook(file_path)[sheet_name]
+
+    _images = getattr(ws, "_images", [])
+    logger.debug(f"Found {len(_images)} images in sheet {sheet_name}.")
+
+    for img in _images:
+        anchor = getattr(img.anchor, "_from", None)
+        if anchor:
+            col_letter = chr(65 + anchor.col)
+            row_number = anchor.row + 1
+            anchored_cell = f"{col_letter}{row_number}"
+
+            if anchor_cell is None or anchored_cell == anchor_cell:
+                image_data = img._data()
+                image = PILImage.open(io.BytesIO(image_data))
+                return image
+    return None
+
+
+def _fig_to_img(fig: plt.Figure) -> openpyxl_image.Image:
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png")
+    buf.seek(0)
+    img = openpyxl_image.Image(buf)
+    return img
+
+
+def _pil_to_xlimage(pil_img: PILImage.Image) -> openpyxl_image.Image:
+    buf = io.BytesIO()
+    pil_img.save(buf, format="PNG")
+    buf.seek(0)
+    return openpyxl_image.Image(buf)
