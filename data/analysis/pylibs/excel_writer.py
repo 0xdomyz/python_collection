@@ -285,7 +285,7 @@ class ExcelWriter(object):
         return self
 
     @_supply_temp_context_if_called_outside_cm
-    def auto_fit_column_width(self, max_width: int = 150):
+    def auto_fit_column_width(self, max_width: int = 150, fixed_padding: int = 5):
         for column in self.ws.columns:
             max_length = 0
             column = [cell for cell in column]
@@ -304,7 +304,7 @@ class ExcelWriter(object):
                 if max_length > max_width:
                     max_length = max_width
                     break
-            adjusted_width = max_length + 2
+            adjusted_width = max_length + fixed_padding
             self.ws.column_dimensions[column[0].column_letter].width = adjusted_width
         return self
 
