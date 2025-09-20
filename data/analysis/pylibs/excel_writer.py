@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 logger.remove()
 
-VERSION = "2025.09.16.20"
+VERSION = "2025.09.20.00"
 
 
 def _supply_temp_context_if_called_outside_cm(func):
@@ -30,6 +30,9 @@ def _supply_temp_context_if_called_outside_cm(func):
                 self.__exit__(None, None, None)
         else:
             res = func(*args, **kwargs)
+
+        # mark that this method was called outside a context manager
+        self._called_outside_cm = True
 
         return res
 
@@ -96,6 +99,9 @@ class ExcelWriter(object):
         self._content_set_sizes = []  # a set is a row of contents
         self._cursor_ready_to_write = True
         self._has_added_items = False
+        self._called_outside_cm = False
+        self.items = {}
+        self.added_sheet = sheet_name
 
         # hardcoded attributes
         self.start_row = 1
@@ -123,22 +129,30 @@ class ExcelWriter(object):
         1. obj as context manager
         2. manually first entry
         3. manually subsequent entries
+        4. obj as context manager, but previously manually entered
 
         mode in cases:
         1. can be w or a
         2. can be w or a
         3. must be a
+        4. must be a
 
         reset_cursor in cases:
         1. either
         2. False
         3. False
+        4. False
         """
         mode = mode or self.mode
 
         if not self.file_path.exists():
             mode = "w"
             logger.debug(f"File {self.file_path} does not exist, force mode w.")
+        elif self._called_outside_cm:
+            mode = "a"
+            logger.debug(
+                f"ExcelWriter was previously used outside a context manager, force mode a."
+            )
 
         logger.debug(f"Enter ExcelWriter: {mode = }")
         self.writer = pd.ExcelWriter(
@@ -157,6 +171,12 @@ class ExcelWriter(object):
         logger.debug("Exit ExcelWriter")
         self.writer.close()
         self.writer._status = "closed"
+
+    def set_mode(self, mode: str):
+        if mode not in ["w", "a"]:
+            raise ValueError(f"mode must be 'w' or 'a', you gave {mode}")
+        self.mode = mode
+        return self
 
     @_supply_temp_context_if_called_outside_cm
     def switch_to_sheet(
@@ -392,6 +412,43 @@ class ExcelWriter(object):
         if range_ref is None:
             raise ValueError("range_ref must be provided to read text.")
         return read_excel_text(self.file_path, sheet_name, range_ref)
+
+    def switch_to_sheet_in_items(self, sheet_name: str):
+        if sheet_name not in self.items:
+            self.items[sheet_name] = []
+        self.added_sheet = sheet_name
+        return self
+
+    def add(
+        self, item, title: str = None, location: str = None, sheet: str = None, **kwargs
+    ):
+        if sheet is not None:
+            sheet = sheet
+        else:
+            sheet = self.added_sheet
+
+        self.items[sheet].append(
+            {"item": item, "title": title, "location": location, **kwargs}
+        )
+        return self
+
+    @_supply_temp_context_if_called_outside_cm
+    def write_added_items(self):
+        for sheet_name, items in self.items.items():
+            self.switch_to_sheet(
+                sheet_name, create_if_not_exists=True, reset_cursor=True
+            )
+            for item_dict in items:
+                item = item_dict.pop("item")
+                assert item is not None, "item in item dict items cannot be None"
+                assert (
+                    "title" in item_dict
+                ), f"title must be provided in item_dict, you gave {item_dict}"
+                self.write(item, **item_dict)
+        # reset
+        for sheet_name in self.items.keys():
+            self.items[sheet_name] = []
+        return self
 
 
 def row_col_to_cell_ref(row, col):
