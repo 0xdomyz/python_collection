@@ -1,5 +1,6 @@
 import functools
 from pathlib import Path
+from typing import List
 import openpyxl
 import pandas as pd
 from loguru import logger
@@ -100,8 +101,6 @@ class ExcelWriter(object):
         self._cursor_ready_to_write = True
         self._has_added_items = False
         self._called_outside_cm = False
-        self.items = {}
-        self.added_sheet = sheet_name
 
         # hardcoded attributes
         self.start_row = 1
@@ -413,41 +412,31 @@ class ExcelWriter(object):
             raise ValueError("range_ref must be provided to read text.")
         return read_excel_text(self.file_path, sheet_name, range_ref)
 
-    def switch_to_sheet_in_items(self, sheet_name: str):
-        if sheet_name not in self.items:
-            self.items[sheet_name] = []
-        self.added_sheet = sheet_name
-        return self
-
-    def add(
-        self, item, title: str = None, location: str = None, sheet: str = None, **kwargs
-    ):
-        if sheet is not None:
-            sheet = sheet
-        else:
-            sheet = self.added_sheet
-
-        self.items[sheet].append(
-            {"item": item, "title": title, "location": location, **kwargs}
-        )
-        return self
-
     @_supply_temp_context_if_called_outside_cm
-    def write_added_items(self):
-        for sheet_name, items in self.items.items():
+    def write_items_dict(self, items_dict: dict[str, List[dict]]):
+        """
+        Example::
+
+            items = {}
+            items["Sheet2"] = lst = []
+            lst.append({"item": tbl, "title": "DataFrame 1"})
+            lst.append({"item": fig, "title": "Figure 1", "location": "right"})
+            lst.append({"item": tbl_styled, "title": "DataFrame 2", "auto_fit_column_width": True})
+
+            ExcelWriter(file_path=Path("output/test3.xlsx")).write_items_dict(items)
+        """
+        for sheet_name, items in items_dict.items():
             self.switch_to_sheet(
                 sheet_name, create_if_not_exists=True, reset_cursor=True
             )
             for item_dict in items:
-                item = item_dict.pop("item")
-                assert item is not None, "item in item dict items cannot be None"
-                assert (
-                    "title" in item_dict
-                ), f"title must be provided in item_dict, you gave {item_dict}"
+                auto_fit = item_dict.pop("auto_fit_column_width", False)
+
+                item = item_dict.pop("item", None)
                 self.write(item, **item_dict)
-        # reset
-        for sheet_name in self.items.keys():
-            self.items[sheet_name] = []
+
+                if auto_fit:
+                    self.auto_fit_column_width()
         return self
 
 
