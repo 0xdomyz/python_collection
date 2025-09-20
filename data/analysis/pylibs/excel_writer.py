@@ -15,6 +15,11 @@ logger.remove()
 
 VERSION = "2025.09.20.00"
 
+VALID_DF_CLASSES = (pd.DataFrame, type(pd.DataFrame().style))
+VALID_PLOT_CLASSES = (plt.Figure, openpyxl_image.Image, PILImage.Image)
+VALID_TEXT_CLASSES = (str,)
+VALID_CLASSES = VALID_DF_CLASSES + VALID_PLOT_CLASSES + VALID_TEXT_CLASSES
+
 
 def _supply_temp_context_if_called_outside_cm(func):
     @functools.wraps(func)
@@ -240,20 +245,15 @@ class ExcelWriter(object):
         return self
 
     def write(self, item, **kwargs):
-        if isinstance(item, pd.DataFrame) or isinstance(
-            item, type(pd.DataFrame().style)
-        ):
+        if isinstance(item, VALID_DF_CLASSES):
             return self.write_df(item, **kwargs)
-        elif isinstance(
-            item,
-            (plt.Figure, openpyxl_image.Image, PILImage.Image),
-        ):
+        elif isinstance(item, VALID_PLOT_CLASSES):
             return self.write_fig(item, **kwargs)
-        elif isinstance(item, str):
+        elif isinstance(item, VALID_TEXT_CLASSES):
             return self.write_text(item, **kwargs)
         else:
             raise ValueError(
-                f"item must be a DataFrame or Styler or Figure or Image or string, you gave {type(item)}"
+                f"item must be one of {VALID_CLASSES}, you gave {type(item)}"
             )
 
     @_pre_and_post_proc_for_item_addition
@@ -421,6 +421,8 @@ class ExcelWriter(object):
             items["Sheet2"] = lst = []
             lst.append({"item": tbl, "title": "DataFrame 1"})
             lst.append({"item": fig, "title": "Figure 1", "location": "right"})
+            lst.append(fig)
+            lst.append(tbl)
             lst.append({"item": tbl_styled, "title": "DataFrame 2", "auto_fit_column_width": True})
 
             ExcelWriter(file_path=Path("output/test3.xlsx")).write_items_dict(items)
@@ -429,14 +431,22 @@ class ExcelWriter(object):
             self.switch_to_sheet(
                 sheet_name, create_if_not_exists=True, reset_cursor=True
             )
-            for item_dict in items:
-                auto_fit = item_dict.pop("auto_fit_column_width", False)
+            for item in items:
+                if isinstance(item, dict):
+                    item_dict = item
+                    auto_fit = item_dict.pop("auto_fit_column_width", False)
 
-                item = item_dict.pop("item", None)
-                self.write(item, **item_dict)
+                    item = item_dict.pop("item", None)
+                    self.write(item, **item_dict)
 
-                if auto_fit:
-                    self.auto_fit_column_width()
+                    if auto_fit:
+                        self.auto_fit_column_width()
+                elif isinstance(item, VALID_CLASSES):
+                    self.write(item)
+                else:
+                    raise ValueError(
+                        f"Each item must be a dict or one of {VALID_CLASSES}, you gave {type(item)}"
+                    )
         return self
 
 
