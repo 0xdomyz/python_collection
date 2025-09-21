@@ -3,105 +3,76 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-VERSION = "2025.08.17.21"
+VERSION = "2025.09.21.00"
 
 
 def plot_transition_matrix(
-    tm_df: pd.DataFrame,
-    color_tm_df: pd.DataFrame = None,
-    bottom_tm_df: pd.DataFrame = None,
-    tm_formatter: callable = lambda x: f"{x:.0f}" if x != 0 else "",
-    bottom_tm_formatter: callable = lambda x: f"{x:.2%}" if x != 0 else "",
-    title="",
-    ax=None,
-    figsize=(6, 5),
-    fontsize=5,
-    fontsize_bottom=None,
-    colorbar_label=None,
+    pdf_n: pd.DataFrame,
+    pdf_s: pd.DataFrame = None,
+    pdf_c: pd.DataFrame = None,
+    n_formatter: callable = lambda x: f"{x:.0f}" if x != 0 else "",
+    s_formatter: callable = lambda x: f"{x:.2%}" if x != 0 else "",
     colorbar_formatter: callable = lambda x, _: f"{x*100:.0f}%",
+    n_fontsize=9,
+    s_fontsize=9,
+    ax=None,
+    figsize=(8, 8),
+    title="Transition Matrix",
+    colorbar_label="Signal %",
 ):
 
-    # inputs
-    if color_tm_df is None:
-        color_tm_df = tm_df.div(tm_df.sum(axis=1), axis=0).fillna(0)
-    assert (
-        tm_df.shape == color_tm_df.shape
-    ), f"TM and color TM must have the same shape, they are: {tm_df.shape} vs {color_tm_df.shape}"
+    # data
+    if pdf_s is None and pdf_c is None:
+        pdf_s = pdf_n.div(pdf_n.sum(axis=1), axis=0).fillna(0)
+        pdf_c = pdf_s
+    elif pdf_s is not None and pdf_c is None:
+        pdf_c = pdf_s
 
-    if bottom_tm_df is not None:
-        assert (
-            tm_df.shape == bottom_tm_df.shape
-        ), f"TM and bottom TM must have the same shape, they are: {tm_df.shape} vs {bottom_tm_df.shape}"
+    s_values = pdf_s.values if pdf_s is not None else None
+    c_values = pdf_c.values if pdf_c is not None else None
 
-    fontsize_bottom = fontsize if fontsize_bottom is None else fontsize_bottom
-
-    # ax
+    # ax and ticks
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
     else:
         fig = ax.figure
 
-    # ticks
-    yticks, yticklabels, ylabel = range(len(tm_df.index)), tm_df.index, tm_df.index.name
-    xticks, xticklabels, xlabel = (
-        range(len(tm_df.columns)),
-        tm_df.columns,
-        tm_df.columns.name,
+    yticklabels = pdf_n.index
+    xticklabels = pdf_n.columns
+    yticks = range(len(yticklabels))
+    xticks = range(len(xticklabels))
+    ylabel = pdf_n.index.name if yticklabels.name is not None else "From"
+    xlabel = pdf_n.columns.name if xticklabels.name is not None else "To"
+
+    # content
+    ax, cax = plot_nsc_tm_content(
+        ax=ax,
+        yticklabels=yticklabels,
+        xticklabels=xticklabels,
+        n_values=pdf_n.values,
+        s_values=s_values,
+        c_values=c_values,
+        n_formatter=n_formatter,
+        s_formatter=s_formatter,
+        n_fontsize=n_fontsize,
+        s_fontsize=s_fontsize,
     )
 
-    # color
-    cax = ax.imshow(color_tm_df.values, cmap="Blues")
-    color_threshold = color_tm_df.values.max() / 2
-
-    # texts
-    for i in yticks:
-        for j in xticks:
-            color_value = color_tm_df.values[i, j]  # row i, col j from top left
-            text_color = "white" if color_value > color_threshold else "black"
-
-            # plot in x pos j, y pos i from top left
-            ax.text(
-                j,
-                i,
-                tm_formatter(tm_df.iloc[i, j]),
-                ha="center",
-                va="center" if bottom_tm_df is None else "bottom",
-                color=text_color,
-                fontsize=fontsize,
-            )
-
-            # bottom
-            if bottom_tm_df is not None:
-                ax.text(
-                    j,
-                    i,
-                    bottom_tm_formatter(bottom_tm_df.iloc[i, j]),
-                    ha="center",
-                    va="top",
-                    color=text_color,
-                    fontsize=fontsize_bottom,
-                )
-
-    # misc plot elements
-    ax.plot(
-        [0, max(xticks)], [max(yticks), 0], color="black", linewidth=0.5, linestyle="--"
-    )  # bot left is origin in labels
-    # ax.plot([0, max(xticks)], [0, max(yticks)], color="black", linewidth=0.5, linestyle="--")# top left is origin in labels
-
+    # decorations
     ax.set_yticks(yticks)
+    ax.set_yticks(np.arange(-0.5, len(yticks), 1), minor=True)
     ax.set_yticklabels(yticklabels)
     ax.set_ylabel(ylabel)
+
     ax.set_xticks(xticks)
+    ax.set_xticks(np.arange(-0.5, len(xticks), 1), minor=True)
     ax.set_xticklabels(xticklabels)
     ax.set_xlabel(xlabel)
 
     ax.set_title(title)
-
-    ax.set_xticks(np.arange(-0.5, len(xticks), 1), minor=True)
-    ax.set_yticks(np.arange(-0.5, len(yticks), 1), minor=True)
     ax.grid(which="minor", color="gray", linestyle="--", linewidth=0.5)
 
-    if colorbar_label:
+    if pdf_c is not None and colorbar_label is not None:
         fig.colorbar(
             cax,
             label=colorbar_label,
@@ -110,4 +81,83 @@ def plot_transition_matrix(
             pad=0.02,
         )
 
-    return fig, ax
+    return fig, ax, cax
+
+
+def make_spine_from_cols(from_srs: pd.Series, to_srs: pd.Series) -> pd.DataFrame:
+    from_vals = from_srs.unique()
+    to_vals = to_srs.unique()
+    spine = pd.MultiIndex.from_product(
+        [from_vals, to_vals], names=[from_srs.name, to_srs.name]
+    ).to_frame(index=False)
+    return spine
+
+
+def plot_nsc_tm_content(
+    ax: plt.Axes,
+    yticklabels: list,
+    xticklabels: list,
+    n_values: np.ndarray,
+    s_values: np.ndarray = None,
+    c_values: np.ndarray = None,
+    n_formatter: callable = lambda x: f"{x:.0f}" if x != 0 else "",
+    s_formatter: callable = lambda x: f"{x:.2%}" if x != 0 else "",
+    n_fontsize=8,
+    s_fontsize=8,
+    cmap="Blues",
+):
+    # check
+    n_values = np.asarray(n_values)
+    if c_values is not None:
+        assert (
+            n_values.shape == c_values.shape
+        ), f"n_values and c_values must have the same shape, they are: {n_values.shape} vs {c_values.shape}"
+    if s_values is not None:
+        assert (
+            n_values.shape == s_values.shape
+        ), f"n_values and s_values must have the same shape, they are: {n_values.shape} vs {s_values.shape}"
+
+    # ticks
+    yticks = range(len(yticklabels))
+    xticks = range(len(xticklabels))
+
+    # element - color
+    cax = ax.imshow(c_values, cmap=cmap)
+    color_threshold = c_values.max() / 2
+
+    # element - texts
+    for i in yticks:
+        for j in xticks:
+            # ticks: i, j is coordinates: j, i
+            color_value = c_values[i, j]
+            text_color = "white" if color_value > color_threshold else "black"
+
+            # n text
+            ax.text(
+                j,
+                i,
+                n_formatter(n_values[i, j]),
+                ha="center",
+                va="center" if s_values is None else "bottom",
+                color=text_color,
+                fontsize=n_fontsize,
+            )
+
+            # signal text
+            if s_values is not None:
+                ax.text(
+                    j,
+                    i,
+                    s_formatter(s_values[i, j]),
+                    ha="center",
+                    va="top",
+                    color=text_color,
+                    fontsize=s_fontsize,
+                )
+
+    # element - diagonal line
+    ax.plot(
+        [0, max(xticks)], [max(yticks), 0], color="black", linewidth=0.5, linestyle="--"
+    )
+
+    return ax, cax
