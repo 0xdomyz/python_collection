@@ -6,6 +6,60 @@ import pandas as pd
 VERSION = "2025.09.21.00"
 
 
+### data
+def calc_transition_matrixes_from_signal(
+    signal_df: pd.DataFrame,
+    from_col: str,
+    to_col: str,
+    n_col: str = "n",
+    signal_col: str = "signal",
+    from_levels: list = None,
+    to_levels: list = None,
+):
+    """
+    Signal df is result of group by as_index False that calcs volume and signals
+    """
+    assert (
+        from_col in signal_df.columns and to_col in signal_df.columns
+    ), f"columns {from_col} and {to_col} must be in signal_df"
+
+    # fill gaps
+    if from_levels is None and to_levels is not None:
+        from_levels = signal_df[from_col].unique()
+    elif to_levels is None and from_levels is not None:
+        to_levels = signal_df[to_col].unique()
+
+    if from_levels is not None and to_levels is not None:
+        spine = pd.MultiIndex.from_product(
+            [from_levels, to_levels], names=[from_col, to_col]
+        ).to_frame(index=False)
+        signal_df = spine.merge(signal_df, on=[from_col, to_col], how="left")
+
+    # pdfs
+    pdf = signal_df.pivot(index=from_col, columns=to_col).sort_index(
+        axis=0, ascending=False, na_position="first"
+    )
+    pdf_n = (
+        pdf.xs(n_col, axis=1, level=0).sort_index(axis=1, na_position="last").fillna(0)
+    )
+    pdf_s = (
+        pdf.xs(signal_col, axis=1, level=0)
+        .sort_index(axis=1, na_position="last")
+        .fillna(0)
+    )
+    return pdf_n, pdf_s
+
+
+def make_spine_from_cols(from_srs: pd.Series, to_srs: pd.Series) -> pd.DataFrame:
+    from_vals = from_srs.unique()
+    to_vals = to_srs.unique()
+    spine = pd.MultiIndex.from_product(
+        [from_vals, to_vals], names=[from_srs.name, to_srs.name]
+    ).to_frame(index=False)
+    return spine
+
+
+### plot
 def plot_transition_matrix(
     pdf_n: pd.DataFrame,
     pdf_s: pd.DataFrame = None,
@@ -82,15 +136,6 @@ def plot_transition_matrix(
         )
 
     return fig, ax, cax
-
-
-def make_spine_from_cols(from_srs: pd.Series, to_srs: pd.Series) -> pd.DataFrame:
-    from_vals = from_srs.unique()
-    to_vals = to_srs.unique()
-    spine = pd.MultiIndex.from_product(
-        [from_vals, to_vals], names=[from_srs.name, to_srs.name]
-    ).to_frame(index=False)
-    return spine
 
 
 def plot_nsc_tm_content(
