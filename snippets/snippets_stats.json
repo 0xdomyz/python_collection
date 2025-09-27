@@ -4,6 +4,15 @@
     // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
     // same ids are connected.
     // general python
+    "iana": {
+        "prefix": "iana",
+        "body": [
+            "import numpy as np",
+            "import pandas as pd",
+            "import matplotlib.pyplot as plt",
+            "import matplotlib as mpl",
+        ],
+    },
     "istats": {
         "prefix": "istats",
         "body": [

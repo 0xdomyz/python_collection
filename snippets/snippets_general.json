@@ -40,12 +40,10 @@
         ],
     },
     // imports
-    "ipathos": {
-        "prefix": "ipathos",
+    "ipath": {
+        "prefix": "ipath",
         "body": [
-            "import os",
             "from pathlib import Path",
-            "here = Path('$1')",
         ],
     },
 }
