@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-VERSION = "2025.09.21.00"
+VERSION = "2025.09.28.00"
 
 
 ### data
-def calc_transition_matrixes_from_signal(
+def calc_transition_matrixes_from_signal_with_level_alignment(
     signal_df: pd.DataFrame,
     from_col: str,
     to_col: str,
