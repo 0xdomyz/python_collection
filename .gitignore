@@ -1,45 +1,32 @@
 *.ignore
 .vscode/*
 
-#data
+# folder name related ignores
+model_related/torch_tute/data/*
+model_related/torch_tute/model.pth
+web_related/wallpaper/pictures/*
+
 *.csv
-!data/toydata/*.csv
-generics/regexp_related/words/*
+!data_related/toydata/*.csv
+
+#outputs
 *.zip
-configs/files/*
 *.pptx
 *.xlsx
 *.xls
 *.docx
-
-# intermediate files
-web/wallpaper/run_date.txt
-
-#outputs
+*.jpeg
+*.png
+*.mp3
 *.c
 *.html
 !index.html
-fig.png
-*.mp3
-asyncio_tute/*/foundurls.txt
-web/scrap_pi/*.txt
-web/scrap_pi/images/*.jpg
-*.jpeg
-*.png
-!sphinx_tute/*.png
-
-#torch
-model/torch_tute/data/*
-model/torch_tute/model.pth
 
 #configs
 config.toml
 
 #virtual envs
 venvs/*
-
-#others
-web/wallpaper/pictures/*
 
 #folder struct
 !.gitkeep
