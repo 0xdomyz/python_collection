@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 logger.remove()
 
-VERSION = "2025.09.20.00"
+VERSION = "2025.10.05.00"
 
 VALID_DF_CLASSES = (pd.DataFrame, type(pd.DataFrame().style))
 VALID_PLOT_CLASSES = (plt.Figure, openpyxl_image.Image, PILImage.Image)
@@ -187,8 +187,13 @@ class ExcelWriter(object):
         self,
         sheet_name: str,
         create_if_not_exists: bool = False,
+        avoid_blank_first_sheet: bool = True,
         reset_cursor: bool = True,
     ):
+        """
+        avoid_blank_first_sheet: if True, will remove the default sheet "Sheet" when
+        switching away from it for the first time, and no items have been added yet.
+        """
         if create_if_not_exists and sheet_name not in self.writer.book.sheetnames:
             # logger.debug(f"Sheet {sheet_name} does not exist, creating it.")
             self._make_new_sheet(sheet_name)
@@ -196,9 +201,18 @@ class ExcelWriter(object):
         logger.debug(f"Switching to sheet: {sheet_name}")
         assert (
             sheet_name in self.writer.book.sheetnames
-        ), f"Sheet {sheet_name} does not exist in the workbook."
+        ), f"Sheet {sheet_name} does not exist in the workbook and not created."
         self.ws = self.writer.sheets[sheet_name]
-        self.sheet_name = sheet_name
+        self.sheet_name, old_sheet_name = sheet_name, self.sheet_name
+
+        if (
+            avoid_blank_first_sheet
+            and sheet_name != "Sheet"
+            and old_sheet_name == "Sheet"
+            and not self._has_added_items
+        ):
+            self._remove_sheet("Sheet")
+
         if reset_cursor:
             self.move_cursor(reset=True)
         return self
@@ -209,6 +223,11 @@ class ExcelWriter(object):
             sheet_name not in self.writer.book.sheetnames
         ), f"Sheet {sheet_name} already exists in the workbook."
         self.ws = self.writer.book.create_sheet(sheet_name)
+        return self
+
+    def _remove_sheet(self, sheet_name: str):
+        logger.debug(f"Removing sheet: {sheet_name}")
+        self.writer.book.remove(self.writer.book[sheet_name])
         return self
 
     def move_cursor(
