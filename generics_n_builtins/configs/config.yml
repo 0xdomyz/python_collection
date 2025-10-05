@@ -1,0 +1,69 @@
+alises:
+    &path1 configs/data.csv
+
+data:
+-
+    loader: yaml
+    path: configs/config.yaml
+-
+    loader: csv
+    path: *path1
+-
+    loader: csv
+    path: configs/data.csv
+-
+    loader: csv
+    path: configs/data.csv
+-
+    loader: csv
+    path: configs/data.csv
+-
+    loader: yaml
+    path: configs/config.yml
+-
+    loader: yaml
+    path: configs/config.yml
+    to_dateframe: True
+-
+    loader: yaml_to_df
+    path: configs/config.yml
+
+
+apples:
+    columns: [item, unit]
+    data:
+    - [apple, 1]
+    - [banana, 2]
+    - [cat, 3]
+
+cats:
+- {item: apple, unit: 1}
+- {item: banana, unit: 2}
+- {item: cat, unit: 3}
+
+actions:
+- 
+    name: step1
+    action: do_stuff
+    argument1: 1
+    type: 2
+- 
+    name: step2
+    action: do_stuff
+    argument2: 3
+    type: asdfasd
+
+combine:
+- table1
+- table2
+- table3
+
+run:
+    name: func
+    argument1: 1
+    argument2: bbb
+
+
+
+
+

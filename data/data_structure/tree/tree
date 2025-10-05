@@ -1,5 +1,0 @@
-digraph {
-	grandparent -> parent
-	parent -> child
-	child -> grandchild
-}
