@@ -73,7 +73,7 @@
     "grpdict": {
         "prefix": "grpdict",
         "body": [
-            "$1.groupby(\"$2\", dropna=False, observed=False).agg(",
+            "$1.groupby(\"$2\", dropna=False).agg(",
             "    {\"$3\": [\"size\", \"sum\", \"mean\"]}",
             ")",
         ],
@@ -81,7 +81,7 @@
     "grp2unstack": {
         "prefix": "grp2unstack",
         "body": [
-            "$1.groupby([\"$2\", \"$3\"], dropna=False, observed=False)[\"$4\"].agg(",
+            "$1.groupby([\"$2\", \"$3\"], dropna=False)[\"$4\"].agg(",
             "    lambda x: (len(x), float(x.mean().round(2)))",
             ").unstack()",
         ],
@@ -89,7 +89,7 @@
     "grpargs": {
         "prefix": "grpargs",
         "body": [
-            "$1.groupby([\"$2\", \"$3\"], dropna=False, observed=False).agg(",
+            "$1.groupby([\"$2\", \"$3\"], dropna=False).agg(",
             "    **{",
             "        \"n\": (\"$2\", \"size\"),",
             "        \"$4_rate\": (\"$4\", \"mean\"),",
