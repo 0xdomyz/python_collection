@@ -37,6 +37,18 @@
             "print($1.head().to_string())",
         ],
     },
+    "incol": {
+        "prefix": "incol",
+        "body": [
+            "[i for i in $1.columns if '$2' in i]",
+        ],
+    },
+    "valc": {
+        "prefix": "valc",
+        "body": [
+            "$1.value_counts($2, dropna=False)",
+        ],
+    },
     "info": {
         "prefix": "info",
         "body": [

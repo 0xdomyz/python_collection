@@ -17,6 +17,12 @@
             "    print(i)",
         ],
     },
+    "lcomp": {
+        "prefix": "lcomp",
+        "body": [
+            "[i$1 for i in $2]",
+        ],
+    },
     "iterdir": {
         "prefix": "iterdir",
         "body": [
