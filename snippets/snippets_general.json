@@ -51,7 +51,15 @@
         "body": [
             "from pathlib import Path",
             "import sys",
-            "sys.path.append(Path().cwd().parent.as_posix())",
+            "sys.path.append(Path().cwd().parents[0].as_posix())",
+        ],
+    },
+    "syspathfile": {
+        "prefix": "syspathfile",
+        "body": [
+            "from pathlib import Path",
+            "import sys",
+            "sys.path.append(Path(__file__).parents[1].as_posix())",
         ],
     },
     "ipath": {

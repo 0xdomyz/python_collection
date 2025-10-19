@@ -24,7 +24,7 @@
         "prefix": "dbrun1",
         "body": [
             "_ = eng.run(f\"select * from $1 where $2 = '$3'\")",
-            "_",
+            // "_",
         ],
     },
     "dbqry": {
