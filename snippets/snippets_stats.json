@@ -70,6 +70,12 @@
             "$1.query('$2')",
         ],
     },
+    "grpcol": {
+        "prefix": "grpcol",
+        "body": [
+            "$1.groupby(\"$2\", dropna=False)[\"$3\"].mean()",
+        ],
+    },
     "grpdict": {
         "prefix": "grpdict",
         "body": [
