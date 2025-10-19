@@ -20,11 +20,17 @@
             "eng = sa.create_engine(connection_string)",
         ],
     },
+    "dbrun0": {
+        "prefix": "dbrun0",
+        "body": [
+            "_ = eng.run(f\"drop table $1\")",
+        ],
+    },
     "dbrun1": {
         "prefix": "dbrun1",
         "body": [
             "_ = eng.run(f\"select * from $1 where $2 = '$3'\")",
-            // "_",
+            "_",
         ],
     },
     "dbqry": {

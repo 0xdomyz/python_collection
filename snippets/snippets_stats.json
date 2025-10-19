@@ -103,6 +103,16 @@
             ")",
         ],
     },
+    "grpapply": {
+        "prefix": "grpapply",
+        "body": [
+            "$1.groupby(['$2'], dropna=False).apply(",
+            "    lambda x:pd.Series(np.repeat(x.sort_values('$3').head(1)['$4'].values),",
+            "        index=x.sort_values('$3').index",
+            "    ), include_groups=False",
+            ").reset_index(level=0, drop=True)",
+        ],
+    },
     //mpl related
     "figax": {
         "prefix": "figax",
