@@ -1,0 +1,12 @@
+{
+    // misc
+    "titanic": {
+        "prefix": "titanic",
+        "body": [
+            "import seaborn as sns",
+            "df = sns.load_dataset('titanic')",
+            "print(f\"{df.shape = }\")",
+            "print(df.head().to_string())",
+        ],
+    },
+}
