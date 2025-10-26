@@ -37,6 +37,20 @@
             "print($1.head().to_string())",
         ],
     },
+    "mkflag": {
+        "prefix": "mkflag",
+        "body": [
+            "res[f\"is_\"] = np.where(res[\"\"] >= 0, True, np.where(res[\"\"] < 0, False, np.nan))",
+        ],
+    },
+    "mkflagloc": {
+        "prefix": "mkflagloc",
+        "body": [
+            "res[f\"is_\"] = np.nan",
+            "res.loc[lambda x: x[\"\"] >= 0, \"is_\"] = True",
+            "res.loc[lambda x: x[\"\"] < 0, \"is_\"] = False",
+        ],
+    },
     "incol": {
         "prefix": "incol",
         "body": [
@@ -113,7 +127,7 @@
             ").reset_index(level=0, drop=True)",
         ],
     },
-    //mpl related
+    //plot related
     "figax": {
         "prefix": "figax",
         "body": [
