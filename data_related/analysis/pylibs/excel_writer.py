@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 
 logger.remove()
 
-VERSION = "2025.10.05.00"
+VERSION = "2025.11.02.00"
 
-VALID_DF_CLASSES = (pd.DataFrame, type(pd.DataFrame().style))
+VALID_DF_CLASSES = (pd.Series, pd.DataFrame, type(pd.DataFrame().style))
 VALID_PLOT_CLASSES = (plt.Figure, openpyxl_image.Image, PILImage.Image)
 VALID_TEXT_CLASSES = (str,)
 VALID_CLASSES = VALID_DF_CLASSES + VALID_PLOT_CLASSES + VALID_TEXT_CLASSES
@@ -285,12 +285,17 @@ class ExcelWriter(object):
         location: str = None,
         **kwargs,
     ):
+        if isinstance(df, pd.Series):
+            df = df.to_frame()
+
         if isinstance(df, pd.DataFrame):
             df_height, df_width = df.shape
         elif isinstance(df, type(pd.DataFrame().style)):
             df_height, df_width = df.data.shape
         else:
-            raise ValueError(f"df must be a DataFrame or Styler, you gave {type(df)}")
+            raise ValueError(
+                f"df must be a Series, DataFrame or Styler, you gave {type(df)}"
+            )
 
         self.ws.cell(
             row=self.cur_row, column=self.cur_col, value=title if title else ""
@@ -434,6 +439,15 @@ class ExcelWriter(object):
     @_supply_temp_context_if_called_outside_cm
     def write_items_dict(self, items_dict: dict[str, List[dict]]):
         """
+        Write multiple items to multiple sheets in one go.
+
+        Concepts:
+
+        - Items_dict is dict of items.
+        - Items is list of item_parameter.
+        - Item_parameter is dict including mostly item and other optional parameters.
+        - Item is supported types by the class.
+
         Example::
 
             items = {}
@@ -442,7 +456,8 @@ class ExcelWriter(object):
             lst.append({"item": fig, "title": "Figure 1", "location": "right"})
             lst.append(fig)
             lst.append(tbl)
-            lst.append({"item": tbl_styled, "title": "DataFrame 2", "auto_fit_column_width": True})
+            lst.append({"item": tbl_styled, "title": "DataFrame 2"})
+            lst.append({"auto_fit_column_width": True})
 
             ExcelWriter(file_path=Path("output/test3.xlsx")).write_items_dict(items)
         """
@@ -450,16 +465,24 @@ class ExcelWriter(object):
             self.switch_to_sheet(
                 sheet_name, create_if_not_exists=True, reset_cursor=True
             )
-            for item in items:
-                if isinstance(item, dict):
-                    item_dict = item
-                    auto_fit = item_dict.pop("auto_fit_column_width", False)
+            for item_parameter in items:
+                if isinstance(item_parameter, dict):
+                    auto_fit = item_parameter.get("auto_fit_column_width", False)
+                    item = item_parameter.get("item", None)
 
-                    item = item_dict.pop("item", None)
-                    self.write(item, **item_dict)
-
-                    if auto_fit:
+                    if item is None and auto_fit:
                         self.auto_fit_column_width()
+                    elif item is None:
+                        raise ValueError(
+                            "item key must be provided in the item_parameter."
+                        )
+                    else:
+                        item_parameter2 = item_parameter.copy()
+                        item_parameter2.pop("item", None)
+                        item_parameter2.pop("auto_fit_column_width", None)
+                        self.write(item, **item_parameter2)
+                        if auto_fit:
+                            self.auto_fit_column_width()
                 elif isinstance(item, VALID_CLASSES):
                     self.write(item)
                 else:
