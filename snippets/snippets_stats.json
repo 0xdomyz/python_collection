@@ -31,6 +31,13 @@
             "print($1.to_string())",
         ],
     },
+    "shapephstr": {
+        "prefix": "shapephstr",
+        "body": [
+            "print($1.shape)",
+            "print($1.head().to_string())",
+        ],
+    },
     "phstr": {
         "prefix": "phstr",
         "body": [
@@ -120,11 +127,9 @@
     "grpapply": {
         "prefix": "grpapply",
         "body": [
-            "$1.groupby(['$2'], dropna=False).apply(",
-            "    lambda x:pd.Series(np.repeat(x.sort_values('$3').head(1)['$4'].values),",
-            "        index=x.sort_values('$3').index",
-            "    ), include_groups=False",
-            ").reset_index(level=0, drop=True)",
+            "$1.groupby(['$2'], dropna=False, group_keys=False).apply(",
+            "    lambda x: (x - x.mean()) / x.std()",
+            ")",
         ],
     },
     //plot related
