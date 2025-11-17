@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 logger.remove()
 
-VERSION = "2025.11.02.00"
+VERSION = "2025.11.17.00"
 
 VALID_DF_CLASSES = (pd.Series, pd.DataFrame, type(pd.DataFrame().style))
 VALID_PLOT_CLASSES = (plt.Figure, openpyxl_image.Image, PILImage.Image)
@@ -483,11 +483,11 @@ class ExcelWriter(object):
                         self.write(item, **item_parameter2)
                         if auto_fit:
                             self.auto_fit_column_width()
-                elif isinstance(item, VALID_CLASSES):
-                    self.write(item)
+                elif isinstance(item_parameter, VALID_CLASSES):
+                    self.write(item_parameter)
                 else:
                     raise ValueError(
-                        f"Each item must be a dict or one of {VALID_CLASSES}, you gave {type(item)}"
+                        f"Each item must be a dict or one of {VALID_CLASSES}, you gave {type(item_parameter)}"
                     )
         return self
 
