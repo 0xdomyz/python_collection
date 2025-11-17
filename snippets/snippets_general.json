@@ -62,6 +62,16 @@
             "sys.path.append(Path(__file__).parents[1].as_posix())",
         ],
     },
+    "syspathnodup": {
+        "prefix": "syspathnodup",
+        "body": [
+            "from pathlib import Path",
+            "import sys",
+            "_lib_path = Path(__file__).parents[1].as_posix() # or Path().cwd() for notebook",
+            "if _lib_path not in sys.path:",
+            "    sys.path.append(_lib_path)",
+        ],
+    },
     "ipath": {
         "prefix": "ipath",
         "body": [
