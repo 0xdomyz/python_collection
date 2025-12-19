@@ -6,8 +6,10 @@ model_related/torch_tute/data/*
 model_related/torch_tute/model.pth
 web_related/wallpaper/pictures/*
 
+# data
 *.csv
 !data_related/toydata/*.csv
+*.pkl
 
 #outputs
 *.zip
