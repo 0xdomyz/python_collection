@@ -17,3 +17,6 @@
 
 6. **Challenge Round**  
    Ask: “Give me scenarios where this concept is the wrong choice.”
+
+7. **Check against public resources**  
+   Ask: “Give me links to top 3 relevant articles or official documentation.”
