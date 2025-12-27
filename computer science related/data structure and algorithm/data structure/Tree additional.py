@@ -7,3 +7,5 @@ root
       └── 'a'
            ├── 't' (end=True)
            └── 'r' (end=True)
+
+https://en.wikipedia.org/wiki/Tree_(abstract_data_type)
