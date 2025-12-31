@@ -1,0 +1,20 @@
+{
+    "hello": {
+        "prefix": "hello",
+        "body": [
+            "print('hello')"
+        ]
+    },
+    "foo": {
+        "prefix": "foo",
+        "body": [
+            "foo(1)"
+        ]
+    },
+    "world": {
+        "prefix": "world",
+        "body": [
+            "print('world')"
+        ]
+    }
+}
