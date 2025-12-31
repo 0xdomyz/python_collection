@@ -1,18 +1,28 @@
-"""Small test to validate snippet combining on dummy fixtures."""
+"""Pytest-style test to validate snippet combining on dummy fixtures."""
 
+import sys
 from pathlib import Path
+
+# Ensure project snippets module is importable when running from this folder
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from combine_snippets import (
     compare_dicts,
-    load_snippet_file,
+    load_snippet_file,  # type: ignore
     merge_snippets,
     write_snippets,
 )
 
 
-def run_test() -> None:
-    base = Path(__file__).parent / "test_snippets"
-    files = sorted(p for p in base.glob("*.json") if p.name != "expected_combined.json")
+def test_combine_snippets(tmp_path: Path) -> None:
+    base = Path(__file__).parent
+    files = sorted(
+        p
+        for p in base.glob("snippets_*.json")
+        if p.name in {"snippets_a.json", "snippets_b.json"}
+    )
     combined, collisions = merge_snippets(files)
 
     expected = load_snippet_file(base / "expected_combined.json")
@@ -26,10 +36,5 @@ def run_test() -> None:
         "foo": ["snippets_b.json"]
     }, f"Unexpected collisions: {collisions}"
 
-    out_path = base / "combined_test_output.json"
+    out_path = tmp_path / "combined_test_output.json"
     write_snippets(out_path, combined)
-    print("Test passed. Combined output written to", out_path)
-
-
-if __name__ == "__main__":
-    run_test()
