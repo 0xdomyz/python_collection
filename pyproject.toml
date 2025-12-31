@@ -87,6 +87,7 @@ packages = [
     "python_collection.web_related",
     "python_collection.concurrency_related",
     "python_collection.dashboards",
+    "python_collection.general_applic_related",
     "python_collection.generics_n_builtins",
 ]
 
@@ -98,6 +99,7 @@ packages = [
 "python_collection.web_related" = "web_related"
 "python_collection.concurrency_related" = "concurrency_related"
 "python_collection.dashboards" = "dashboards"
+"python_collection.general_applic_related" = "general_applic_related"
 "python_collection.generics_n_builtins" = "generics_n_builtins"
 
 [tool.pytest.ini_options]
