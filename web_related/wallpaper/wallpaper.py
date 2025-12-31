@@ -1,140 +1,145 @@
-# scrap wallpaper from
+"""Download wallpapers via a JSON endpoint with sane defaults and CLI options."""
+
 import argparse
 import datetime
 import json
 import re
 import subprocess
 from pathlib import Path
+from typing import Iterable
 
 import requests
 import toml
 
-path = Path(__file__).parent
+BASE_PATH = Path(__file__).parent
+PICTURES = BASE_PATH / "pictures"
+CONFIG_PATH = BASE_PATH / "config.toml"
+RUN_DATE = BASE_PATH / "run_date.txt"
+TIMEOUT = 15
 
-# read in toml file
-with open(path / "config.toml", "r") as f:
-    endpoint = toml.load(f)["url"]["url"]
+
+def load_endpoint() -> str:
+    data = toml.load(CONFIG_PATH)
+    return data["url"]["url"]
 
 
-# get wallpaper
-def get_wallpaper(date: datetime.date):
+def ensure_dirs() -> None:
+    PICTURES.mkdir(exist_ok=True)
+
+
+def clean_name(url: str) -> str:
+    name = url.split("/")[-1]
+    return re.sub(r"%[0-9a-fA-F]{2}", " ", name)
+
+
+def fetch_json(session: requests.Session, url: str) -> list[dict]:
+    resp = session.get(url, timeout=TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
+    return data if isinstance(data, list) else []
+
+
+def get_wallpaper(
+    session: requests.Session, endpoint: str, date: datetime.date
+) -> None:
     day = date.day
     month = date.month
     year = date.year
     url = f"{endpoint}?day={day}&month={month}&year={year}&tags=rating:safe"
-    response = requests.get(url)
-    json_data = json.loads(response.text)
-
-    for i in json_data:
-        wallpaper_url = i["file_url"]
-        wallpaper_name = wallpaper_url.split("/")[-1]
-        # replace % and any 2 numbers with space via regexp
-        wallpaper_name = re.sub(r"%[0-9a-fA-F]{2}", " ", wallpaper_name)
-
-        # if has word censored or uncensored in it, skip
-        if "censored" in wallpaper_name:
+    for item in fetch_json(session, url):
+        wallpaper_url = item.get("file_url")
+        if not wallpaper_url:
             continue
+        name = clean_name(wallpaper_url)
+        if "censored" in name:
+            continue
+        resp = session.get(wallpaper_url, timeout=TIMEOUT)
+        resp.raise_for_status()
+        with open(PICTURES / name, "wb") as f:
+            f.write(resp.content)
+        print(f"Downloaded {name}")
 
-        wallpaper = requests.get(wallpaper_url)
 
-        with open(path / "pictures" / wallpaper_name, "wb") as f:
-            f.write(wallpaper.content)
-        print(f"Downloaded {wallpaper_name}")
-
-
-# open file explorer on pictures folder, on wsl
-def open_folder():
-    # make windows path \\ instead of /
-    txt = (path / "pictures").as_posix().replace("/", "\\")
-
+def open_folder() -> None:
+    target = PICTURES.as_posix().replace("/", "\\")
     try:
-        subprocess.check_call(["explorer.exe", txt])
+        subprocess.check_call(["explorer.exe", target])
     except subprocess.CalledProcessError:
         print("Error opening folder")
 
 
-def save_run_date(date: datetime.date):
-    with open(path / "run_date.txt", "w") as f:
-        f.write(date.strftime("%Y-%m-%d"))
+def save_run_date(date: datetime.date) -> None:
+    RUN_DATE.write_text(date.strftime("%Y-%m-%d"))
 
 
 def get_run_date():
-    file = path / "run_date.txt"
-    if not file.exists():
+    if not RUN_DATE.exists():
         return None
-    else:
-        with open(file, "r") as f:
-            date = f.read()
-        return datetime.datetime.strptime(date, "%Y-%m-%d").date()
+    return datetime.datetime.strptime(RUN_DATE.read_text(), "%Y-%m-%d").date()
 
 
-def use_saved_date_actions(date: datetime.date):
+def date_range_weeks(base: datetime.date, weeks: int) -> Iterable[datetime.date]:
+    for i in range(weeks + 1):
+        yield base - datetime.timedelta(weeks=i)
+
+
+def use_saved_date_actions(
+    session: requests.Session, endpoint: str, date: datetime.date
+) -> None:
     prior_date = get_run_date()
-
     if prior_date is None:
-        get_wallpaper(date)
+        get_wallpaper(session, endpoint, date)
         save_run_date(date)
-    else:
-        # get wallpapers for all weeks between saved date and current date
-        dates = [
-            date - datetime.timedelta(weeks=i)
-            for i in range((date - prior_date).days // 7 + 1)
-        ]
-        for date in dates:
-            get_wallpaper(date)
-        save_run_date(date)
+        return
+    weeks_between = max((date - prior_date).days // 7, 0)
+    for dt in date_range_weeks(date, weeks_between):
+        get_wallpaper(session, endpoint, dt)
+    save_run_date(date)
 
 
-if __name__ == "__main__":
-    # use argparse to get day, month, year
+def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--date", type=str, default=None, help="Date yyyy-mm-dd")
     parser.add_argument(
-        "--date", type=str, default=None, help="Date (yyyy-mm-dd) to get wallpaper from"
+        "--weeks_prior", type=int, default=None, help="Download for N prior weeks"
     )
-    # optional argument to extend date range
-    parser.add_argument(
-        "--weeks_prior", type=int, default=None, help="Number of weeks to extend range"
-    )
-    # optional argument to save date to file and use saved date to get weeks prior
     parser.add_argument(
         "--use_saved_date",
         action="store_true",
-        help="Save date to file to auto use weeks prior, weeks prior must not be set",
+        help="Use the saved run date to compute missing weeks",
+    )
+    args = parser.parse_args()
+
+    ensure_dirs()
+    endpoint = load_endpoint()
+    session = requests.Session()
+    session.headers.update({"user-agent": "wallpaper-downloader/0.1"})
+
+    date = (
+        datetime.date.today()
+        if args.date is None
+        else datetime.date.fromisoformat(args.date)
     )
 
-    # make sure weeks prior is not set if save date is set
-    args = parser.parse_args()
     if args.use_saved_date and args.weeks_prior is not None:
         parser.error(
             "--use_saved_date and --weeks_prior cannot be set at the same time"
         )
 
-    # if date is not set, use today's date
-    if args.date is None:
-        date = datetime.date.today()
-    else:
-        year, month, day = args.date.split("-")
-        date = datetime.date(int(year), int(month), int(day))
-
-    # vanilla run, get wallpaper for date
-    if args.weeks_prior is None and not args.use_saved_date:
-        get_wallpaper(date)
-        open_folder()
-        exit()
-
-    # if weeks prior is set, get wallpapers for that many weeks prior
-    if args.weeks_prior is not None:
-        # list of dates
-        dates = [
-            date - datetime.timedelta(weeks=i) for i in range(args.weeks_prior + 1)
-        ]
-        for date in dates:
-            get_wallpaper(date)
-        open_folder()
-        exit()
-
-    # if save date is set, do save date actions
     if args.use_saved_date:
-        use_saved_date_actions(date)
+        use_saved_date_actions(session, endpoint, date)
         open_folder()
-        exit()
+        return
+
+    if args.weeks_prior is not None:
+        for dt in date_range_weeks(date, args.weeks_prior):
+            get_wallpaper(session, endpoint, dt)
+        open_folder()
+        return
+
+    get_wallpaper(session, endpoint, date)
+    open_folder()
+
+
+if __name__ == "__main__":
+    main()

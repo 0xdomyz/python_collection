@@ -1,71 +1,67 @@
-# example of request library
+"""Requests examples with safe defaults (timeouts, headers, sessions)."""
+
 from pprint import pprint
 
 import requests
 
-# wikipeaid home page
-url = "https://en.wikipedia.org/wiki/Main_Page"
-r = requests.get(url)
-pprint(r)
-pprint(r.url)
-pprint(r.text)
-# pprint(r.json())
-pprint(r.status_code)
-pprint(r.headers)
-pprint(r.headers["content-type"])
-pprint(r.headers["server"])
-pprint(list(r.headers.keys()))
+TIMEOUT = 10
+HEADERS = {"user-agent": "python-requests-example/0.1"}
 
-# fred data
-key = ""
-url = (
-    f"https://api.stlouisfed.org/fred/series/observations?series_id=GNPCA&api_key={key}"
-)
-r = requests.get(url)
-pprint(r)
 
-# add header
-url = "https://en.wikipedia.org/wiki/Main_Page"
-headers = {"user-agent": "my-app/0.0.1"}
-r = requests.get(url, headers=headers)
-pprint(r)
+def get_text(url: str, params=None):
+    resp = requests.get(url, headers=HEADERS, params=params, timeout=TIMEOUT)
+    resp.raise_for_status()
+    print(f"GET {resp.url} -> {resp.status_code}")
+    return resp.text[:300]
 
-# add query string
-url = "https://en.wikipedia.org/wiki/Main_Page"
-params = {"action": "query", "format": "json"}
-r = requests.get(url, params=params)
-pprint(r)
 
-# session
-s = requests.Session()
-s.get("https://httpbin.org/cookies/set/sessioncookie/123456789")
-r = s.get("https://httpbin.org/cookies")
-pprint(r.text)
+def get_json(url: str, params=None):
+    resp = requests.get(url, headers=HEADERS, params=params, timeout=TIMEOUT)
+    resp.raise_for_status()
+    print(f"GET {resp.url} -> {resp.status_code}")
+    return resp.json()
 
-# post example
-url = "https://httpbin.org/post"
-payload = {"key1": "value1", "key2": "value2"}
-r = requests.post(url, data=payload)
-pprint(r.text)
 
-# put example
-url = "https://httpbin.org/put"
-payload = {"key1": "value1", "key2": "value2"}
-r = requests.put(url, data=payload)
-pprint(r.text)
+def post_form(url: str, data: dict):
+    resp = requests.post(url, headers=HEADERS, data=data, timeout=TIMEOUT)
+    resp.raise_for_status()
+    print(f"POST {resp.url} -> {resp.status_code}")
+    return resp.json()
 
-# delete example
-url = "https://httpbin.org/delete"
-payload = {"key1": "value1", "key2": "value2"}
-r = requests.delete(url, data=payload)
-pprint(r.text)
 
-# head example
-url = "https://httpbin.org/get"
-r = requests.head(url)
-pprint(r.text)
+def session_with_cookies():
+    with requests.Session() as s:
+        s.headers.update(HEADERS)
+        s.get(
+            "https://httpbin.org/cookies/set/sessioncookie/123456789", timeout=TIMEOUT
+        )
+        resp = s.get("https://httpbin.org/cookies", timeout=TIMEOUT)
+        resp.raise_for_status()
+        print("Session cookies:", resp.json())
 
-# options example
-url = "https://httpbin.org/get"
-r = requests.options(url)
-pprint(r.text)
+
+def main():
+    pprint(get_text("https://en.wikipedia.org/wiki/Main_Page"))
+
+    pprint(
+        get_json(
+            "https://httpbin.org/get",
+            params={"action": "query", "format": "json"},
+        )
+    )
+
+    pprint(post_form("https://httpbin.org/post", data={"key1": "value1"}))
+
+    session_with_cookies()
+
+    fred_url = "https://api.stlouisfed.org/fred/series/observations"
+    fred_params = {"series_id": "GNPCA", "api_key": "demo", "file_type": "json"}
+    try:
+        fred = get_json(fred_url, params=fred_params)
+        print("FRED example keys:", list(fred.keys())[:5])
+    except requests.HTTPError as exc:
+        print("FRED request failed (supply a real API key)", exc)
+
+
+if __name__ == "__main__":
+    main()
