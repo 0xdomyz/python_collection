@@ -1,0 +1,107 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_system"
+
+[project]
+name = "python-collection"
+version = "0.1.0"
+description = "Learning-focused Python collection with tutorial scripts and examples"
+readme = "README.rst"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+
+# Minimal core dependencies
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+# Data science and ML
+ml = [
+    "scikit-learn",
+    "scipy",
+    "seaborn",
+    "statsmodels",
+]
+
+# Deep learning
+dl = [
+    "torch",
+    "tensorflow",
+    "keras",
+]
+
+# Bayesian and probabilistic
+bayesian = [
+    "pymc3",
+]
+
+# Visualization
+viz = [
+    "plotly",
+    "streamlit",
+    "dash",
+]
+
+# Web and async
+web = [
+    "aiohttp",
+    "aiofiles",
+    "requests",
+    "beautifulsoup4",
+    "websockets",
+]
+
+# Utilities
+utils = [
+    "sympy",
+    "loguru",
+    "pyyaml",
+    "yfinance",
+]
+
+# Cython
+cython = [
+    "cython",
+]
+
+# Testing
+test = [
+    "pytest",
+]
+
+# All dependencies
+all = [
+    "python-collection[ml,dl,bayesian,viz,web,utils,cython,test]",
+]
+
+[tool.setuptools]
+# Map root-level packages under python_collection namespace
+packages = [
+    "python_collection.model_related",
+    "python_collection.data_related",
+    "python_collection.plot_related",
+    "python_collection.math_related",
+    "python_collection.web_related",
+    "python_collection.concurrency_related",
+    "python_collection.dashboards",
+    "python_collection.generics_n_builtins",
+]
+
+[tool.setuptools.package-dir]
+"python_collection.model_related" = "model_related"
+"python_collection.data_related" = "data_related"
+"python_collection.plot_related" = "plot_related"
+"python_collection.math_related" = "math_related"
+"python_collection.web_related" = "web_related"
+"python_collection.concurrency_related" = "concurrency_related"
+"python_collection.dashboards" = "dashboards"
+"python_collection.generics_n_builtins" = "generics_n_builtins"
+
+[tool.pytest.ini_options]
+testpaths = ["generics_n_builtins/tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
