@@ -68,15 +68,13 @@ def compare_dicts(a: Dict, b: Dict) -> Tuple[List[str], List[str], List[str]]:
 
 
 def main(
-    output_name: str = "snippets_all_combined.json",
-    reference_name: str = "snippets_all.json",
-    update_reference: bool = True,
+    output_name: str = "snippets_combined.json",
 ) -> None:
     base = Path(__file__).parent
     files = sorted(
         p
         for p in base.glob("*.json")
-        if p.name != output_name and not p.stem.startswith("snippets_all")
+        if p.name != output_name and not p.stem.startswith("snippets_combined")
     )
     if not files:
         raise SystemExit("No snippet files found.")
@@ -90,27 +88,6 @@ def main(
         print("Duplicate snippet keys (last wins):")
         for key, origins in collisions.items():
             print(f"  {key}: {origins}")
-
-    ref_path = base / reference_name
-    if ref_path.exists():
-        reference = load_snippet_file(ref_path)
-        only_combined, only_ref, different = compare_dicts(combined, reference)
-        if not (only_combined or only_ref or different):
-            print(f"Reference {reference_name} matches the combined output.")
-        else:
-            print("Reference mismatch detected:")
-            if only_combined:
-                print(f"  Missing in reference ({len(only_combined)}): {only_combined}")
-            if only_ref:
-                print(f"  Missing in combined ({len(only_ref)}): {only_ref}")
-            if different:
-                print(f"  Different values ({len(different)} keys): {different}")
-            if update_reference:
-                write_snippets(ref_path, combined)
-                print(f"Reference {reference_name} updated to match combined output.")
-    else:
-        write_snippets(ref_path, combined)
-        print(f"Reference {reference_name} created.")
 
 
 if __name__ == "__main__":
