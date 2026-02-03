@@ -135,13 +135,6 @@
             "print(f\"{$0 = }\")"
         ]
     },
-    "vinteractive": {
-        "prefix": "vinteractive",
-        "body": [
-            "#%%",
-            "$0"
-        ]
-    },
     "forp": {
         "prefix": "forp",
         "body": [
@@ -520,6 +513,22 @@
             "df = sns.load_dataset('titanic')",
             "print(f\"{df.shape = }\")",
             "print(df.head().to_string())"
+        ]
+    },
+    "vspycell": {
+        "prefix": "vspycell",
+        "body": [
+            "# %%",
+            "$0"
+        ]
+    },
+    "vsmdcell": {
+        "prefix": "vsmdcell",
+        "body": [
+            "# %% [markdown]",
+            "# ### Title",
+            "# description",
+            "$0"
         ]
     }
 }
