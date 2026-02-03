@@ -1,0 +1,18 @@
+{
+    "vspycell": {
+        "prefix": "vspycell",
+        "body": [
+            "# %%",
+            "$0",
+        ],
+    },
+    "vsmdcell": {
+        "prefix": "vsmdcell",
+        "body": [
+            "# %% [markdown]",
+            "# ### Title",
+            "# description",
+            "$0",
+        ],
+    }
+}
