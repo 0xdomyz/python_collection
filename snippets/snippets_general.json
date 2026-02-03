@@ -1,20 +1,8 @@
 {
-    // Place your snippets for python here. Each snippet is defined under a snippet name and has a prefix, body and 
-    // description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
-    // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
-    // same ids are connected.
-    // general python
     "peq": {
         "prefix": "peq",
         "body": [
             "print(f\"{$0 = }\")",
-        ],
-    },
-    "vinteractive": {
-        "prefix": "vinteractive",
-        "body": [
-            "#%%",
-            "$0",
         ],
     },
     "forp": {
@@ -51,38 +39,5 @@
         "body": [
             "import pdb; pdb.set_trace()",
         ],
-    },
-    // imports
-    "syspath": {
-        "prefix": "syspath",
-        "body": [
-            "from pathlib import Path",
-            "import sys",
-            "sys.path.append(Path().cwd().parents[0].as_posix())",
-        ],
-    },
-    "syspathfile": {
-        "prefix": "syspathfile",
-        "body": [
-            "from pathlib import Path",
-            "import sys",
-            "sys.path.append(Path(__file__).parents[1].as_posix())",
-        ],
-    },
-    "syspathnodup": {
-        "prefix": "syspathnodup",
-        "body": [
-            "from pathlib import Path",
-            "import sys",
-            "_lib_path = Path(__file__).parents[1].as_posix() # or Path().cwd() for notebook",
-            "if _lib_path not in sys.path:",
-            "    sys.path.append(_lib_path)",
-        ],
-    },
-    "ipath": {
-        "prefix": "ipath",
-        "body": [
-            "from pathlib import Path",
-        ],
-    },
+    }
 }
