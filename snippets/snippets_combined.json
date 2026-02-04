@@ -526,8 +526,8 @@
         "prefix": "vsmdcell",
         "body": [
             "# %% [markdown]",
-            "# ### Title",
-            "# description",
+            "# ### $1",
+            "# $2",
             "$0"
         ]
     }
