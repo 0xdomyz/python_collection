@@ -18,3 +18,7 @@ Get the number of pages in in1.pdf::
 Combine 2 pdf::
 
     pdftk in1.pdf in2.pdf cat output out1.pdf
+
+qpdf::
+    
+    qpdf in1.pdf --pages . 1-12 14-z -- out1.pdf
