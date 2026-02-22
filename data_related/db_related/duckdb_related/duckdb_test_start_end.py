@@ -1,9 +1,13 @@
+# %%
+
 import datetime
 import random
 
 import duckdb
 import pandas
 import pandas as pd
+
+# %%
 
 con = duckdb.connect()
 
@@ -33,6 +37,11 @@ df_b = pandas.DataFrame.from_dict(
         "c": [6, 7, 8],
     }
 )
+# %%
+df_a
+# %%
+df_b
+# %%
 
 sql = """
 select
@@ -46,6 +55,7 @@ on a.dte between b.start and b.end
 """
 
 con.execute(sql).df()
+# %%
 
 # more data
 dt = datetime.datetime(year=2021, month=10, day=1)
@@ -67,6 +77,7 @@ right_df = pd.DataFrame(
         end_time=[dt - datetime.timedelta(days=i) for i in range(365)],
     )
 )
+# %%
 
 res = (
     duckdb.connect()
@@ -85,6 +96,7 @@ on a.time between b.start_time and b.end_time
 
 len(res)
 
+# %%
 
 # sample up
 times = pd.Series(
@@ -107,6 +119,7 @@ df = df.reset_index(drop=True)
 df["time_lead"] = df["time"].shift(-1)
 df.loc[len(df) - 1, "time_lead"] = pd.Timestamp("2022-12-31")
 df
+# %%
 
 grid = pd.DataFrame(
     {
@@ -116,6 +129,7 @@ grid = pd.DataFrame(
     }
 )
 grid["time"]
+# %%
 
 res = (
     duckdb.connect()
@@ -133,4 +147,5 @@ res = (
     .df()
 )
 
+res.to_clipboard()
 res.to_clipboard()
