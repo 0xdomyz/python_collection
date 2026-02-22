@@ -1,16 +1,10 @@
-"""Data quality check utilities."""
+"""Data quality and overview utilities."""
 
-import numpy as np
 import pandas as pd
 
 
-def compute_data_quality_checks(df):
-    """
-    Compute data quality metrics: missing, zero, negative, blank string counts.
-
-    Returns:
-        dict with 'counts' and 'percentages' DataFrames
-    """
+def get_data_overview(df: pd.DataFrame) -> pd.DataFrame:
+    """Vertical view with sample value, dtype, null count, and DQ checks."""
     n_nulls = df.isnull().sum()
     n_zero = df.apply(lambda x: x == 0).sum()
     n_negative = df.select_dtypes(include="number").apply(lambda x: x < 0).sum()
@@ -18,26 +12,12 @@ def compute_data_quality_checks(df):
         df.select_dtypes(include=object).apply(lambda x: x.str.strip() == "").sum()
     )
 
-    # Create counts dataframe
-    counts_df = (
-        pd.DataFrame(
-            {
-                "n_missing": n_nulls,
-                "n_zero": n_zero,
-                "n_negative": n_negative,
-                "n_blank_string": n_blank_str,
-            }
-        )
-        .fillna(0)
-        .astype(int)
-    )
+    info = pd.concat([df.head(1).T, df.dtypes, n_nulls], axis=1)
+    info.columns = ["example_value", "dtype", "n_missing"]
+    info["n_zero"] = n_zero
+    info["n_negative"] = n_negative
+    info["n_blank_str"] = n_blank_str
 
-    # Create percentages dataframe
-    pct_df = (
-        counts_df.div(df.shape[0])
-        .mul(100)
-        .round(2)
-        .rename(columns=lambda x: x + "_pct")
+    return info.fillna(0).astype(
+        {"n_missing": int, "n_zero": int, "n_negative": int, "n_blank_str": int}
     )
-
-    return {"counts": counts_df, "percentages": pct_df}
