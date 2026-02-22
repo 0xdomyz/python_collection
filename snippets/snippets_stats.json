@@ -39,18 +39,26 @@
             "print($1.head().to_string())",
         ],
     },
-    "mkflag": {
-        "prefix": "mkflag",
+    "casewhere": {
+        "prefix": "casewhere",
         "body": [
-            "res[f\"is_\"] = np.where(res[\"\"] >= 0, True, np.where(res[\"\"] < 0, False, np.nan))",
+            "df[f\"is_$1\"] = np.where(df[\"$2\"] $3, True, np.where(df[\"$2\"] $4, False, np.nan))",
         ],
     },
-    "mkflagloc": {
-        "prefix": "mkflagloc",
+    "caseloc": {
+        "prefix": "caseloc",
         "body": [
-            "res[f\"is_\"] = np.nan",
-            "res.loc[lambda x: x[\"\"] >= 0, \"is_\"] = True",
-            "res.loc[lambda x: x[\"\"] < 0, \"is_\"] = False",
+            "df[f\"is_$1\"] = np.nan",
+            "df.loc[lambda x: x[\"$2\"] $3, \"is_$1\"] = True",
+            "df.loc[lambda x: x[\"$2\"] $4, \"is_$1\"] = False",
+        ],
+    },
+    "caseselect": {
+        "prefix": "caseselect",
+        "body": [
+            "conditions = [df[\"$1\"]$2]",
+            "choices = [$3]",
+            "df[\"$4\"] = np.select(conditions, choices, default=None)",
         ],
     },
     "incol": {

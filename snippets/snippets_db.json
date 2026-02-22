@@ -110,6 +110,30 @@
             "eng.run(f\"select count(*) from {tbl}\").iloc[0, 0]",
         ],
     },
+    "ddbimportcon": {
+        "prefix": "ddbimportcon",
+        "body": [
+            "improt duckdb",
+            "con = duckdb.connect()",
+        ],
+    },
+    "ddbexec": {
+        "prefix": "ddbexec",
+        "body": [
+            "res = con.execute(",
+            "    \"\"\"",
+            "    select",
+            "        $2,",
+            "        count(1) as cnt",
+            "    from $1",
+            "    group by 1",
+            "    order by 1",
+            "\"\"\"",
+            ").df()",
+            "",
+            "res",
+        ],
+    },
     // teradata sql via sqlalchemy related
     "tdsetup": {
         "prefix": "tdsetup",
