@@ -1,0 +1,12 @@
+"td_case_compare": {
+    "prefix": "tdcase",
+    "body": [
+        "CASE",
+        "    WHEN $1.$2 IS NOT NULL AND $3.$4 IS NULL THEN 'A_ONLY'",
+        "    WHEN $1.$2 IS NULL AND $3.$4 IS NOT NULL THEN 'B_ONLY'",
+        "    WHEN $1.$2 = $3.$4 AND $1.$5 = $3.$5 THEN 'MATCH'",
+        "    WHEN $1.$2 = $3.$4 AND $1.$5 <> $3.$5 THEN 'MISMATCH'",
+        "    ELSE 'UNKNOWN'",
+        "END AS $6"
+    ]
+}
