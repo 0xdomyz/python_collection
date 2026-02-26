@@ -50,23 +50,30 @@
     "dbhead": {
         "prefix": "dbhead",
         "body": [
-            "_ = eng.run(\"select top 5 * from $1\")",
+            "_ = eng.run(f\"select top 5 * from $1\")",
             "print(_.head().to_string())",
+        ],
+    },
+    "dbtop": {
+        "prefix": "dbtop",
+        "body": [
+            "_ = eng.run(f\"select top 1 * from $1\")",
+            "print(_.T.to_string())",
         ],
     },
     "dbcount1": {
         "prefix": "dbcount1",
         "body": [
-            "eng.run(\"select count(*) as n from $1\").iloc[0,0]",
+            "eng.run(f\"select count(*) as n from $1\").iloc[0,0]",
         ],
     },
     "dbdrop": {
         "prefix": "dbdrop",
         "body": [
             "try:",
-            "    eng.run(\"drop table $1\")",
+            "    eng.run(f\"drop table $1\")",
             "except Exception as e:",
-            "    print(f\"Table does not exist.\")",
+            "    pass",
         ],
     },
     "dbgrp": {
