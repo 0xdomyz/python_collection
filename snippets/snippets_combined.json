@@ -109,6 +109,34 @@
             "eng.run(f\"select count(*) from {tbl}\").iloc[0, 0]"
         ]
     },
+    "dbcase": {
+        "prefix": "dbcase",
+        "body": [
+            "qry = f\"\"\"",
+            "with x as (",
+            "   select",
+            "   CASE",
+            "       WHEN a.$1 IS NOT NULL AND b.$1 IS NULL THEN 'A_ONLY'",
+            "       WHEN a.$1 IS NULL AND b.$1 IS NOT NULL THEN 'B_ONLY'",
+            "       WHEN a.$2 = b.$2 THEN 'MATCH'",
+            "       WHEN a.$2 <> b.$2 THEN 'MISMATCH'",
+            "       ELSE 'UNKNOWN'",
+            "   END AS col_check",
+            "   from $1 a",
+            "   full outer join $2 b",
+            "   on a.$3 = b.$3 and a.$4 = b.$4",
+            ") ",
+            "select",
+            "   col_check,",
+            "   count(1) as n",
+            "from x",
+            "group by 1",
+            "\"\"\"",
+            "",
+            "df = eng.run(qry)",
+            "df"
+        ]
+    },
     "ddbimportcon": {
         "prefix": "ddbimportcon",
         "body": [
