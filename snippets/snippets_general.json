@@ -39,5 +39,12 @@
         "body": [
             "import pdb; pdb.set_trace()",
         ],
+    },
+    "writeqry": {
+        "prefix": "writeqry",
+        "body": [
+            "with open(Path('sql') / \"$1.sql\"), \"w\") as f:",
+            "    f.write(qry)",
+        ],
     }
 }
