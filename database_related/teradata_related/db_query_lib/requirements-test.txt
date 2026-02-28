@@ -1,0 +1,14 @@
+"""Requirements for running tests."""
+
+# Core dependencies
+pandas>=1.3.0
+sqlalchemy>=1.4.0
+teradatasql>=17.0.0
+
+# Testing
+pytest>=6.0.0
+pytest-cov>=2.12.0
+pytest-mock>=3.6.0
+
+# Optional: Teradataml (uncomment if needed)
+# teradataml>=17.0.0
