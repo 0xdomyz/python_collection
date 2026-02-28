@@ -1,0 +1,611 @@
+{
+  "metadata": {
+    "start_time": "2026-02-28T23:25:29.928077",
+    "num_tasks": 10,
+    "tasks_benchmarked": 10,
+    "end_time": "2026-02-28T23:26:12.622214",
+    "total_duration_seconds": 42.694137
+  },
+  "benchmarks": {
+    "network_io": {
+      "task_name": "network_io",
+      "task_display_name": "Network I/O Simulation",
+      "task_type": "io",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.5057199001312256,
+          "wall_clock_time": 0.151957,
+          "speedup": 3.328046092850119,
+          "min_duration": 0.05025289999321103,
+          "max_duration": 0.051161899929866195,
+          "avg_duration": 0.050571990013122556,
+          "total_wall_clock": 0.15376329992432147,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.5179733001859859,
+          "wall_clock_time": 0.061512,
+          "speedup": 8.420687023442351,
+          "min_duration": 0.05090619996190071,
+          "max_duration": 0.05270660005044192,
+          "avg_duration": 0.051797330018598584,
+          "total_wall_clock": 0.06178559991531074,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.504146600025706,
+          "wall_clock_time": 0.152894,
+          "speedup": 3.297360262833767,
+          "min_duration": 0.050193200004287064,
+          "max_duration": 0.05069639999419451,
+          "avg_duration": 0.0504146600025706,
+          "total_wall_clock": 0.4195187999866903,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.5055274999467656,
+          "wall_clock_time": 0.152313,
+          "speedup": 3.3190042868748275,
+          "min_duration": 0.050383899942971766,
+          "max_duration": 0.05066439998336136,
+          "avg_duration": 0.05055274999467656,
+          "total_wall_clock": 0.26841040002182126,
+          "method": "Threading"
+        }
+      }
+    },
+    "file_ops": {
+      "task_name": "file_ops",
+      "task_display_name": "File Operations",
+      "task_type": "io",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.34438329993281513,
+          "wall_clock_time": 0.092647,
+          "speedup": 3.717155438738601,
+          "min_duration": 0.01569940010085702,
+          "max_duration": 0.05285549990367144,
+          "avg_duration": 0.034438329993281516,
+          "total_wall_clock": 0.0938120000064373,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.3853388997958973,
+          "wall_clock_time": 0.076641,
+          "speedup": 5.027842796882834,
+          "min_duration": 0.02713699999731034,
+          "max_duration": 0.05304269993212074,
+          "avg_duration": 0.03853388997958973,
+          "total_wall_clock": 0.07708550000097603,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.11844009987544268,
+          "wall_clock_time": 0.042684,
+          "speedup": 2.774812573222816,
+          "min_duration": 0.00757829996291548,
+          "max_duration": 0.015195699990727007,
+          "avg_duration": 0.011844009987544268,
+          "total_wall_clock": 0.23191159998532385,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.27876230038236827,
+          "wall_clock_time": 0.074991,
+          "speedup": 3.717276744974307,
+          "min_duration": 0.017805100069381297,
+          "max_duration": 0.040190799976699054,
+          "avg_duration": 0.027876230038236825,
+          "total_wall_clock": 0.1927317000227049,
+          "method": "Threading"
+        }
+      }
+    },
+    "prime_numbers": {
+      "task_name": "prime_numbers",
+      "task_display_name": "Prime Number Generation",
+      "task_type": "cpu",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.14921149995643646,
+          "wall_clock_time": 0.105903,
+          "speedup": 1.4089449775401683,
+          "min_duration": 0.008329199976287782,
+          "max_duration": 0.024950699997134507,
+          "avg_duration": 0.014921149995643646,
+          "total_wall_clock": 0.10746219998691231,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.6123734000138938,
+          "wall_clock_time": 0.119794,
+          "speedup": 5.1118870729243024,
+          "min_duration": 0.010083099943585694,
+          "max_duration": 0.10995559999719262,
+          "avg_duration": 0.06123734000138938,
+          "total_wall_clock": 0.12016539997421205,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.04216650011949241,
+          "wall_clock_time": 0.018275,
+          "speedup": 2.3073324278792016,
+          "min_duration": 0.003833099966868758,
+          "max_duration": 0.005005600047297776,
+          "avg_duration": 0.004216650011949241,
+          "total_wall_clock": 0.2583263000706211,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.23426790011581033,
+          "wall_clock_time": 0.11505,
+          "speedup": 2.0362268588944836,
+          "min_duration": 0.010020600049756467,
+          "max_duration": 0.0606581000611186,
+          "avg_duration": 0.023426790011581034,
+          "total_wall_clock": 0.23053139995317906,
+          "method": "Threading"
+        }
+      }
+    },
+    "crypto_hash": {
+      "task_name": "crypto_hash",
+      "task_display_name": "Cryptographic Hashing",
+      "task_type": "cpu",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.02109220006968826,
+          "wall_clock_time": 0.023488,
+          "speedup": 0.8979989811686079,
+          "min_duration": 0.0016125000547617674,
+          "max_duration": 0.004092499963007867,
+          "avg_duration": 0.002109220006968826,
+          "total_wall_clock": 0.025459500029683113,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.10173100011888891,
+          "wall_clock_time": 0.021151,
+          "speedup": 4.809748953661241,
+          "min_duration": 0.001982300076633692,
+          "max_duration": 0.019415899994783103,
+          "avg_duration": 0.010173100011888892,
+          "total_wall_clock": 0.022169800009578466,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.003394200000911951,
+          "wall_clock_time": 0.001607,
+          "speedup": 2.1121344125152155,
+          "min_duration": 0.00031649996526539326,
+          "max_duration": 0.0003855000250041485,
+          "avg_duration": 0.0003394200000911951,
+          "total_wall_clock": 0.24648809991776943,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.031438499921932817,
+          "wall_clock_time": 0.029448,
+          "speedup": 1.0675937218803593,
+          "min_duration": 0.0010543999960646033,
+          "max_duration": 0.005652499967254698,
+          "avg_duration": 0.0031438499921932817,
+          "total_wall_clock": 0.13653090002480894,
+          "method": "Threading"
+        }
+      }
+    },
+    "fibonacci": {
+      "task_name": "fibonacci",
+      "task_display_name": "Fibonacci Calculation",
+      "task_type": "cpu",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 2.9005819999147207,
+          "wall_clock_time": 0.959833,
+          "speedup": 3.0219652792878766,
+          "min_duration": 0.19679550000000745,
+          "max_duration": 0.43040029995609075,
+          "avg_duration": 0.2900581999914721,
+          "total_wall_clock": 0.9618454000446945,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 5.248462000046857,
+          "wall_clock_time": 0.977638,
+          "speedup": 5.368512680610673,
+          "min_duration": 0.21740069997031242,
+          "max_duration": 0.75732779991813,
+          "avg_duration": 0.5248462000046856,
+          "total_wall_clock": 0.9782338000368327,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.40745650010649115,
+          "wall_clock_time": 0.120745,
+          "speedup": 3.3745206849682483,
+          "min_duration": 0.03521920007187873,
+          "max_duration": 0.05019219999667257,
+          "avg_duration": 0.040745650010649115,
+          "total_wall_clock": 0.3610473000444472,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 3.3364473001565784,
+          "wall_clock_time": 0.979677,
+          "speedup": 3.405660539296705,
+          "min_duration": 0.21129760006442666,
+          "max_duration": 0.49747930001467466,
+          "avg_duration": 0.33364473001565786,
+          "total_wall_clock": 1.0815385999158025,
+          "method": "Threading"
+        }
+      }
+    },
+    "data_processing": {
+      "task_name": "data_processing",
+      "task_display_name": "Data Processing",
+      "task_type": "cpu",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 5.728277599904686,
+          "wall_clock_time": 1.724455,
+          "speedup": 3.3217901307396747,
+          "min_duration": 0.3320725999074057,
+          "max_duration": 0.8292603000300005,
+          "avg_duration": 0.5728277599904686,
+          "total_wall_clock": 1.726630299934186,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 8.376683299662545,
+          "wall_clock_time": 1.538382,
+          "speedup": 5.445125657777162,
+          "min_duration": 0.49898579996079206,
+          "max_duration": 1.148426799918525,
+          "avg_duration": 0.8376683299662545,
+          "total_wall_clock": 1.5387265000026673,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.8398236001376063,
+          "wall_clock_time": 0.254401,
+          "speedup": 3.3011804204291897,
+          "min_duration": 0.07365360006224364,
+          "max_duration": 0.09288299991749227,
+          "avg_duration": 0.08398236001376062,
+          "total_wall_clock": 0.5176890000002459,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 6.045737199834548,
+          "wall_clock_time": 1.802925,
+          "speedup": 3.3532937863940804,
+          "min_duration": 0.42890970001462847,
+          "max_duration": 0.8975168999750167,
+          "avg_duration": 0.6045737199834548,
+          "total_wall_clock": 1.9149213000200689,
+          "method": "Threading"
+        }
+      }
+    },
+    "web_scraping": {
+      "task_name": "web_scraping",
+      "task_display_name": "Web Scraping Simulation",
+      "task_type": "mixed",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 3.167399499914609,
+          "wall_clock_time": 0.949607,
+          "speedup": 3.3354845740549606,
+          "min_duration": 0.3125781000126153,
+          "max_duration": 0.32090289995539933,
+          "avg_duration": 0.3167399499914609,
+          "total_wall_clock": 0.9515455000801012,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 3.1747939999913797,
+          "wall_clock_time": 0.326191,
+          "speedup": 9.73292947994083,
+          "min_duration": 0.3159959999611601,
+          "max_duration": 0.31889049999881536,
+          "avg_duration": 0.317479399999138,
+          "total_wall_clock": 0.32677109993528575,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 3.115890999790281,
+          "wall_clock_time": 0.938926,
+          "speedup": 3.318569301297739,
+          "min_duration": 0.3109874998917803,
+          "max_duration": 0.31271169998217374,
+          "avg_duration": 0.3115890999790281,
+          "total_wall_clock": 1.1714248999487609,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 3.1723808002425358,
+          "wall_clock_time": 0.952214,
+          "speedup": 3.331583866906531,
+          "min_duration": 0.3148063999833539,
+          "max_duration": 0.319380100001581,
+          "avg_duration": 0.3172380800242536,
+          "total_wall_clock": 1.0667323999805376,
+          "method": "Threading"
+        }
+      }
+    },
+    "etl_pipeline": {
+      "task_name": "etl_pipeline",
+      "task_display_name": "ETL Pipeline",
+      "task_type": "mixed",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 1.058492699987255,
+          "wall_clock_time": 0.316827,
+          "speedup": 3.340916967263696,
+          "min_duration": 0.10246349999215454,
+          "max_duration": 0.11036150006111711,
+          "avg_duration": 0.1058492699987255,
+          "total_wall_clock": 0.31912309990730137,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 1.0380219002254307,
+          "wall_clock_time": 0.11183,
+          "speedup": 9.28214164558196,
+          "min_duration": 0.10275890002958477,
+          "max_duration": 0.10509780002757907,
+          "avg_duration": 0.10380219002254307,
+          "total_wall_clock": 0.11222140002064407,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 1.0153396002715454,
+          "wall_clock_time": 0.306193,
+          "speedup": 3.316011797368148,
+          "min_duration": 0.10112270002719015,
+          "max_duration": 0.10184829996433109,
+          "avg_duration": 0.10153396002715454,
+          "total_wall_clock": 0.5361509000649676,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 1.024836200173013,
+          "wall_clock_time": 0.308868,
+          "speedup": 3.3180394219310934,
+          "min_duration": 0.10128579998854548,
+          "max_duration": 0.10357240005396307,
+          "avg_duration": 0.1024836200173013,
+          "total_wall_clock": 0.41477189993020147,
+          "method": "Threading"
+        }
+      }
+    },
+    "log_analysis": {
+      "task_name": "log_analysis",
+      "task_display_name": "Log Analysis",
+      "task_type": "mixed",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.07301020028535277,
+          "wall_clock_time": 0.060727,
+          "speedup": 1.2022691765664821,
+          "min_duration": 0.0038122000405564904,
+          "max_duration": 0.015015300014056265,
+          "avg_duration": 0.007301020028535277,
+          "total_wall_clock": 0.06215499993413687,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.3411716998089105,
+          "wall_clock_time": 0.061043,
+          "speedup": 5.589038871105786,
+          "min_duration": 0.01871430000755936,
+          "max_duration": 0.060897900024428964,
+          "avg_duration": 0.03411716998089105,
+          "total_wall_clock": 0.06156329996883869,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.020097600296139717,
+          "wall_clock_time": 0.008948,
+          "speedup": 2.2460438417679613,
+          "min_duration": 0.0019117000047117472,
+          "max_duration": 0.0021044000750407577,
+          "avg_duration": 0.0020097600296139716,
+          "total_wall_clock": 0.2431300999596715,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.0778456999687478,
+          "wall_clock_time": 0.056932,
+          "speedup": 1.3673452534382735,
+          "min_duration": 0.004314300022087991,
+          "max_duration": 0.02343579998705536,
+          "avg_duration": 0.00778456999687478,
+          "total_wall_clock": 0.16407559998333454,
+          "method": "Threading"
+        }
+      }
+    },
+    "ml_inference": {
+      "task_name": "ml_inference",
+      "task_display_name": "ML Inference Simulation",
+      "task_type": "mixed",
+      "num_tasks": 10,
+      "methods": {
+        "threadpool": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.007303699967451394,
+          "wall_clock_time": 0.009232,
+          "speedup": 0.7911286793166586,
+          "min_duration": 0.0006117000011727214,
+          "max_duration": 0.0010242999996989965,
+          "avg_duration": 0.0007303699967451394,
+          "total_wall_clock": 0.011656900052912533,
+          "method": "ThreadPoolExecutor"
+        },
+        "asyncio": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.08362990012392402,
+          "wall_clock_time": 0.014167,
+          "speedup": 5.903148169967108,
+          "min_duration": 0.0017908000154420733,
+          "max_duration": 0.013100899988785386,
+          "avg_duration": 0.008362990012392402,
+          "total_wall_clock": 0.014779500081203878,
+          "method": "Asyncio"
+        },
+        "multiprocessing": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.001945300493389368,
+          "wall_clock_time": 0.001629,
+          "speedup": 1.1941685042292007,
+          "min_duration": 0.0001713000237941742,
+          "max_duration": 0.00024110008962452412,
+          "avg_duration": 0.0001945300493389368,
+          "total_wall_clock": 0.23568849998991936,
+          "method": "Multiprocessing"
+        },
+        "threading": {
+          "total_executions": 10,
+          "successful": 10,
+          "failed": 0,
+          "total_execution_time": 0.010642800014466047,
+          "wall_clock_time": 0.011053,
+          "speedup": 0.9628879050453313,
+          "min_duration": 0.0007162000983953476,
+          "max_duration": 0.0016923999646678567,
+          "avg_duration": 0.0010642800014466047,
+          "total_wall_clock": 0.11417050007730722,
+          "method": "Threading"
+        }
+      }
+    }
+  }
+}
