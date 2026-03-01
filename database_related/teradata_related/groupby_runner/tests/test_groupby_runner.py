@@ -10,7 +10,7 @@ import pytest
 # ---------------------------------------------------------------------------
 # Ensure the teradata_related package is importable from this test file
 # ---------------------------------------------------------------------------
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
 from database_related.teradata_related.groupby_runner import (
     BaseGroupByRunner,
@@ -153,7 +153,7 @@ class TestCreateSubset:
 class TestSequentialGroupByRunner:
     def test_run_returns_list_of_dataframes(self, mock_engine, sample_df):
         with patch(
-            "database_related.teradata_related.groupby_runner.pd.read_sql",
+            "database_related.teradata_related.groupby_runner.runner.pd.read_sql",
             return_value=sample_df,
         ) as mock_read:
             runner = SequentialGroupByRunner(mock_engine, "big_table")
@@ -166,7 +166,7 @@ class TestSequentialGroupByRunner:
 
     def test_run_calls_create_subset_when_flag_true(self, mock_engine, sample_df):
         with patch(
-            "database_related.teradata_related.groupby_runner.pd.read_sql",
+            "database_related.teradata_related.groupby_runner.runner.pd.read_sql",
             return_value=sample_df,
         ):
             runner = SequentialGroupByRunner(mock_engine, "big_table")
@@ -176,7 +176,7 @@ class TestSequentialGroupByRunner:
 
     def test_run_skips_create_subset_when_flag_false(self, mock_engine, sample_df):
         with patch(
-            "database_related.teradata_related.groupby_runner.pd.read_sql",
+            "database_related.teradata_related.groupby_runner.runner.pd.read_sql",
             return_value=sample_df,
         ):
             runner = SequentialGroupByRunner(mock_engine, "big_table")
@@ -208,7 +208,7 @@ class TestSequentialGroupByRunner:
 class TestParallelGroupByRunner:
     def test_run_returns_list_of_dataframes(self, mock_engine, sample_df):
         with patch(
-            "database_related.teradata_related.groupby_runner.pd.read_sql",
+            "database_related.teradata_related.groupby_runner.runner.pd.read_sql",
             return_value=sample_df,
         ) as mock_read:
             runner = ParallelGroupByRunner(mock_engine, "big_table", max_workers=2)
@@ -229,7 +229,7 @@ class TestParallelGroupByRunner:
 
     def test_run_calls_create_subset_when_flag_true(self, mock_engine, sample_df):
         with patch(
-            "database_related.teradata_related.groupby_runner.pd.read_sql",
+            "database_related.teradata_related.groupby_runner.runner.pd.read_sql",
             return_value=sample_df,
         ):
             runner = ParallelGroupByRunner(mock_engine, "big_table")
@@ -239,7 +239,7 @@ class TestParallelGroupByRunner:
 
     def test_run_skips_create_subset_when_flag_false(self, mock_engine, sample_df):
         with patch(
-            "database_related.teradata_related.groupby_runner.pd.read_sql",
+            "database_related.teradata_related.groupby_runner.runner.pd.read_sql",
             return_value=sample_df,
         ):
             runner = ParallelGroupByRunner(mock_engine, "big_table")
@@ -311,7 +311,7 @@ class TestServerSideGroupByRunner:
     def test_fetch_results(self, mock_engine, sample_df):
         runner = self._make_runner(mock_engine)
         with patch(
-            "database_related.teradata_related.groupby_runner.pd.read_sql",
+            "database_related.teradata_related.groupby_runner.runner.pd.read_sql",
             return_value=sample_df,
         ) as mock_read:
             result = runner.fetch_results()
