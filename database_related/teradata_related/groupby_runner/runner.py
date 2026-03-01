@@ -177,12 +177,12 @@ class BaseGroupByRunner(ABC):
         """
         with self.engine.begin() as conn:
             conn.execute(text(sql))
-        logger.info("Volatile subset table '{}' created successfully", self.subset_table)
+        logger.info(
+            "Volatile subset table '{}' created successfully", self.subset_table
+        )
 
     @abstractmethod
-    def run(
-        self, queries: List[str], materialise_subset: bool = True
-    ) -> object:
+    def run(self, queries: List[str], materialise_subset: bool = True) -> object:
         """
         Execute the list of aggregation queries and return results.
 
@@ -342,18 +342,62 @@ class ServerSideGroupByRunner(BaseGroupByRunner):
         subset_table: Name of the volatile subset table.
     """
 
+    def __init__(
+        self,
+        engine: Engine,
+        base_table: str,
+        subset_filter: Optional[str] = None,
+        subset_table: str = "vt_subset",
+        agg_jobs_table: str = "test_agg_jobs",
+        agg_out_table: str = "test_agg_out",
+        runner_proc: str = "test_run_dynamic_aggs",
+    ) -> None:
+        super().__init__(engine, base_table, subset_filter, subset_table)
+        self.agg_jobs_table = agg_jobs_table
+        self.agg_out_table = agg_out_table
+        self.runner_proc = runner_proc
+
+        self.drop_tables_and_proc()
+
     # ------------------------------------------------------------------
     #  Schema helpers
     # ------------------------------------------------------------------
 
+    def drop_tables_and_proc(self) -> None:
+        """Drop the driver table, output table, and stored procedure if they exist."""
+        logger.debug("Dropping existing tables and procedure if they exist")
+        try:
+            with self.engine.begin() as conn:
+                conn.execute(text(f"DROP TABLE {self.agg_jobs_table}"))
+        except Exception as e:
+            logger.warning(
+                "Could not drop driver table '{}': {}", self.agg_jobs_table, e
+            )
+
+        try:
+            with self.engine.begin() as conn:
+                conn.execute(text(f"DROP TABLE {self.agg_out_table}"))
+        except Exception as e:
+            logger.warning(
+                "Could not drop output table '{}': {}", self.agg_out_table, e
+            )
+
+        # try:
+        #     with self.engine.begin() as conn:
+        #         conn.execute(text(f"DROP PROCEDURE {self.runner_proc}"))
+        # except Exception as e:
+        #     logger.warning(
+        #         "Could not drop stored procedure '{}': {}", self.runner_proc, e
+        #     )
+
     def ensure_driver_table(self) -> None:
-        """Create the ``agg_jobs`` driver table if it does not exist."""
-        logger.debug("Ensuring driver table 'agg_jobs' exists")
+        """Create the driver table if it does not exist."""
+        logger.debug(f"Ensuring driver table '{self.agg_jobs_table}' exists")
         with self.engine.begin() as conn:
             conn.execute(
                 text(
-                    """
-                    CREATE TABLE IF NOT EXISTS agg_jobs (
+                    f"""
+                    CREATE TABLE {self.agg_jobs_table} (
                         job_id INTEGER,
                         sql_text VARCHAR(32000)
                     );
@@ -362,13 +406,13 @@ class ServerSideGroupByRunner(BaseGroupByRunner):
             )
 
     def ensure_output_table(self) -> None:
-        """Create the ``agg_out`` output table if it does not exist."""
-        logger.debug("Ensuring output table 'agg_out' exists")
+        """Create the output table if it does not exist."""
+        logger.debug(f"Ensuring output table '{self.agg_out_table}' exists")
         with self.engine.begin() as conn:
             conn.execute(
                 text(
-                    """
-                    CREATE TABLE IF NOT EXISTS agg_out (
+                    f"""
+                    CREATE TABLE {self.agg_out_table} (
                         job_id INTEGER,
                         group_key_json VARCHAR(32000),
                         metric_name VARCHAR(200),
@@ -379,20 +423,21 @@ class ServerSideGroupByRunner(BaseGroupByRunner):
             )
 
     def ensure_stored_procedure(self) -> None:
-        """Create or replace the ``run_dynamic_aggs`` stored procedure."""
-        logger.debug("Ensuring stored procedure 'run_dynamic_aggs' exists")
+        """Create or replace the stored procedure."""
+        logger.debug(f"Ensuring stored procedure '{self.runner_proc}' exists")
         with self.engine.begin() as conn:
             conn.execute(
                 text(
-                    """
-                    REPLACE PROCEDURE run_dynamic_aggs()
+                    f"""
+                    REPLACE PROCEDURE {self.runner_proc}()
+                    --SQL SECURITY INVOKER
                     BEGIN
                         DECLARE stmt VARCHAR(32000);
                         FOR cur AS c1 CURSOR FOR
-                            SELECT sql_text FROM agg_jobs ORDER BY job_id
+                            SELECT sql_text FROM {self.agg_jobs_table} ORDER BY job_id
                         DO
                             SET stmt = cur.sql_text;
-                            CALL DBC.SysExecSQL(stmt);
+                            CALL DBC.SysExecSQL(:stmt);
                         END FOR;
                     END;
                     """
@@ -422,48 +467,52 @@ class ServerSideGroupByRunner(BaseGroupByRunner):
 
     def load_driver_table(self, queries: List[str]) -> None:
         """
-        Populate the ``agg_jobs`` driver table with *queries*.
+        Populate the driver table with *queries*.
 
         Any existing rows are deleted first.
 
         Args:
             queries: SQL strings to load.
         """
-        logger.info("Loading {} queries into driver table 'agg_jobs'", len(queries))
+        logger.info(
+            f"Loading {len(queries)} queries into driver table '{self.agg_jobs_table}'"
+        )
         with self.engine.begin() as conn:
-            conn.execute(text("DELETE FROM agg_jobs"))
+            conn.execute(text(f"DELETE FROM {self.agg_jobs_table}"))
             for job_id, sql in enumerate(queries, start=1):
                 conn.execute(
                     text(
-                        "INSERT INTO agg_jobs (job_id, sql_text) VALUES (:id, :sql)"
+                        f"INSERT INTO {self.agg_jobs_table} (job_id, sql_text) VALUES (:id, :sql)"
                     ),
                     {"id": job_id, "sql": sql},
                 )
 
     def execute_server_side(self) -> None:
-        """Invoke the ``run_dynamic_aggs`` stored procedure."""
-        logger.info("Calling stored procedure 'run_dynamic_aggs'")
+        """Invoke the stored procedure."""
+        logger.info(
+            f"Calling stored procedure '{self.runner_proc}' to execute queries server-side"
+        )
         with self.engine.begin() as conn:
-            conn.execute(text("CALL run_dynamic_aggs()"))
+            conn.execute(text(f"CALL {self.runner_proc}()"))
 
     def fetch_results(self) -> pd.DataFrame:
         """
-        Retrieve results from the ``agg_out`` output table.
+        Retrieve results from the output table.
 
         Returns:
-            :class:`pandas.DataFrame` containing all rows from ``agg_out``,
+            :class:`pandas.DataFrame` containing all rows from output table,
             ordered by ``job_id``.
         """
-        logger.info("Fetching results from 'agg_out'")
-        return pd.read_sql("SELECT * FROM agg_out ORDER BY job_id", self.engine)
+        logger.info(f"Fetching results from '{self.agg_out_table}' output table")
+        return pd.read_sql(
+            f"SELECT * FROM {self.agg_out_table} ORDER BY job_id", self.engine
+        )
 
     # ------------------------------------------------------------------
     #  Main run
     # ------------------------------------------------------------------
 
-    def run(
-        self, queries: List[str], materialise_subset: bool = True
-    ) -> pd.DataFrame:
+    def run(self, queries: List[str], materialise_subset: bool = True) -> pd.DataFrame:
         """
         Execute all *queries* server-side and return consolidated results.
 
@@ -479,7 +528,9 @@ class ServerSideGroupByRunner(BaseGroupByRunner):
         Raises:
             ValueError: If any query does not reference :attr:`subset_table`.
         """
-        logger.info("ServerSideGroupByRunner: starting run with {} queries", len(queries))
+        logger.info(
+            f"ServerSideGroupByRunner: starting run with {len(queries)} queries"
+        )
         self.validate_queries(queries)
         self.ensure_driver_table()
         self.ensure_output_table()
@@ -491,7 +542,9 @@ class ServerSideGroupByRunner(BaseGroupByRunner):
         self.load_driver_table(queries)
         self.execute_server_side()
         result = self.fetch_results()
-        logger.info("ServerSideGroupByRunner: run completed, {} rows fetched", len(result))
+        logger.info(
+            f"ServerSideGroupByRunner: run completed, {len(result)} rows fetched"
+        )
         return result
 
 
@@ -540,14 +593,8 @@ def get_advanced_groupby_runner(
     session_limit = get_session_limit()
 
     logger.info(
-        "Factory: n={}, avg_cost={:.2f}, max_cost={}, avg_spool={:.2f}, "
-        "max_spool={}, session_limit={}",
-        n,
-        avg_cost,
-        max_cost,
-        avg_spool,
-        max_spool,
-        session_limit,
+        f"Factory: n={n}, avg_cost={avg_cost:.2f}, max_cost={max_cost}, avg_spool={avg_spool:.2f}, "
+        f"max_spool={max_spool}, session_limit={session_limit}"
     )
 
     # Strategy 1: Sequential
