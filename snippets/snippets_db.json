@@ -20,17 +20,11 @@
             "eng = sa.create_engine(connection_string)",
         ],
     },
-    "dbrun0": {
-        "prefix": "dbrun0",
+    "dbrun": {
+        "prefix": "dbrun",
         "body": [
-            "_ = eng.run(f\"drop table $1\")",
-        ],
-    },
-    "dbrun1": {
-        "prefix": "dbrun1",
-        "body": [
-            "_ = eng.run(f\"select * from $1 where $2 = '$3'\")",
-            "_",
+            "df = eng.run(f\"select * from $1 where $2 = '$3'\")",
+            "df",
         ],
     },
     "dbqry": {
@@ -42,7 +36,6 @@
             "from $1",
             "where $2 = '$3'",
             "\"\"\"",
-            "",
             "df = eng.run(qry)",
             "df",
         ],
@@ -90,7 +83,6 @@
             "group by 1,2",
             "order by 1,2",
             "\"\"\"",
-            "",
             "df = eng.run(qry)",
             "df",
         ],
@@ -140,7 +132,6 @@
             "from x",
             "group by 1",
             "\"\"\"",
-            "",
             "df = eng.run(qry)",
             "df",
         ]
@@ -149,15 +140,14 @@
     "ddbimportcon": {
         "prefix": "ddbimportcon",
         "body": [
-            "improt duckdb",
+            "import duckdb",
             "con = duckdb.connect()",
         ],
     },
     "ddbexec": {
         "prefix": "ddbexec",
         "body": [
-            "res = con.execute(",
-            "    \"\"\"",
+            "qry = f\"\"\"",
             "    select",
             "        $2,",
             "        count(1) as cnt",
@@ -165,8 +155,7 @@
             "    group by 1",
             "    order by 1",
             "\"\"\"",
-            ").df()",
-            "",
+            "res = con.execute(qry).df()",
             "res",
         ],
     },
