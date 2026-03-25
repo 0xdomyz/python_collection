@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 from openpyxl import load_workbook
 
-MODULE_PATH = Path(__file__).resolve().parent / "91_pivot.py"
+MODULE_PATH = Path(__file__).resolve().parent / "pivot.py"
 SPEC = spec_from_file_location("pivot_module", MODULE_PATH)
 pivot_module = module_from_spec(SPEC)
 SPEC.loader.exec_module(pivot_module)
@@ -20,6 +20,14 @@ class TestNativeExcelPivotBasic(unittest.TestCase):
             {
                 "Region": ["North", "South", "North", "East", "South", "East"],
                 "Product": ["A", "A", "B", "B", "B", "A"],
+                "Date": [
+                    "2025-01-01",
+                    "2025-01-15",
+                    "2025-02-01",
+                    "2025-02-15",
+                    "2025-03-01",
+                    "2025-03-15",
+                ],
                 "Sales": [100, 150, 200, 120, 140, 110],
             }
         )
@@ -58,6 +66,8 @@ class TestNativeExcelPivotBasic(unittest.TestCase):
         self.assertIn("Row Labels", first_col_values)
         self.assertIn("East", first_col_values)
         self.assertIn("Grand Total", first_col_values)
+        # Verify sum aggregation label is present in pivot
+        self.assertIn("Sum of Sales", first_col_values)
 
 
 if __name__ == "__main__":

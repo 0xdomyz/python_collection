@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import win32com.client as win32
 
-MODULE_PATH = Path(__file__).resolve().parent / "91_pivot.py"
+MODULE_PATH = Path(__file__).resolve().parent / "pivot.py"
 SPEC = spec_from_file_location("pivot_module", MODULE_PATH)
 pivot_module = module_from_spec(SPEC)
 SPEC.loader.exec_module(pivot_module)
@@ -21,6 +21,14 @@ class TestNativeExcelPivotFilters(unittest.TestCase):
                 "Region": ["North", "South", "East", "West", "North", "East"],
                 "Product": ["A", "A", "B", "B", "B", "A"],
                 "Channel": ["Retail", "Retail", "Online", "Online", "Retail", "Online"],
+                "Date": [
+                    "2025-01-01",
+                    "2025-01-15",
+                    "2025-02-01",
+                    "2025-02-15",
+                    "2025-03-01",
+                    "2025-03-15",
+                ],
                 "Year": [2025, 2025, 2025, 2026, 2026, 2026],
                 "Sales": [100, 120, 130, 140, 150, 160],
             }
@@ -34,7 +42,7 @@ class TestNativeExcelPivotFilters(unittest.TestCase):
             row_field="Region",
             col_field="Product",
             value_field="Sales",
-            filter_fields=["Channel", "Year"],
+            filter_fields=["Channel", "Year", "Date"],
         )
 
         self.assertTrue(output_file.exists())
@@ -53,6 +61,10 @@ class TestNativeExcelPivotFilters(unittest.TestCase):
             )
             self.assertEqual(
                 pivot_table.PivotFields("Year").Orientation,
+                3,
+            )
+            self.assertEqual(
+                pivot_table.PivotFields("Date").Orientation,
                 3,
             )
         finally:

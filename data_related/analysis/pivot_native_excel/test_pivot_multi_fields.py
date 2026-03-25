@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import win32com.client as win32
 
-MODULE_PATH = Path(__file__).resolve().parent / "91_pivot.py"
+MODULE_PATH = Path(__file__).resolve().parent / "pivot.py"
 SPEC = spec_from_file_location("pivot_module", MODULE_PATH)
 pivot_module = module_from_spec(SPEC)
 SPEC.loader.exec_module(pivot_module)
@@ -22,6 +22,14 @@ class TestNativeExcelPivotMultiFields(unittest.TestCase):
                 "Country": ["US", "CA", "US", "MX", "JP", "KR"],
                 "Product": ["A", "B", "A", "B", "A", "B"],
                 "Quarter": ["Q1", "Q1", "Q2", "Q2", "Q1", "Q2"],
+                "Date": [
+                    "2025-01-01",
+                    "2025-01-15",
+                    "2025-02-01",
+                    "2025-02-15",
+                    "2025-03-01",
+                    "2025-03-15",
+                ],
                 "Sales": [120, 180, 150, 140, 170, 160],
                 "Quantity": [12, 18, 15, 14, 17, 16],
             }
@@ -35,6 +43,7 @@ class TestNativeExcelPivotMultiFields(unittest.TestCase):
             row_field=["Region", "Country"],
             col_field=["Product", "Quarter"],
             value_field=["Sales", "Quantity"],
+            filter_fields=["Date"],
         )
 
         self.assertTrue(output_file.exists())
@@ -64,6 +73,8 @@ class TestNativeExcelPivotMultiFields(unittest.TestCase):
                 2,
             )
             self.assertGreaterEqual(pivot_table.DataFields.Count, 2)
+            # Date used as page filter; verify sum aggregation on both value fields
+            self.assertEqual(pivot_table.PivotFields("Date").Orientation, 3)
         finally:
             if workbook is not None:
                 workbook.Close(SaveChanges=False)
