@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -47,12 +48,21 @@ def create_native_excel_pivot(
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
         df.to_excel(writer, sheet_name=data_sheet_name, index=False)
 
-    excel = win32.gencache.EnsureDispatch("Excel.Application")
-    excel.Visible = False
-    excel.DisplayAlerts = False
+    excel = None
 
     workbook = None
     try:
+        for attempt in range(3):
+            try:
+                excel = win32.DispatchEx("Excel.Application")
+                break
+            except Exception:
+                if attempt == 2:
+                    raise
+                time.sleep(0.4 * (attempt + 1))
+
+        excel.Visible = False
+        excel.DisplayAlerts = False
         workbook = excel.Workbooks.Open(str(output_path))
         ws_data = workbook.Worksheets(data_sheet_name)
 
@@ -107,6 +117,20 @@ def create_native_excel_pivot(
                     pass
 
     finally:
+        pivot_table = None
+        pivot_cache = None
+        ws_pivot = None
+        ws_data = None
         if workbook is not None:
-            workbook.Close(SaveChanges=True)
-        excel.Quit()
+            try:
+                workbook.Close(SaveChanges=True)
+            except Exception:
+                pass
+        workbook = None
+        if excel is not None:
+            try:
+                excel.Quit()
+            except Exception:
+                pass
+        excel = None
+        time.sleep(0.5)
