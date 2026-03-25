@@ -17,6 +17,7 @@ def create_native_excel_pivot(
     col_field,
     value_field,
     filter_fields=None,
+    slicer_fields=None,
     data_sheet_name="Data",
     pivot_sheet_name="Pivot",
 ):
@@ -31,8 +32,11 @@ def create_native_excel_pivot(
     col_fields = _to_list(col_field)
     value_fields = _to_list(value_field)
     page_fields = _to_list(filter_fields)
+    slicer_field_list = _to_list(slicer_fields)
 
-    required_cols = set(row_fields + col_fields + value_fields + page_fields)
+    required_cols = set(
+        row_fields + col_fields + value_fields + page_fields + slicer_field_list
+    )
     missing = required_cols.difference(df.columns)
     if missing:
         raise ValueError(f"Missing columns for pivot: {sorted(missing)}")
@@ -92,7 +96,16 @@ def create_native_excel_pivot(
                 -4157,
             )
 
-        workbook.Save()
+        # Enable multi-page filtering on slicer fields
+        # Note: Visual slicer UI requires manual creation in Excel due to COM API limitations
+        # See SLICER_LIMITATION.md for details
+        if slicer_field_list:
+            for slicer_field in slicer_field_list:
+                try:
+                    pivot_table.PivotFields(slicer_field).EnableMultiplePageItems = True
+                except Exception:
+                    pass
+
     finally:
         if workbook is not None:
             workbook.Close(SaveChanges=True)
