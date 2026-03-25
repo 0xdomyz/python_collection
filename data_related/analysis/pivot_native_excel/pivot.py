@@ -1,26 +1,22 @@
-import time
 from pathlib import Path
 
 import pandas as pd
 
-try:
-    import win32com.client as win32
-except ImportError as exc:
-    raise ImportError(
-        "pywin32 is required for native Excel PivotTable creation. Install with: pip install pywin32"
-    ) from exc
 
-
-def create_native_excel_pivot(
+def create_excel_pivot(
+    workbook,
+    source_range,
+    ws_pivot,
     df,
-    output_file,
     row_field,
     col_field,
     value_field,
     filter_fields=None,
-    data_sheet_name="Data",
-    pivot_sheet_name="Pivot",
+    table_name="PivotTable1",
 ):
+    """Create native Excel pivot table."""
+
+    # field and check
     def _to_list(value):
         if value is None:
             return []
@@ -38,94 +34,37 @@ def create_native_excel_pivot(
     if missing:
         raise ValueError(f"Missing columns for pivot: {sorted(missing)}")
 
-    output_path = Path(output_file).resolve()
+    # 1 = xlDatabase, 6 = xlPivotTableVersion15
+    pivot_cache = workbook.PivotCaches().Create(1, source_range, 6)
+    pivot_table = pivot_cache.CreatePivotTable(
+        TableDestination=ws_pivot.Cells(3, 1),
+        TableName=table_name,
+    )
 
-    # Step 1: write source data to Excel.
-    with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name=data_sheet_name, index=False)
+    # 1 = xlRowField, 2 = xlColumnField, 3 = xlPageField
+    for field in row_fields:
+        pivot_table.PivotFields(field).Orientation = 1
 
-    excel = None
+    for field in col_fields:
+        pivot_table.PivotFields(field).Orientation = 2
 
-    workbook = None
-    try:
-        for attempt in range(3):
-            try:
-                excel = win32.DispatchEx("Excel.Application")
-                break
-            except Exception:
-                if attempt == 2:
-                    raise
-                time.sleep(0.4 * (attempt + 1))
+    for field in page_fields:
+        pivot_table.PivotFields(field).Orientation = 3
 
-        excel.Visible = False
-        excel.DisplayAlerts = False
-        workbook = excel.Workbooks.Open(str(output_path))
-        ws_data = workbook.Worksheets(data_sheet_name)
-
-        # Remove previous pivot sheet if it exists so script stays re-runnable.
-        for ws in workbook.Worksheets:
-            if ws.Name == pivot_sheet_name:
-                ws.Delete()
-                break
-
-        ws_pivot = workbook.Worksheets.Add()
-        ws_pivot.Name = pivot_sheet_name
-
-        last_row = ws_data.Cells(ws_data.Rows.Count, 1).End(-4162).Row  # xlUp
-        last_col = ws_data.Cells(1, ws_data.Columns.Count).End(-4159).Column  # xlToLeft
-        source_range = ws_data.Range(
-            ws_data.Cells(1, 1), ws_data.Cells(last_row, last_col)
+    # -4157 = xlSum
+    for field in value_fields:
+        pivot_table.AddDataField(
+            pivot_table.PivotFields(field),
+            f"Sum of {field}",
+            -4157,
         )
 
-        # 1 = xlDatabase, 6 = xlPivotTableVersion15
-        pivot_cache = workbook.PivotCaches().Create(1, source_range, 6)
-        pivot_table = pivot_cache.CreatePivotTable(
-            TableDestination=ws_pivot.Cells(3, 1),
-            TableName="PivotTable1",
-        )
-
-        # 1 = xlRowField, 2 = xlColumnField, 3 = xlPageField
-        for field in row_fields:
-            pivot_table.PivotFields(field).Orientation = 1
-
-        for field in col_fields:
-            pivot_table.PivotFields(field).Orientation = 2
-
-        for field in page_fields:
-            pivot_table.PivotFields(field).Orientation = 3
-
-        # -4157 = xlSum
-        for field in value_fields:
-            pivot_table.AddDataField(
-                pivot_table.PivotFields(field),
-                f"Sum of {field}",
-                -4157,
-            )
-
-        # Enable multi-page filtering on slicer fields
-        # Note: Visual slicer UI requires manual creation in Excel due to COM API limitations
-        if page_fields:
-            for slicer_field in page_fields:
-                try:
-                    pivot_table.PivotFields(slicer_field).EnableMultiplePageItems = True
-                except Exception:
-                    pass
-
-    finally:
-        pivot_table = None
-        pivot_cache = None
-        ws_pivot = None
-        ws_data = None
-        if workbook is not None:
+    # Enable multi-page filtering on slicer fields
+    if page_fields:
+        for slicer_field in page_fields:
             try:
-                workbook.Close(SaveChanges=True)
+                pivot_table.PivotFields(slicer_field).EnableMultiplePageItems = True
             except Exception:
                 pass
-        workbook = None
-        if excel is not None:
-            try:
-                excel.Quit()
-            except Exception:
-                pass
-        excel = None
-        time.sleep(0.5)
+
+    return workbook, pivot_table

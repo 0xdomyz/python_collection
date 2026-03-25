@@ -2,45 +2,77 @@
 from pathlib import Path
 
 import pandas as pd
-from pivot import create_native_excel_pivot
 
 # %%
-# remove old artifact if exists
-artifact_path = Path("test_artifacts") / "pivot_single_complex.xlsx"
-if artifact_path.exists():
-    artifact_path.unlink()
+import seaborn as sns
+import win32com.client as win32
+from pivot import create_excel_pivot
+
 
 # %%
-df = pd.DataFrame(
-    {
-        "Region": ["North", "North", "South", "South", "East", "East"],
-        "Country": ["US", "CA", "US", "MX", "JP", "KR"],
-        "Product": ["A", "B", "A", "B", "A", "B"],
-        "Quarter": ["Q1", "Q1", "Q2", "Q2", "Q1", "Q2"],
-        "Channel": ["Retail", "Online", "Retail", "Online", "Retail", "Online"],
-        "Date": [
-            "2025-01-01",
-            "2025-01-15",
-            "2025-02-01",
-            "2025-02-15",
-            "2025-03-01",
-            "2025-03-15",
-        ],
-        "Sales": [120, 180, 150, 140, 170, 160],
-        "Quantity": [12, 18, 15, 14, 17, 16],
-    }
-)
+def get_data_range_in_workbook_sheet(workbook, sheet_name):
+    ws = workbook.Worksheets(sheet_name)
+    last_row = ws.Cells(ws.Rows.Count, 1).End(-4162).Row  # xlUp
+    last_col = ws.Cells(1, ws.Columns.Count).End(-4159).Column  # xlToLeft
+    return ws.Range(ws.Cells(1, 1), ws.Cells(last_row, last_col))
 
-create_native_excel_pivot(
+
+def add_sheet_to_workbook(workbook, sheet_name, delete_if_exists=True):
+    if delete_if_exists:
+        for ws in workbook.Worksheets:
+            if ws.Name == sheet_name:
+                ws.Delete()
+                break
+    ws = workbook.Worksheets.Add()
+    ws.Name = sheet_name
+    return ws
+
+
+# %%
+df = sns.load_dataset("titanic")
+print(f"{df.shape = }")
+print(df.head().to_string())
+df.shape
+
+# %%
+file_path = Path("test_artifacts") / "pivot_single_complex.xlsx"
+if file_path.exists():
+    file_path.unlink()
+data_sheet_name = "Data"
+pivot_sheet_name = "Pivot"
+
+# %%
+# Write source data to Excel
+with pd.ExcelWriter(file_path, engine="openpyxl") as writer:
+    df.to_excel(writer, sheet_name=data_sheet_name, index=False)
+
+# %%
+# Open workbook via existing Excel instance
+excel = win32.DispatchEx("Excel.Application")
+excel.Visible = False
+excel.DisplayAlerts = False
+workbook = excel.Workbooks.Open(str(file_path.resolve()))
+source_range = get_data_range_in_workbook_sheet(workbook, data_sheet_name)
+ws_pivot = add_sheet_to_workbook(workbook, pivot_sheet_name)
+
+# %%
+create_excel_pivot(
+    workbook=workbook,
+    source_range=source_range,
+    ws_pivot=ws_pivot,
     df=df,
-    output_file=artifact_path,
-    row_field=["Date"],
-    col_field=["Product"],
-    value_field=["Sales", "Quantity"],
+    row_field=["who"],
+    col_field=["class"],
+    value_field=["fare"],
     filter_fields=[
-        "Channel",
-        "Region",
-        "Country",
-        "Quarter",
+        "sex",
+        "embarked",
+        "alive",
+        "pclass",
     ],
+    table_name="PivotTable1",
 )
+
+# %%
+workbook.Close(SaveChanges=True)
+excel.Quit()
