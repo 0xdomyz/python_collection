@@ -7,6 +7,7 @@ def create_excel_pivot(
     workbook,
     source_range,
     ws_pivot,
+    destination,
     df,
     row_field,
     col_field,
@@ -36,10 +37,16 @@ def create_excel_pivot(
 
     # 1 = xlDatabase, 6 = xlPivotTableVersion15
     pivot_cache = workbook.PivotCaches().Create(1, source_range, 6)
-    pivot_table = pivot_cache.CreatePivotTable(
-        TableDestination=ws_pivot.Cells(3, 1),
-        TableName=table_name,
-    )
+    try:
+        pivot_table = pivot_cache.CreatePivotTable(
+            TableDestination=ws_pivot.Cells(destination[0], destination[1]),
+            TableName=table_name,
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            "Failed to create pivot table. Ensure table_name is unique and "
+            "destination does not overlap an existing pivot/table range."
+        ) from exc
 
     # 1 = xlRowField, 2 = xlColumnField, 3 = xlPageField
     for field in row_fields:
@@ -77,10 +84,13 @@ def _get_data_range(workbook, data_sheet_name):
     return ws.Range(ws.Cells(1, 1), ws.Cells(last_row, last_col))
 
 
-def _get_or_create_pivot_sheet(workbook, pivot_sheet_name):
+def _get_or_create_pivot_sheet(workbook, pivot_sheet_name, remove_existing=False):
     for ws in workbook.Worksheets:
         if ws.Name == pivot_sheet_name:
-            ws.Delete()
+            if remove_existing:
+                ws.Delete()
+            else:
+                return ws
             break
     ws = workbook.Worksheets.Add()
     ws.Name = pivot_sheet_name
@@ -88,32 +98,51 @@ def _get_or_create_pivot_sheet(workbook, pivot_sheet_name):
 
 
 class SimplePivotFlow:
-    """Small helper to manage workbook/sheet flow for pivot creation."""
+    """Small helper to manage workbook/sheet flow for pivot creation.
+
+    Invariant: The pivot table will be created from the last written data sheet.
+    """
 
     def __init__(
         self,
         excel,
         file_path,
-        data_sheet_name="Data",
-        pivot_sheet_name="Pivot",
     ):
         self.excel = excel
         self.file_path = Path(file_path)
-        self.data_sheet_name = data_sheet_name
-        self.pivot_sheet_name = pivot_sheet_name
         self.workbook = None
+        self._pivot_counter = 0
 
-    def write_data(self, df):
-        with pd.ExcelWriter(self.file_path, engine="openpyxl") as writer:
-            df.to_excel(writer, sheet_name=self.data_sheet_name, index=False)
+    def write_data(self, df, data_sheet_name="Data", mode="w"):
+        with pd.ExcelWriter(self.file_path, engine="openpyxl", mode=mode) as writer:
+            df.to_excel(writer, sheet_name=data_sheet_name, index=False)
+        self.data_sheet_name = data_sheet_name
 
-    def open(self):
-        self.workbook = self.excel.Workbooks.Open(str(self.file_path.resolve()))
-        return self.workbook
+    def build_pivot(
+        self,
+        df,
+        pivot_sheet_name,
+        row_field,
+        col_field,
+        value_field,
+        filter_fields=None,
+        destination=(3, 1),
+        table_name=None,
+    ):
+        if table_name is None:
+            self._pivot_counter += 1
+            table_name = f"PivotTable{self._pivot_counter}"
 
-    def build_pivot(self, df, row_field, col_field, value_field, filter_fields=None):
+        for ws in self.workbook.Worksheets:
+            for pt in ws.PivotTables():
+                if pt.Name == table_name:
+                    raise ValueError(
+                        f"Pivot table name '{table_name}' already exists. "
+                        "Use a different table_name."
+                    )
+
         source_range = _get_data_range(self.workbook, self.data_sheet_name)
-        ws_pivot = _get_or_create_pivot_sheet(self.workbook, self.pivot_sheet_name)
+        ws_pivot = _get_or_create_pivot_sheet(self.workbook, pivot_sheet_name)
         return create_excel_pivot(
             workbook=self.workbook,
             source_range=source_range,
@@ -123,8 +152,16 @@ class SimplePivotFlow:
             col_field=col_field,
             value_field=value_field,
             filter_fields=filter_fields,
-            table_name="PivotTable1",
+            table_name=table_name,
+            destination=destination,
         )
+
+    def __enter__(self):
+        self.workbook = self.excel.Workbooks.Open(str(self.file_path.resolve()))
+        return self.workbook
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close(save_changes=True)
 
     def close(self, save_changes=True):
         if self.workbook is not None:

@@ -16,8 +16,6 @@ df.shape
 file_path = Path("test_artifacts") / "pivot_single_complex.xlsx"
 if file_path.exists():
     file_path.unlink()
-data_sheet_name = "Data"
-pivot_sheet_name = "Pivot"
 
 # %%
 # Open workbook via existing Excel instance
@@ -25,26 +23,44 @@ excel = win32.DispatchEx("Excel.Application")
 spf = SimplePivotFlow(
     excel=excel,
     file_path=file_path,
-    data_sheet_name=data_sheet_name,
-    pivot_sheet_name=pivot_sheet_name,
-)
-spf.write_data(df)
-spf.open()
-
-# %%
-spf.build_pivot(
-    df=df,
-    row_field=["who"],
-    col_field=["class"],
-    value_field=["fare"],
-    filter_fields=[
-        "sex",
-        "embarked",
-        "alive",
-        "pclass",
-    ],
 )
 
 # %%
-spf.close(save_changes=True)
+spf.write_data(df.head(), data_sheet_name="Data2")
+spf.write_data(df, data_sheet_name="Data", mode="a")
+
+# %%
+with spf:
+    spf.build_pivot(
+        df=df,
+        pivot_sheet_name="Pivot",
+        row_field=["who"],
+        col_field=["class"],
+        value_field=["fare"],
+        filter_fields=[
+            "sex",
+            "embarked",
+            "alive",
+            "pclass",
+        ],
+        destination=(1, 3),
+        table_name="PivotWhoByClass",
+    )
+
+    spf.build_pivot(
+        df=df,
+        pivot_sheet_name="Pivot",
+        row_field=["who"],
+        col_field=["alive"],
+        value_field=["fare"],
+        filter_fields=[
+            "sex",
+            "embarked",
+            "class",
+            "pclass",
+        ],
+        destination=(20, 3),
+        table_name="PivotWhoByAlive",
+    )
+
 excel.Quit()
