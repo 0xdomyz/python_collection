@@ -586,6 +586,15 @@
             "print(df.head().to_string())"
         ]
     },
+    "seaborndata": {
+        "prefix": "seaborndata",
+        "body": [
+            "df = sns.load_dataset(\"healthexp\")",
+            "print(f\"{df.shape = }\")",
+            "print(df.head().to_string())",
+            "df.describe()"
+        ]
+    },
     "vspycell": {
         "prefix": "vspycell",
         "body": [
