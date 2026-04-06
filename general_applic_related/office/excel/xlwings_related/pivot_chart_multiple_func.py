@@ -18,7 +18,7 @@ XL_FUNC = {
 }
 
 
-def grid_positions(
+def make_grid_positions(
     ncols=2, col_width=430, row_height=330, top_offset=60, left_offset=0
 ):
     """Infinite generator yielding (left, top) pixel positions in a grid."""
@@ -30,7 +30,7 @@ def grid_positions(
             col, row = 0, row + 1
 
 
-def pivot_dest_refs(col="Z", start_row=5, row_step=15, ncols=1, col_step=12):
+def make_grid_excel_refs(col="Z", start_row=5, row_step=15, ncols=1, col_step=12):
     """Infinite generator yielding Excel cell refs (e.g. 'Z5') for pivot placement."""
 
     def col_to_idx(c: str) -> int:
@@ -133,9 +133,9 @@ PIVOT_CONFIGS = [
     ("TitanicPivot4", "sex", "Volume by Sex and Survival"),
 ]
 
-two_col_grid = partial(grid_positions, ncols=2, col_width=430, row_height=330)
+two_col_grid = partial(make_grid_positions, ncols=2, col_width=430, row_height=330)
 two_col_dests = partial(
-    pivot_dest_refs, ncols=2, col="Z", start_row=5, row_step=15, col_step=7
+    make_grid_excel_refs, ncols=2, col="Z", start_row=5, row_step=15, col_step=7
 )
 
 for (name, row_field, title), dest, (left, top) in zip(
