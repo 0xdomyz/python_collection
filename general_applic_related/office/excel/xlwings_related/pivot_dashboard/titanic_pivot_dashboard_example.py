@@ -61,13 +61,20 @@ dashboard.add_pivots(
         "chart_width": 400,
         "chart_height": 300,
     },
+    dest_layout={
+        "col": "Z",
+        "start_row": 5,
+        "row_step": 15,
+        "ncols": 2,
+        "col_step": 6,
+    },
 )
 
 # %%
 dashboard.add_slicers(
     fields=["survived", "pclass", "sex"],
     layout={
-        "ncols": 1,
+        "ncols": 2,
         "col_width": 150,
         "row_height": 230,
         "top_offset": 60,
