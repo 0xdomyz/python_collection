@@ -88,6 +88,24 @@
             "$1.loc[lambda x:x['$2']$3, :]",
         ],
     },
+    "readcsv": {
+        "prefix": "readcsv",
+        "body": [
+            "$1 = pd.read_csv('$2.csv')",
+        ],
+    },
+    "tocsv": {
+        "prefix": "tocsv",
+        "body": [
+            "$1.to_csv('$2.csv', index=False)",
+        ],
+    },
+    "toclip": {
+        "prefix": "toclip",
+        "body": [
+            "$1.to_clipboard(index=False)",
+        ],
+    },
     "qry": {
         "prefix": "qry",
         "body": [
