@@ -122,7 +122,7 @@ wb.save(r"output.xlsx")
 wb.close()
 
 # %% [markdown]
-# ### refresh existing
+# ### refresh from an existing workbook
 # %%
 wb = xw.Book("Output.xlsx")
 dashboard = PivotDashboard.from_workbook(wb, data_sheet="Data", pivot_sheet="Pivot")
