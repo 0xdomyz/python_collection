@@ -125,4 +125,26 @@ wb.close()
 # ### refresh existing
 # %%
 wb = xw.Book("Output.xlsx")
-dashboard = PivotDashboard(wb, data_sheet="Data", pivot_sheet="Pivot")
+dashboard = PivotDashboard.from_workbook(wb, data_sheet="Data", pivot_sheet="Pivot")
+
+# %%
+df3 = df.copy()
+df3["age_group2"] = pd.cut(df3["age"], bins=[0, 25, 50, 80]).astype(str)
+print(f"{df3.shape = }")
+print(df3.head().to_string())
+# %%
+SQL3 = """
+select
+    *,
+    case
+        when age between 0  and 25 then '0-25'
+        when age between 25 and 50 then '25-50'
+        else '50+'
+    end as age_group2
+from titanic
+"""
+dashboard.refresh(df3, sql=SQL3, table_name="titanic_table")
+
+# %%
+wb.save(r"output.xlsx")
+wb.close()

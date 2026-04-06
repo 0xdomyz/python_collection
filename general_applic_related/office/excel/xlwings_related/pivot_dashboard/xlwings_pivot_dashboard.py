@@ -7,6 +7,7 @@ Workflow
 2. ``add_pivots(configs)``   — create pivot tables and paired charts
 3. ``add_slicers(fields)``   — add slicers connected to all pivot tables
 4. ``refresh(df, sql)``      — update SQL sheet, replace table data, refresh all pivots in-place
+5. ``PivotDashboard.from_workbook(wb)`` — reconnect to an existing workbook built with this class
 
 Layout defaults can be overridden per-call via ``chart_layout``, ``dest_layout``,
 and ``slicer_layout`` dicts without subclassing.
@@ -110,6 +111,53 @@ class PivotDashboard:
         Name for the pivot/chart sheet. Added automatically.
     """
 
+    @classmethod
+    def from_workbook(
+        cls,
+        wb: xw.Book,
+        data_sheet: str = "Data",
+        pivot_sheet: str = "Pivot",
+        sql_sheet: str = "SQL",
+    ) -> "PivotDashboard":
+        """Reconnect to an existing workbook previously built with this class.
+
+        Discovers ``_table_name``, ``_pivot_cache``, and ``_pivot_names``
+        by inspecting the sheets rather than rebuilding them.
+
+        Parameters
+        ----------
+        wb : xw.Book
+            An already-open xlwings workbook (e.g. ``xw.Book("output.xlsx")``).
+        data_sheet, pivot_sheet, sql_sheet : str
+            Sheet names used when the workbook was originally created.
+        """
+        inst = cls.__new__(cls)
+        inst.wb = wb
+        inst.ws_data = wb.sheets[data_sheet]
+        inst.ws_pivot = wb.sheets[pivot_sheet]
+        inst.ws_sql = wb.sheets[sql_sheet]
+
+        # discover table name from the first ListObject on the data sheet
+        list_objects = inst.ws_data.api.ListObjects
+        if list_objects.Count == 0:
+            raise ValueError(f"No ListObject found on sheet '{data_sheet}'.")
+        inst._table_name = list_objects(1).Name
+
+        # discover pivot names from all PivotTables on the pivot sheet
+        pivot_tables = inst.ws_pivot.api.PivotTables()
+        inst._pivot_names = [
+            pivot_tables.Item(i + 1).Name for i in range(pivot_tables.Count)
+        ]
+        if not inst._pivot_names:
+            raise ValueError(f"No PivotTables found on sheet '{pivot_sheet}'.")
+
+        # obtain the shared pivot cache from the first pivot table
+        inst._pivot_cache = inst.ws_pivot.api.PivotTables(
+            inst._pivot_names[0]
+        ).PivotCache()
+
+        return inst
+
     def __init__(
         self,
         wb: xw.Book,
@@ -118,8 +166,20 @@ class PivotDashboard:
         sql_sheet: str = "SQL",
     ):
         self.wb = wb
+
+        existing_sheets_names = [s.name for s in wb.sheets]
+        if (
+            sql_sheet in existing_sheets_names
+            or data_sheet in existing_sheets_names
+            or pivot_sheet in existing_sheets_names
+        ):
+            raise ValueError(
+                f"One of the specified sheets ({sql_sheet}, {data_sheet}, {pivot_sheet}) already exists in the workbook. "
+                f"Use PivotDashboard.from_workbook() to connect to an existing workbook or choose different sheet names."
+            )
+
         self.ws_sql = wb.sheets.add(sql_sheet)
-        self.ws = wb.sheets.add(data_sheet)
+        self.ws_data = wb.sheets.add(data_sheet)
         self.ws_pivot = wb.sheets.add(pivot_sheet)
 
         self._table_name: str | None = None
@@ -159,8 +219,8 @@ class PivotDashboard:
         """
         self._write_sql(sql)
         self._table_name = table_name
-        self.ws["A1"].value = df
-        self.ws.tables.add(source=self.ws["A1"].expand(), name=table_name)
+        self.ws_data["A1"].value = df
+        self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
         self._pivot_cache = self.wb.api.PivotCaches().Create(
             SourceType=1,  # xlDatabase
             SourceData=table_name,
@@ -279,10 +339,10 @@ class PivotDashboard:
     # Refresh
     # ------------------------------------------------------------------
 
-    def refresh(self, df, sql: str) -> None:
+    def refresh(self, df, sql: str, table_name: str = None) -> None:
         """Update SQL sheet, replace source table, and refresh all pivots.
 
-        Uses ``ws.clear()`` + recreate table under the same name so Excel
+        Uses ``ws_data.clear()`` + recreate table under the same name so Excel
         resolves the pivot cache source by name — slicers remain connected and
         no ``ChangePivotCache`` call is needed.
 
@@ -292,10 +352,18 @@ class PivotDashboard:
             New data, may differ in row count and column count from original.
         sql : str
             Updated SQL query string to record on the SQL sheet.
+        table_name : str, optional
+            Name of the table to refresh. If None, uses the original table name.
+            Throws an error if no original table name exists.
         """
         self._write_sql(sql)
-        self.ws.clear()
-        self.ws["A1"].value = df
-        self.ws.tables.add(source=self.ws["A1"].expand(), name=self._table_name)
+        self.ws_data.clear()
+        self.ws_data["A1"].value = df
+        table_name = table_name or self._table_name
+        if not table_name:
+            raise ValueError(
+                "No table name provided and no original table name exists."
+            )
+        self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
         for name in self._pivot_names:
             self.ws_pivot.api.PivotTables(name).RefreshTable()
