@@ -3,10 +3,10 @@ PivotDashboard — reusable xlwings class for building an Excel pivot dashboard.
 
 Workflow
 --------
-1. ``write_table(df)``      — write DataFrame as a named Excel table + create pivot cache
-2. ``add_pivots(configs)``  — create pivot tables and paired charts
-3. ``add_slicers(fields)``  — add slicers connected to all pivot tables
-4. ``refresh(df)``          — replace table data and refresh all pivots in-place
+1. ``write_table(df, sql)``  — write SQL to SQL sheet, DataFrame as named table + create pivot cache
+2. ``add_pivots(configs)``   — create pivot tables and paired charts
+3. ``add_slicers(fields)``   — add slicers connected to all pivot tables
+4. ``refresh(df, sql)``      — update SQL sheet, replace table data, refresh all pivots in-place
 
 Layout defaults can be overridden per-call via ``chart_layout``, ``dest_layout``,
 and ``slicer_layout`` dicts without subclassing.
@@ -111,11 +111,15 @@ class PivotDashboard:
     """
 
     def __init__(
-        self, wb: xw.Book, data_sheet: str = "Data", pivot_sheet: str = "Pivot"
+        self,
+        wb: xw.Book,
+        data_sheet: str = "Data",
+        pivot_sheet: str = "Pivot",
+        sql_sheet: str = "SQL",
     ):
         self.wb = wb
-        self.ws = wb.sheets[0]
-        self.ws.name = data_sheet
+        self.ws_sql = wb.sheets.add(sql_sheet)
+        self.ws = wb.sheets.add(data_sheet)
         self.ws_pivot = wb.sheets.add(pivot_sheet)
 
         self._table_name: str | None = None
@@ -123,18 +127,37 @@ class PivotDashboard:
         self._pivot_names: list[str] = []
 
     # ------------------------------------------------------------------
+    # SQL sheet helpers
+    # ------------------------------------------------------------------
+
+    def _write_sql(self, sql: str) -> None:
+        """Write SQL text to the SQL sheet, one line per row.
+
+        Empty lines are stored as a single space so ``expand()`` can traverse
+        the full block without stopping at a blank cell.
+        """
+        lines = sql.split("\n")
+        if self.ws_sql["A1"].value is not None:
+            self.ws_sql["A1"].expand().clear()
+        self.ws_sql["A1"].value = [[line or " "] for line in lines]
+
+    # ------------------------------------------------------------------
     # Step 1 — data
     # ------------------------------------------------------------------
 
-    def write_table(self, df, table_name: str = "data_table") -> None:
-        """Write *df* as a named Excel table and initialise the pivot cache.
+    def write_table(self, df, sql: str, table_name: str = "data_table") -> None:
+        """Write *sql* to the SQL sheet, *df* as a named Excel table, and
+        initialise the pivot cache.
 
         Parameters
         ----------
         df : pandas.DataFrame
+        sql : str
+            SQL query string to record on the SQL sheet.
         table_name : str
             Name of the Excel ListObject (must be a valid Excel name).
         """
+        self._write_sql(sql)
         self._table_name = table_name
         self.ws["A1"].value = df
         self.ws.tables.add(source=self.ws["A1"].expand(), name=table_name)
@@ -256,8 +279,8 @@ class PivotDashboard:
     # Refresh
     # ------------------------------------------------------------------
 
-    def refresh(self, df) -> None:
-        """Replace the source table with a new DataFrame and refresh all pivots.
+    def refresh(self, df, sql: str) -> None:
+        """Update SQL sheet, replace source table, and refresh all pivots.
 
         Uses ``ws.clear()`` + recreate table under the same name so Excel
         resolves the pivot cache source by name — slicers remain connected and
@@ -267,7 +290,10 @@ class PivotDashboard:
         ----------
         df : pandas.DataFrame
             New data, may differ in row count and column count from original.
+        sql : str
+            Updated SQL query string to record on the SQL sheet.
         """
+        self._write_sql(sql)
         self.ws.clear()
         self.ws["A1"].value = df
         self.ws.tables.add(source=self.ws["A1"].expand(), name=self._table_name)

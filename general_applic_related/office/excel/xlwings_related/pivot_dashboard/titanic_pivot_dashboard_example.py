@@ -16,7 +16,14 @@ print(df.head().to_string())
 # %%
 wb = xw.Book()
 dashboard = PivotDashboard(wb, data_sheet="Data", pivot_sheet="Pivot")
-dashboard.write_table(df, table_name="titanic_table")
+
+# %%
+SQL = """
+select *
+from titanic
+"""
+
+dashboard.write_table(df, sql=SQL, table_name="titanic_table")
 
 # %%
 PIVOT_CONFIGS = [
@@ -94,7 +101,18 @@ print(f"{df2.shape = }")
 print(df2.head().to_string())
 
 # %%
-dashboard.refresh(df2)
+SQL2 = """
+select
+    *,
+    case
+        when age between 0  and 18 then '0-18'
+        when age between 18 and 40 then '18-40'
+        else '40+'
+    end as age_group
+from titanic
+"""
+
+dashboard.refresh(df2, sql=SQL2)
 
 # %% [markdown]
 # ### save
@@ -102,3 +120,9 @@ dashboard.refresh(df2)
 # %%
 wb.save(r"output.xlsx")
 wb.close()
+
+# %% [markdown]
+# ### refresh existing
+# %%
+wb = xw.Book("Output.xlsx")
+dashboard = PivotDashboard(wb, data_sheet="Data", pivot_sheet="Pivot")
