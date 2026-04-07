@@ -157,8 +157,7 @@ class PivotDashboard:
     ) -> "PivotDashboard":
         """Reconnect to an existing workbook previously built with this class.
 
-        Discovers ``_table_name``, ``_pivot_cache``, and ``_pivot_names``
-        by inspecting the sheets rather than rebuilding them.
+        Discovers internal states by inspecting the sheets rather than rebuilding them.
 
         Parameters
         ----------
@@ -179,18 +178,14 @@ class PivotDashboard:
             raise ValueError(f"No ListObject found on sheet '{data_sheet}'.")
         inst._table_name = list_objects(1).Name
 
-        # discover pivot names from all PivotTables on the pivot sheet
-        pivot_tables = inst.ws_pivot.api.PivotTables()
-        inst._pivot_names = [
-            pivot_tables.Item(i + 1).Name for i in range(pivot_tables.Count)
-        ]
-        if not inst._pivot_names:
+        # discover pivot COM objects from all PivotTables on the pivot sheet
+        pts = inst.ws_pivot.api.PivotTables()
+        inst._pivot_coms = [pts(i) for i in range(1, pts.Count + 1)]
+        if not inst._pivot_coms:
             raise ValueError(f"No PivotTables found on sheet '{pivot_sheet}'.")
 
         # obtain the shared pivot cache from the first pivot table
-        inst._pivot_cache = inst.ws_pivot.api.PivotTables(
-            inst._pivot_names[0]
-        ).PivotCache()
+        inst._pivot_cache = inst._pivot_coms[0].PivotCache()
 
         return inst
 
@@ -220,7 +215,7 @@ class PivotDashboard:
 
         self._table_name: str | None = None
         self._pivot_cache = None
-        self._pivot_names: list[str] = []
+        self._pivot_coms: list = []
 
     # ------------------------------------------------------------------
     # SQL sheet helpers
@@ -321,7 +316,7 @@ class PivotDashboard:
                 pt.PivotFields(cfg["row_field"]).Orientation = 1  # xlRowField
                 pt.PivotFields(cfg["col_field"]).Orientation = 2  # xlColumnField
                 pt.AddDataField(pt.PivotFields(cfg["data_field"]), data_label, xl_func)
-                self._pivot_names.append(cfg["name"])
+                self._pivot_coms.append(pt)
 
                 chart = self.ws_pivot.charts.add(
                     left=left,
@@ -361,8 +356,8 @@ class PivotDashboard:
         sl = {**_SLICER_LAYOUT_DEFAULT, **(layout or {})}
         pos_gen = _grid_positions(**sl)
 
-        # discover pivot COM objects from the sheet
-        pt_coms = [*self.ws_pivot.api.PivotTables()]
+        # use stored pivot COM objects directly
+        pt_coms = self._pivot_coms
 
         ctx = _paused(self.wb.app) if pause_updates else nullcontext()
         with ctx:
@@ -418,5 +413,5 @@ class PivotDashboard:
                     "No table name provided and no original table name exists."
                 )
             self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
-            for name in self._pivot_names:
-                self.ws_pivot.api.PivotTables(name).RefreshTable()
+            for pt_com in self._pivot_coms:
+                pt_com.RefreshTable()
