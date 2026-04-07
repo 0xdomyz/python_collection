@@ -218,6 +218,31 @@ class PivotDashboard:
         self._pivot_coms: list = []
 
     # ------------------------------------------------------------------
+    # Repr / str
+    # ------------------------------------------------------------------
+
+    def __repr__(self) -> str:
+        return (
+            f"PivotDashboard("
+            f"data='{self.ws_data.name}', "
+            f"pivot='{self.ws_pivot.name}', "
+            f"sql='{self.ws_sql.name}', "
+            f"table='{self._table_name}', "
+            f"pivots={len(self._pivot_coms)})"
+        )
+
+    def __str__(self) -> str:
+        lines = [
+            "PivotDashboard",
+            f"  data sheet  : {self.ws_data.name}",
+            f"  pivot sheet : {self.ws_pivot.name}",
+            f"  sql sheet   : {self.ws_sql.name}",
+            f"  table name  : {self._table_name}",
+            f"  pivot count : {len(self._pivot_coms)}",
+        ]
+        return "\n".join(lines)
+
+    # ------------------------------------------------------------------
     # SQL sheet helpers
     # ------------------------------------------------------------------
 
