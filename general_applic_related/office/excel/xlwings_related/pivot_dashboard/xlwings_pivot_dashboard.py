@@ -3,8 +3,8 @@ PivotDashboard — reusable xlwings class for building an Excel pivot dashboard.
 
 Workflow
 --------
-1. ``write_table(df, sql)``  — write SQL to SQL sheet, DataFrame as named table + create pivot cache
-2. ``add_pivots(configs)``   — create pivot tables and paired charts
+1. ``write_table(df, sql)``  — write SQL to SQL sheet, DataFrame as named table
+2. ``add_pivots(configs)``   — create pivot cache, pivot tables and paired charts
 3. ``add_slicers(fields)``   — add slicers connected to all pivot tables
 4. ``refresh(df, sql)``      — update SQL sheet, replace table data, refresh all pivots in-place
 5. ``PivotDashboard.from_workbook(wb)`` — reconnect to an existing workbook built with this class
@@ -184,6 +184,9 @@ class PivotDashboard:
         if not inst._pivot_coms:
             raise ValueError(f"No PivotTables found on sheet '{pivot_sheet}'.")
 
+        # discover chart objects from all charts on the pivot sheet
+        inst._chart_coms = list(inst.ws_pivot.charts)
+
         # obtain the shared pivot cache from the first pivot table
         inst._pivot_cache = inst._pivot_coms[0].PivotCache()
 
@@ -216,6 +219,7 @@ class PivotDashboard:
         self._table_name: str | None = None
         self._pivot_cache = None
         self._pivot_coms: list = []
+        self._chart_coms: list = []
 
     # ------------------------------------------------------------------
     # Repr / str
@@ -228,7 +232,8 @@ class PivotDashboard:
             f"pivot='{self.ws_pivot.name}', "
             f"sql='{self.ws_sql.name}', "
             f"table='{self._table_name}', "
-            f"pivots={len(self._pivot_coms)})"
+            f"pivots={len(self._pivot_coms)}, "
+            f"charts={len(self._chart_coms)})"
         )
 
     def __str__(self) -> str:
@@ -239,6 +244,7 @@ class PivotDashboard:
             f"  sql sheet   : {self.ws_sql.name}",
             f"  table name  : {self._table_name}",
             f"  pivot count : {len(self._pivot_coms)}",
+            f"  chart count : {len(self._chart_coms)}",
         ]
         return "\n".join(lines)
 
@@ -277,10 +283,6 @@ class PivotDashboard:
         self._table_name = table_name
         self.ws_data["A1"].value = df
         self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
-        self._pivot_cache = self.wb.api.PivotCaches().Create(
-            SourceType=1,  # xlDatabase
-            SourceData=table_name,
-        )
 
     # ------------------------------------------------------------------
     # Step 2 — pivot tables + charts
@@ -313,6 +315,20 @@ class PivotDashboard:
         pause_updates : bool, default True
             Whether to suspend Excel updates, calculation, and events during action.
         """
+        # clear existing pivot tables and charts using stored COM refs (idempotent)
+        for pt_com in self._pivot_coms:
+            pt_com.TableRange2.Clear()
+        for chart in self._chart_coms:
+            chart.delete()
+        self._pivot_coms = []
+        self._chart_coms = []
+
+        # re-create the pivot cache each time — Excel drops it when all pivots are deleted
+        self._pivot_cache = self.wb.api.PivotCaches().Create(
+            SourceType=1,  # xlDatabase
+            SourceData=self._table_name,
+        )
+
         cl = {**_CHART_LAYOUT_DEFAULT, **(chart_layout or {})}
         dl = {**_PIVOT_DEST_DEFAULT, **(dest_layout or {})}
 
@@ -354,6 +370,7 @@ class PivotDashboard:
                 chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
                 chart_com.HasTitle = True
                 chart_com.ChartTitle.Text = cfg["title"]
+                self._chart_coms.append(chart)
 
     # ------------------------------------------------------------------
     # Step 3 — slicers
