@@ -166,8 +166,7 @@ for (name, row_field, chart_type, title), dest, (left, top) in zip(
 # %% [markdown]
 # ### slicer
 # %%
-first_name = PIVOT_CONFIGS[0][0]
-other_names = [cfg[0] for cfg in PIVOT_CONFIGS if cfg[0] != first_name]
+pt_coms = [*ws_pivot.api.PivotTables()]
 source_fields = ["survived", "who", "embark_town", "adult_male", "sex"]
 
 for source_field, (left, top) in zip(
@@ -176,8 +175,7 @@ for source_field, (left, top) in zip(
         ncols=2, col_width=150, row_height=230, top_offset=60, left_offset=850
     ),
 ):
-    pt_com = ws_pivot.api.PivotTables(first_name)
-    sc = wb.api.SlicerCaches.Add2(Source=pt_com, SourceField=source_field)
+    sc = wb.api.SlicerCaches.Add2(Source=pt_coms[0], SourceField=source_field)
     slicer = sc.Slicers.Add(
         SlicerDestination=ws_pivot.api,
         Width=100,
@@ -185,8 +183,8 @@ for source_field, (left, top) in zip(
     )
     slicer.Top = top
     slicer.Left = left
-    for pt_name in other_names:
-        sc.PivotTables.AddPivotTable(ws_pivot.api.PivotTables(pt_name))
+    for pt_com in pt_coms[1:]:
+        sc.PivotTables.AddPivotTable(pt_com)
 
 
 # %% [markdown]

@@ -13,7 +13,26 @@ Layout defaults can be overridden per-call via ``chart_layout``, ``dest_layout``
 and ``slicer_layout`` dicts without subclassing.
 """
 
+from contextlib import contextmanager, nullcontext
+
 import xlwings as xw
+
+
+@contextmanager
+def _paused(app):
+    """Suspend Excel screen updates, calculation, events and status bar."""
+    app.screen_updating = False
+    app.calculation = "manual"
+    app.enable_events = False
+    app.display_status_bar = False
+    try:
+        yield
+    finally:
+        app.screen_updating = True
+        app.calculation = "automatic"
+        app.enable_events = True
+        app.display_status_bar = True
+
 
 # Excel aggregate function constants
 XL_FUNC = {
@@ -22,6 +41,23 @@ XL_FUNC = {
     "average": -4106,  # xlAverage
     "max": -4136,  # xlMax
     "min": -4139,  # xlMin
+}
+
+# Xlwings chart type strings (e.g. "bar_clustered") can be used directly on the Chart object
+XL_CHART_TYPES = {
+    "bar_clustered": "bar_clustered",
+    "bar_stacked": "bar_stacked",
+    "bar_stacked_100": "bar_stacked_100",
+    "column_clustered": "column_clustered",
+    "column_stacked": "column_stacked",
+    "column_stacked_100": "column_stacked_100",
+    "line": "line",
+    "line_markers": "line_markers",
+    "line_markers_stacked": "line_markers_stacked",
+    "line_markers_stacked_100": "line_markers_stacked_100",
+    "pie": "pie",
+    "area_stacked": "area_stacked",
+    "area_stacked_100": "area_stacked_100",
 }
 
 _CHART_LAYOUT_DEFAULT = {
@@ -235,6 +271,7 @@ class PivotDashboard:
         configs: list[dict],
         chart_layout: dict | None = None,
         dest_layout: dict | None = None,
+        pause_updates: bool = True,
     ) -> None:
         """Create pivot tables and a paired chart for each config entry.
 
@@ -253,6 +290,8 @@ class PivotDashboard:
         dest_layout : dict, optional
             Override pivot table destination grid. Keys: ``col``,
             ``start_row``, ``row_step``, ``ncols``, ``col_step``.
+        pause_updates : bool, default True
+            Whether to suspend Excel updates, calculation, and events during action.
         """
         cl = {**_CHART_LAYOUT_DEFAULT, **(chart_layout or {})}
         dl = {**_PIVOT_DEST_DEFAULT, **(dest_layout or {})}
@@ -260,37 +299,41 @@ class PivotDashboard:
         pos_gen = _grid_positions(**cl)
         dest_gen = _grid_excel_refs(**dl)
 
-        for cfg, dest, (left, top) in zip(configs, dest_gen, pos_gen):
-            xl_func = cfg.get("xl_func", "count")
-            if isinstance(xl_func, str):
-                func_label = xl_func.capitalize()
-                xl_func = XL_FUNC[xl_func]
-            else:
-                func_label = "Aggregate"
+        ctx = _paused(self.wb.app) if pause_updates else nullcontext()
+        with ctx:
+            for cfg, dest, (left, top) in zip(configs, dest_gen, pos_gen):
+                xl_func = cfg.get("xl_func", "count")
+                if isinstance(xl_func, str):
+                    func_label = xl_func.capitalize()
+                    xl_func = XL_FUNC[xl_func]
+                else:
+                    func_label = "Aggregate"
 
-            data_label = cfg.get("data_label", f"{func_label} of {cfg['data_field']}")
-            chart_type = cfg.get("chart_type", "bar_clustered")
+                data_label = cfg.get(
+                    "data_label", f"{func_label} of {cfg['data_field']}"
+                )
+                chart_type = cfg.get("chart_type", "bar_clustered")
 
-            pt = self._pivot_cache.CreatePivotTable(
-                TableDestination=self.ws_pivot[dest].api,
-                TableName=cfg["name"],
-            )
-            pt.PivotFields(cfg["row_field"]).Orientation = 1  # xlRowField
-            pt.PivotFields(cfg["col_field"]).Orientation = 2  # xlColumnField
-            pt.AddDataField(pt.PivotFields(cfg["data_field"]), data_label, xl_func)
-            self._pivot_names.append(cfg["name"])
+                pt = self._pivot_cache.CreatePivotTable(
+                    TableDestination=self.ws_pivot[dest].api,
+                    TableName=cfg["name"],
+                )
+                pt.PivotFields(cfg["row_field"]).Orientation = 1  # xlRowField
+                pt.PivotFields(cfg["col_field"]).Orientation = 2  # xlColumnField
+                pt.AddDataField(pt.PivotFields(cfg["data_field"]), data_label, xl_func)
+                self._pivot_names.append(cfg["name"])
 
-            chart = self.ws_pivot.charts.add(
-                left=left,
-                top=top,
-                width=cl["chart_width"],
-                height=cl["chart_height"],
-            )
-            chart.set_source_data(self.ws_pivot[dest].expand())
-            chart.chart_type = chart_type
-            chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
-            chart_com.HasTitle = True
-            chart_com.ChartTitle.Text = cfg["title"]
+                chart = self.ws_pivot.charts.add(
+                    left=left,
+                    top=top,
+                    width=cl["chart_width"],
+                    height=cl["chart_height"],
+                )
+                chart.set_source_data(self.ws_pivot[dest].expand())
+                chart.chart_type = chart_type
+                chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
+                chart_com.HasTitle = True
+                chart_com.ChartTitle.Text = cfg["title"]
 
     # ------------------------------------------------------------------
     # Step 3 — slicers
@@ -300,6 +343,7 @@ class PivotDashboard:
         self,
         fields: list[str],
         layout: dict | None = None,
+        pause_updates: bool = True,
     ) -> None:
         """Add slicers on *fields*, each connected to **all** pivot tables.
 
@@ -311,35 +355,40 @@ class PivotDashboard:
             Override slicer grid layout. Keys: ``ncols``, ``col_width``,
             ``row_height``, ``top_offset``, ``left_offset``, ``width``,
             ``height``.
+        pause_updates : bool, default True
+            Whether to suspend Excel updates, calculation, and events during action.
         """
         sl = {**_SLICER_LAYOUT_DEFAULT, **(layout or {})}
         pos_gen = _grid_positions(**sl)
 
-        first_name = self._pivot_names[0]
-        other_names = self._pivot_names[1:]
+        # discover pivot COM objects from the sheet
+        pt_coms = [*self.ws_pivot.api.PivotTables()]
 
-        for field, (left, top) in zip(fields, pos_gen):
-            pt_com = self.ws_pivot.api.PivotTables(first_name)
-            sc = self.wb.api.SlicerCaches.Add2(Source=pt_com, SourceField=field)
+        ctx = _paused(self.wb.app) if pause_updates else nullcontext()
+        with ctx:
+            for field, (left, top) in zip(fields, pos_gen):
+                sc = self.wb.api.SlicerCaches.Add2(Source=pt_coms[0], SourceField=field)
 
-            # Top/Left must be set as properties after Add(); passing them to
-            # Add() is unreliable via COM dispatch (optional Level param shifts args)
-            slicer = sc.Slicers.Add(
-                SlicerDestination=self.ws_pivot.api,
-                Width=sl["width"],
-                Height=sl["height"],
-            )
-            slicer.Top = top
-            slicer.Left = left
+                # Top/Left must be set as properties after Add(); passing them to
+                # Add() is unreliable via COM dispatch (optional Level param shifts args)
+                slicer = sc.Slicers.Add(
+                    SlicerDestination=self.ws_pivot.api,
+                    Width=sl["width"],
+                    Height=sl["height"],
+                )
+                slicer.Top = top
+                slicer.Left = left
 
-            for name in other_names:
-                sc.PivotTables.AddPivotTable(self.ws_pivot.api.PivotTables(name))
+                for pt_com in pt_coms[1:]:
+                    sc.PivotTables.AddPivotTable(pt_com)
 
     # ------------------------------------------------------------------
     # Refresh
     # ------------------------------------------------------------------
 
-    def refresh(self, df, sql: str, table_name: str = None) -> None:
+    def refresh(
+        self, df, sql: str, table_name: str = None, pause_updates: bool = True
+    ) -> None:
         """Update SQL sheet, replace source table, and refresh all pivots.
 
         Uses ``ws_data.clear()`` + recreate table under the same name so Excel
@@ -355,15 +404,19 @@ class PivotDashboard:
         table_name : str, optional
             Name of the table to refresh. If None, uses the original table name.
             Throws an error if no original table name exists.
+        pause_updates : bool, default True
+            Whether to suspend Excel updates, calculation, and events during action.
         """
-        self._write_sql(sql)
-        self.ws_data.clear()
-        self.ws_data["A1"].value = df
-        table_name = table_name or self._table_name
-        if not table_name:
-            raise ValueError(
-                "No table name provided and no original table name exists."
-            )
-        self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
-        for name in self._pivot_names:
-            self.ws_pivot.api.PivotTables(name).RefreshTable()
+        ctx = _paused(self.wb.app) if pause_updates else nullcontext()
+        with ctx:
+            self._write_sql(sql)
+            self.ws_data.clear()
+            self.ws_data["A1"].value = df
+            table_name = table_name or self._table_name
+            if not table_name:
+                raise ValueError(
+                    "No table name provided and no original table name exists."
+                )
+            self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
+            for name in self._pivot_names:
+                self.ws_pivot.api.PivotTables(name).RefreshTable()
