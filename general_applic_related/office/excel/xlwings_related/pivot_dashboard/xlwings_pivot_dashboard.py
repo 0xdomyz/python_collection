@@ -187,6 +187,16 @@ class PivotDashboard:
         # discover chart objects from all charts on the pivot sheet
         inst._chart_coms = list(inst.ws_pivot.charts)
 
+        # discover slicer cache COM objects whose slicers live on the pivot sheet
+        pivot_sheet_name = inst.ws_pivot.name
+        scs = inst.wb.api.SlicerCaches
+        inst._slicer_cache_coms = [
+            scs.Item(i)
+            for i in range(1, scs.Count + 1)
+            if scs.Item(i).Slicers.Count > 0
+            and scs.Item(i).Slicers.Item(1).Parent.Name == pivot_sheet_name
+        ]
+
         # obtain the shared pivot cache from the first pivot table
         inst._pivot_cache = inst._pivot_coms[0].PivotCache()
 
@@ -220,6 +230,7 @@ class PivotDashboard:
         self._pivot_cache = None
         self._pivot_coms: list = []
         self._chart_coms: list = []
+        self._slicer_cache_coms: list = []
 
     # ------------------------------------------------------------------
     # Repr / str
@@ -233,18 +244,20 @@ class PivotDashboard:
             f"sql='{self.ws_sql.name}', "
             f"table='{self._table_name}', "
             f"pivots={len(self._pivot_coms)}, "
-            f"charts={len(self._chart_coms)})"
+            f"charts={len(self._chart_coms)}, "
+            f"slicers={len(self._slicer_cache_coms)})"
         )
 
     def __str__(self) -> str:
         lines = [
             "PivotDashboard",
-            f"  data sheet  : {self.ws_data.name}",
-            f"  pivot sheet : {self.ws_pivot.name}",
-            f"  sql sheet   : {self.ws_sql.name}",
-            f"  table name  : {self._table_name}",
-            f"  pivot count : {len(self._pivot_coms)}",
-            f"  chart count : {len(self._chart_coms)}",
+            f"  data sheet   : {self.ws_data.name}",
+            f"  pivot sheet  : {self.ws_pivot.name}",
+            f"  sql sheet    : {self.ws_sql.name}",
+            f"  table name   : {self._table_name}",
+            f"  pivot count  : {len(self._pivot_coms)}",
+            f"  chart count  : {len(self._chart_coms)}",
+            f"  slicer count : {len(self._slicer_cache_coms)}",
         ]
         return "\n".join(lines)
 
@@ -398,6 +411,11 @@ class PivotDashboard:
         sl = {**_SLICER_LAYOUT_DEFAULT, **(layout or {})}
         pos_gen = _grid_positions(**sl)
 
+        # delete existing slicer caches using stored COM refs (idempotent)
+        for sc in self._slicer_cache_coms:
+            sc.Delete()
+        self._slicer_cache_coms = []
+
         # use stored pivot COM objects directly
         pt_coms = self._pivot_coms
 
@@ -418,6 +436,8 @@ class PivotDashboard:
 
                 for pt_com in pt_coms[1:]:
                     sc.PivotTables.AddPivotTable(pt_com)
+
+                self._slicer_cache_coms.append(sc)
 
     # ------------------------------------------------------------------
     # Refresh

@@ -126,6 +126,7 @@ wb.close()
 # %%
 wb = xw.Book("Output.xlsx")
 dashboard = PivotDashboard.from_workbook(wb, data_sheet="Data", pivot_sheet="Pivot")
+print(dashboard)
 
 # %%
 df3 = df.copy()
