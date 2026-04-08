@@ -7,8 +7,22 @@ from xlwings_pivot_dashboard import PivotDashboard
 # %%
 # initial data
 df = sns.load_dataset("titanic")
+
+# %%
+# group up continuous variables into bins
+df["age_group"] = pd.cut(
+    df["age"],
+    bins=[-1, 10, 20, 30, 40, 50, 60, 70, 80],
+).astype(str)
+df["fare_group"] = pd.cut(df["fare"], bins=[0, 10, 20, 30, 40, 50, 100, 600]).astype(
+    str
+)
+df = df.sort_values(df.columns.tolist())
+
+# %%
 print(f"{df.shape = }")
 print(df.head().to_string())
+df.describe(include="all").T
 
 # %% [markdown]
 # ### build dashboard
@@ -28,70 +42,49 @@ dashboard.write_table(df, sql=SQL, table_name="titanic_table")
 # %%
 PIVOT_CONFIGS = [
     dict(
-        name="PvtWho",
+        name="Pvt1",
         row_field="who",
         col_field="survived",
         data_field="fare",
         xl_func="count",
+        chart_type="column_clustered",
         title="Volume by Who and Survival",
     ),
     dict(
-        name="PvtTown",
+        name="Pvt2",
+        row_field="age_group",
+        col_field="who",
+        data_field="survived",
+        xl_func="count",
+        chart_type="area_stacked",
+        title="Volume by Age and Who",
+    ),
+    dict(
+        name="Pvt3",
         row_field="embark_town",
         col_field="survived",
         data_field="fare",
         xl_func="sum",
-        chart_type="column_stacked_100",
-        title="Volume by Embark Town and Survival",
-    ),
-    dict(
-        name="PvtMale",
-        row_field="adult_male",
-        col_field="survived",
-        data_field="fare",
-        title="Volume by Adult Male and Survival",
-    ),
-    dict(
-        name="PvtSex",
-        row_field="sex",
-        col_field="survived",
-        data_field="fare",
-        title="Volume by Sex and Survival",
+        chart_type="bar_stacked_100",
+        title="Fare Sum by Embark Town and Survival",
     ),
 ]
 
 dashboard.add_pivots(
     PIVOT_CONFIGS,
-    chart_layout={
-        "ncols": 2,
-        "col_width": 430,
-        "row_height": 330,
-        "top_offset": 60,
-        "left_offset": 0,
-        "chart_width": 400,
-        "chart_height": 300,
-    },
-    dest_layout={
-        "col": "Z",
-        "start_row": 5,
-        "row_step": 15,
-        "ncols": 2,
-        "col_step": 6,
-    },
 )
 
 # %%
 dashboard.add_slicers(
-    fields=["survived", "pclass", "sex"],
-    layout={
-        "ncols": 2,
-        "col_width": 150,
-        "row_height": 230,
-        "top_offset": 60,
-        "left_offset": 900,
-        "width": 120,
-        "height": 200,
-    },
+    fields=[
+        "survived",
+        "pclass",
+        "sex",
+        "age_group",
+        "fare_group",
+        "embark_town",
+        "who",
+    ],
 )
 
 # %% [markdown]

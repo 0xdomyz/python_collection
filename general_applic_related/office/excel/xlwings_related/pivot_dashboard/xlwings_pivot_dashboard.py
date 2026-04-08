@@ -62,28 +62,28 @@ XL_CHART_TYPES = {
 
 _CHART_LAYOUT_DEFAULT = {
     "ncols": 2,
-    "col_width": 430,
-    "row_height": 330,
-    "top_offset": 60,
+    "col_width": 630,
+    "row_height": 430,
+    "top_offset": 30,
     "left_offset": 0,
-    "chart_width": 400,
-    "chart_height": 300,
+    "chart_width": 600,
+    "chart_height": 400,
 }
 
 _PIVOT_DEST_DEFAULT = {
-    "col": "Z",
+    "col": "AM",
     "start_row": 5,
-    "row_step": 15,
-    "ncols": 1,
-    "col_step": 12,
+    "row_step": 50,
+    "ncols": 2,
+    "col_step": 100,
 }
 
 _SLICER_LAYOUT_DEFAULT = {
-    "ncols": 1,
+    "ncols": 3,
     "col_width": 150,
     "row_height": 230,
-    "top_offset": 60,
-    "left_offset": 900,
+    "top_offset": 30,
+    "left_offset": 1260,
     "width": 120,
     "height": 200,
 }
