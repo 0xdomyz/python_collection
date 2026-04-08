@@ -32,6 +32,7 @@ PIVOT_CONFIGS = [
         row_field="who",
         col_field="survived",
         data_field="fare",
+        xl_func="count",
         title="Volume by Who and Survival",
     ),
     dict(
@@ -39,6 +40,8 @@ PIVOT_CONFIGS = [
         row_field="embark_town",
         col_field="survived",
         data_field="fare",
+        xl_func="sum",
+        chart_type="column_stacked_100",
         title="Volume by Embark Town and Survival",
     ),
     dict(

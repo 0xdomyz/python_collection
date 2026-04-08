@@ -179,8 +179,13 @@ class PivotDashboard:
         inst._table_name = list_objects(1).Name
 
         # discover pivot COM objects from all PivotTables on the pivot sheet
-        pts = inst.ws_pivot.api.PivotTables()
-        inst._pivot_coms = [pts(i) for i in range(1, pts.Count + 1)]
+        pts_raw = inst.ws_pivot.api.PivotTables
+        pts = pts_raw()
+        try:
+            inst._pivot_coms = [pts(i) for i in range(1, pts.Count + 1)]
+        except Exception as e:  # earlier COM version
+            inst._pivot_coms = [pts_raw(i) for i in range(1, pts.Count + 1)]
+
         if not inst._pivot_coms:
             raise ValueError(f"No PivotTables found on sheet '{pivot_sheet}'.")
 
