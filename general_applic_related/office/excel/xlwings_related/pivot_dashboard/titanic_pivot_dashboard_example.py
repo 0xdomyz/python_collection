@@ -37,22 +37,18 @@ dashboard.write_table(df)
 # %%
 PIVOT_CONFIGS = [
     dict(
-        name="Pvt3",
         row_field="embark_town",
         col_field="survived",
         data_field="fare",
-        chart_type="bar_stacked_100",
     ),
     dict(
-        name="Pvt1",
         row_field="who",
         col_field="survived",
         data_field="fare",
         xl_func="count",
-        chart_type="column_clustered",
+        chart_type="bar_stacked_100",
     ),
     dict(
-        name="Pvt2",
         row_field="age_group",
         col_field="who",
         data_field="survived",
@@ -60,7 +56,6 @@ PIVOT_CONFIGS = [
         chart_type="area_stacked",
     ),
     dict(
-        name="Pvt4",
         row_field="deck",
         col_field="who",
         data_field="survived",

@@ -14,6 +14,7 @@ and ``slicer_layout`` dicts without subclassing.
 """
 
 from contextlib import contextmanager, nullcontext
+from itertools import count
 
 import xlwings as xw
 
@@ -295,6 +296,8 @@ class PivotDashboard:
         """Write *sql* to the SQL sheet, *df* as a named Excel table, and
         initialise the pivot cache.
 
+        If the table already exists, it is replaced in-place to preserve pivot cache connections.
+
         Parameters
         ----------
         df : pandas.DataFrame
@@ -354,11 +357,13 @@ class PivotDashboard:
         Parameters
         ----------
         configs : list of dict
-            Required keys per entry: ``name``, ``row_field``, ``col_field``,
-            ``data_field``, ``title``.
-            Optional keys: ``data_label`` (str), ``xl_func`` (int or XL_FUNC
-            key string, default ``"count"``), ``chart_type`` (xlwings chart
-            type string, default ``"bar_clustered"``).
+            Required keys per entry: ``row_field``, ``col_field``,
+            ``data_field``.
+            Optional keys: ``name`` (str), ``title`` (str), ``data_label`` (str),
+            ``xl_func`` (int or XL_FUNC
+            key string, default ``"sum"``), ``chart_type`` (xlwings chart
+            type string, default ``"bar_clustered"``),
+            ``sort_col_asc_by_data_field`` (bool).
         chart_layout : dict, optional
             Override chart/grid layout. Keys: ``ncols``, ``col_width``,
             ``row_height``, ``top_offset``, ``left_offset``, ``chart_width``,
@@ -388,10 +393,11 @@ class PivotDashboard:
 
         pos_gen = _grid_positions(**cl)
         dest_gen = _grid_excel_refs(**dl)
+        n_gen = count(1)
 
         ctx = _paused(self.wb.app) if pause_updates else nullcontext()
         with ctx:
-            for cfg, dest, (left, top) in zip(configs, dest_gen, pos_gen):
+            for cfg, dest, (left, top), idx in zip(configs, dest_gen, pos_gen, n_gen):
                 xl_func = cfg.get("xl_func", "sum")
                 if isinstance(xl_func, str):
                     func_label = xl_func.capitalize()
@@ -407,7 +413,7 @@ class PivotDashboard:
                 # create pivot table
                 pt = self._pivot_cache.CreatePivotTable(
                     TableDestination=self.ws_pivot[dest].api,
-                    TableName=cfg["name"],
+                    TableName=cfg.get("name", f"PivotTable{idx}"),
                 )
                 pt.PivotFields(cfg["row_field"]).Orientation = 1  # xlRowField
                 pt.PivotFields(cfg["col_field"]).Orientation = 2  # xlColumnField
