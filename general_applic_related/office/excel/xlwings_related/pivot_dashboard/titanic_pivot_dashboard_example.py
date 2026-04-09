@@ -29,18 +29,20 @@ df.describe(include="all").T
 
 # %%
 wb = xw.Book()
-dashboard = PivotDashboard(wb, data_sheet="Data", pivot_sheet="Pivot")
+dashboard = PivotDashboard(wb)
 
 # %%
-SQL = """
-select *
-from titanic
-"""
-
-dashboard.write_table(df, sql=SQL, table_name="titanic_table")
+dashboard.write_table(df)
 
 # %%
 PIVOT_CONFIGS = [
+    dict(
+        name="Pvt3",
+        row_field="embark_town",
+        col_field="survived",
+        data_field="fare",
+        chart_type="bar_stacked_100",
+    ),
     dict(
         name="Pvt1",
         row_field="who",
@@ -48,7 +50,6 @@ PIVOT_CONFIGS = [
         data_field="fare",
         xl_func="count",
         chart_type="column_clustered",
-        title="Volume by Who and Survival",
     ),
     dict(
         name="Pvt2",
@@ -57,22 +58,18 @@ PIVOT_CONFIGS = [
         data_field="survived",
         xl_func="count",
         chart_type="area_stacked",
-        title="Volume by Age and Who",
     ),
     dict(
-        name="Pvt3",
-        row_field="embark_town",
-        col_field="survived",
-        data_field="fare",
-        xl_func="sum",
-        chart_type="bar_stacked_100",
-        title="Fare Sum by Embark Town and Survival",
+        name="Pvt4",
+        row_field="deck",
+        col_field="who",
+        data_field="survived",
+        xl_func="count",
+        sort_col_asc_by_data_field=True,
+        chart_type="area_stacked",
     ),
 ]
-
-dashboard.add_pivots(
-    PIVOT_CONFIGS,
-)
+dashboard.add_pivots(PIVOT_CONFIGS)
 
 # %%
 dashboard.add_slicers(
@@ -92,7 +89,7 @@ dashboard.add_slicers(
 
 # %%
 df2 = df.copy()
-df2["age_group"] = pd.cut(df2["age"], bins=[0, 18, 40, 80]).astype(str)
+df2["age_group_new"] = pd.cut(df2["age"], bins=[0, 18, 40, 80]).astype(str)
 print(f"{df2.shape = }")
 print(df2.head().to_string())
 
@@ -104,14 +101,10 @@ select
         when age between 0  and 18 then '0-18'
         when age between 18 and 40 then '18-40'
         else '40+'
-    end as age_group
+    end as age_group_new
 from titanic
 """
-
-dashboard.refresh(df2, sql=SQL2)
-
-# %% [markdown]
-# ### save
+dashboard.write_table(df2, sql=SQL2)
 
 # %%
 wb.save(r"output.xlsx")
@@ -121,26 +114,16 @@ wb.close()
 # ### refresh from an existing workbook
 # %%
 wb = xw.Book("Output.xlsx")
-dashboard = PivotDashboard.from_workbook(wb, data_sheet="Data", pivot_sheet="Pivot")
+dashboard = PivotDashboard.from_workbook(wb)
 print(dashboard)
 
 # %%
 df3 = df.copy()
-df3["age_group2"] = pd.cut(df3["age"], bins=[0, 25, 50, 80]).astype(str)
+df3["age_group_newer"] = pd.cut(df3["age"], bins=[0, 25, 50, 80]).astype(str)
 print(f"{df3.shape = }")
 print(df3.head().to_string())
 # %%
-SQL3 = """
-select
-    *,
-    case
-        when age between 0  and 25 then '0-25'
-        when age between 25 and 50 then '25-50'
-        else '50+'
-    end as age_group2
-from titanic
-"""
-dashboard.refresh(df3, sql=SQL3, table_name="titanic_table")
+dashboard.write_table(df3, sql="new sql")
 
 # %%
 wb.save(r"output.xlsx")

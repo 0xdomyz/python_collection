@@ -285,7 +285,13 @@ class PivotDashboard:
     # Step 1 — data
     # ------------------------------------------------------------------
 
-    def write_table(self, df, sql: str, table_name: str = "data_table") -> None:
+    def write_table(
+        self,
+        df,
+        sql: str = "",
+        table_name: str = "data_table",
+        pause_updates: bool = True,
+    ) -> None:
         """Write *sql* to the SQL sheet, *df* as a named Excel table, and
         initialise the pivot cache.
 
@@ -296,11 +302,41 @@ class PivotDashboard:
             SQL query string to record on the SQL sheet.
         table_name : str
             Name of the Excel ListObject (must be a valid Excel name).
+        pause_updates : bool, default True
+            Whether to suspend Excel updates, calculation, and events during action.
         """
-        self._write_sql(sql)
-        self._table_name = table_name
-        self.ws_data["A1"].value = df
-        self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
+        ctx = _paused(self.wb.app) if pause_updates else nullcontext()
+        with ctx:
+            self._write_sql(sql)
+            self.ws_data.clear()
+            if self._table_name is None:
+                self._table_name = table_name
+            else:
+                table_name = (
+                    self._table_name
+                )  # ignore new name if table name already exists
+            self.ws_data["A1"].value = df
+            self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
+            for pt_com in self._pivot_coms:
+                pt_com.RefreshTable()
+
+    def refresh(self, df, sql: str = "", pause_updates: bool = True) -> None:
+        """Update SQL sheet, replace source table, and refresh all pivots.
+
+        Uses ``ws_data.clear()`` + recreate table under the same name so Excel
+        resolves the pivot cache source by name — slicers remain connected and
+        no ``ChangePivotCache`` call is needed.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            New data, may differ in row count and column count from original.
+        sql : str
+            Updated SQL query string to record on the SQL sheet.
+        pause_updates : bool, default True
+            Whether to suspend Excel updates, calculation, and events during action.
+        """
+        self.write_table(df, sql=sql, pause_updates=pause_updates)
 
     # ------------------------------------------------------------------
     # Step 2 — pivot tables + charts
@@ -356,7 +392,7 @@ class PivotDashboard:
         ctx = _paused(self.wb.app) if pause_updates else nullcontext()
         with ctx:
             for cfg, dest, (left, top) in zip(configs, dest_gen, pos_gen):
-                xl_func = cfg.get("xl_func", "count")
+                xl_func = cfg.get("xl_func", "sum")
                 if isinstance(xl_func, str):
                     func_label = xl_func.capitalize()
                     xl_func = XL_FUNC[xl_func]
@@ -368,6 +404,7 @@ class PivotDashboard:
                 )
                 chart_type = cfg.get("chart_type", "bar_clustered")
 
+                # create pivot table
                 pt = self._pivot_cache.CreatePivotTable(
                     TableDestination=self.ws_pivot[dest].api,
                     TableName=cfg["name"],
@@ -375,8 +412,14 @@ class PivotDashboard:
                 pt.PivotFields(cfg["row_field"]).Orientation = 1  # xlRowField
                 pt.PivotFields(cfg["col_field"]).Orientation = 2  # xlColumnField
                 pt.AddDataField(pt.PivotFields(cfg["data_field"]), data_label, xl_func)
+                if cfg.get("sort_col_asc_by_data_field"):
+                    pt.PivotFields(cfg["col_field"]).AutoSort(
+                        Order=1,  # 1=xlAscending, 2=xlDescending
+                        Field=data_label,
+                    )
                 self._pivot_coms.append(pt)
 
+                # create paired chart
                 chart = self.ws_pivot.charts.add(
                     left=left,
                     top=top,
@@ -387,7 +430,11 @@ class PivotDashboard:
                 chart.chart_type = chart_type
                 chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
                 chart_com.HasTitle = True
-                chart_com.ChartTitle.Text = cfg["title"]
+                title = (
+                    cfg.get("title")
+                    or f"{data_label} by {cfg['row_field']} and {cfg['col_field']}"
+                )
+                chart_com.ChartTitle.Text = title
                 self._chart_coms.append(chart)
 
     # ------------------------------------------------------------------
@@ -443,42 +490,3 @@ class PivotDashboard:
                     sc.PivotTables.AddPivotTable(pt_com)
 
                 self._slicer_cache_coms.append(sc)
-
-    # ------------------------------------------------------------------
-    # Refresh
-    # ------------------------------------------------------------------
-
-    def refresh(
-        self, df, sql: str, table_name: str = None, pause_updates: bool = True
-    ) -> None:
-        """Update SQL sheet, replace source table, and refresh all pivots.
-
-        Uses ``ws_data.clear()`` + recreate table under the same name so Excel
-        resolves the pivot cache source by name — slicers remain connected and
-        no ``ChangePivotCache`` call is needed.
-
-        Parameters
-        ----------
-        df : pandas.DataFrame
-            New data, may differ in row count and column count from original.
-        sql : str
-            Updated SQL query string to record on the SQL sheet.
-        table_name : str, optional
-            Name of the table to refresh. If None, uses the original table name.
-            Throws an error if no original table name exists.
-        pause_updates : bool, default True
-            Whether to suspend Excel updates, calculation, and events during action.
-        """
-        ctx = _paused(self.wb.app) if pause_updates else nullcontext()
-        with ctx:
-            self._write_sql(sql)
-            self.ws_data.clear()
-            self.ws_data["A1"].value = df
-            table_name = table_name or self._table_name
-            if not table_name:
-                raise ValueError(
-                    "No table name provided and no original table name exists."
-                )
-            self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
-            for pt_com in self._pivot_coms:
-                pt_com.RefreshTable()
