@@ -1,28 +1,35 @@
 # %%
+import pathlib
+import sys
+
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import xlwings as xw
+
+sys.path.append(str(pathlib.Path().cwd().parent))
 from xlwings_pivot_dashboard import PivotDashboard
 
 # %%
 # initial data
 df = sns.load_dataset("titanic")
-
-# %%
-# group up continuous variables into bins
-df["age_group"] = pd.cut(
-    df["age"],
-    bins=[-1, 10, 20, 30, 40, 50, 60, 70, 80],
-).astype(str)
-df["fare_group"] = pd.cut(df["fare"], bins=[0, 10, 20, 30, 40, 50, 100, 600]).astype(
-    str
+df_info = pd.concat(
+    [df.head(1).T, df.dtypes.astype(str), df.nunique(), df.isna().sum()], axis=1
 )
-df = df.sort_values(df.columns.tolist())
-
+df_info.columns = ["example_value", "dtypes", "nunique", "n_null"]
+df_info = df_info.sort_values(
+    [
+        "nunique",
+        "dtypes",
+    ]
+)
+print(df_info.to_string())
 # %%
-print(f"{df.shape = }")
-print(df.head().to_string())
-df.describe(include="all").T
+df["age_group"] = pd.cut(df["age"], bins=[0, 18, 40, 80]).astype(str)
+df[f"fare_binned"] = pd.cut(
+    df["fare"].fillna(0), bins=np.histogram_bin_edges(df["fare"].fillna(0), bins="auto")
+).astype(str)
+
 
 # %% [markdown]
 # ### build dashboard
@@ -30,11 +37,7 @@ df.describe(include="all").T
 # %%
 wb = xw.Book()
 dashboard = PivotDashboard(wb)
-
-# %%
 dashboard.write_table(df)
-
-# %%
 PIVOT_CONFIGS = [
     dict(
         row_field="embark_town",
@@ -45,8 +48,8 @@ PIVOT_CONFIGS = [
         row_field="who",
         col_field="survived",
         data_field="fare",
-        xl_func="count",
-        chart_type="bar_stacked_100",
+        xl_func="count",  # agg func
+        chart_type="bar_stacked_100",  # chart type
     ),
     dict(
         row_field="age_group",
@@ -60,20 +63,17 @@ PIVOT_CONFIGS = [
         col_field="who",
         data_field="survived",
         xl_func="count",
-        sort_col_asc_by_data_field=True,
+        sort_col_asc_by_data_field=True,  # sort
         chart_type="area_stacked",
     ),
 ]
 dashboard.add_pivots(PIVOT_CONFIGS)
-
-# %%
 dashboard.add_slicers(
     fields=[
         "survived",
         "pclass",
         "sex",
         "age_group",
-        "fare_group",
         "embark_town",
         "who",
     ],
