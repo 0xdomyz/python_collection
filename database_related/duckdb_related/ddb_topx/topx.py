@@ -18,6 +18,9 @@ def topx_cat(
     Examples
     --------
     ```python
+    import duckdb
+    con = duckdb.connect()
+
     res = topx_cat(
         con,
         df,
@@ -79,4 +82,5 @@ def topx_cat(
     """
     if print_qry:
         print(qry)
+    return con.execute(qry).df()[out_col]
     return con.execute(qry).df()[out_col]
