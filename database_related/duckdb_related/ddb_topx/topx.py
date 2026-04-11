@@ -1,26 +1,5 @@
 # %%
-import duckdb
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-
-con = duckdb.connect()
-# %%
-import seaborn as sns
-
-df = sns.load_dataset("titanic")
-# %%
-# add hundreds of test categories to a new column for a messy categorical field example
-n_cats = 200
-cats = [f"cat_{i}" for i in range(n_cats)]
-import random
-
-random.seed(0)
-df["new_cat"] = [random.choice(cats) for _ in range(len(df))]
-# %%
-print(df.shape)
-print(df.head().to_string())
 
 
 # %%
@@ -29,15 +8,32 @@ def topx_cat(
     tbl: pd.DataFrame,
     cat_col: str,
     agg_expr: str,
-    max_cats: int = 10,
+    max_cats: int = 15,
     other_cat: str = "other",
+    where_cls: str = "",
     print_qry: bool = False,
-) -> "pd.DataFrame":
-    """Return *tbl* with an extra column bucketing rare categories into *other_cat*.
+) -> "pd.Series":
+    """Return *Series* of bucketed var with rare categories into *other_cat*.
+
+    Examples
+    --------
+    ```python
+    res = topx_cat(
+        con,
+        df,
+        cat_col="new_cat",
+        agg_expr="sum(fare)",
+        max_cats=10,
+        where_cls="new_cat <> 'cat_34'",
+        print_qry=True,
+    )
+    df["new_cat_top10"] = res
+    ```
 
     Parameters
     ----------
     con : duckdb.DuckDBPyConnection
+        DuckDB connection object.
     tbl : pd.DataFrame
         DataFrame to process.
     cat_col : str
@@ -48,11 +44,14 @@ def topx_cat(
         Number of top categories to keep; the rest become *other_cat*.
     other_cat : str
         Label for bucketed categories.
-
+    where_cls : str
+        Optional WHERE clause to filter rows before aggregation (e.g. ``"age > 30"``).
+    print_qry : bool
+        If True, print the generated SQL query.
     Returns
     -------
-    pd.DataFrame
-        Original table plus a ``{cat_col}_top{max_cats}`` column.
+    pd.Series
+        Series of bucketed categories with rare categories replaced by *other_cat*.
     """
     out_col = f"{cat_col}_top{max_cats}"
     df = con.from_df(tbl).create_view("df")
@@ -62,6 +61,7 @@ def topx_cat(
             {cat_col},
             {agg_expr} as agg_val
         from df
+        {"where " + where_cls if where_cls else ""}
         group by 1
     ), y as (
         select {cat_col}
@@ -79,26 +79,4 @@ def topx_cat(
     """
     if print_qry:
         print(qry)
-    return con.execute(qry).df()
-
-
-res = topx_cat(
-    con, df, cat_col="new_cat", agg_expr="sum(fare)", max_cats=10, print_qry=True
-)
-res
-
-# %%
-res.groupby("new_cat_top10").agg({"fare": "sum", "new_cat_top10": "count"}).sort_values(
-    "fare", ascending=False
-)
-# %%
-qry = """
-    select
-        new_cat,
-        sum(fare) as total_fare
-    from df
-    group by 1
-    order by 2 desc
-"""
-res = con.execute(qry).df()
-res.head(10)
+    return con.execute(qry).df()[out_col]
