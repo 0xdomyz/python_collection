@@ -42,13 +42,26 @@ vars_float = df_info.loc[
 ].index.tolist()
 vars_float
 
+
 # %%
+def interval_to_padded_str(interval, max_digits):
+    if not hasattr(interval, "left"):
+        return "nan"
+    left = str(int(interval.left)).zfill(max_digits)
+    right = str(int(interval.right)).zfill(max_digits)
+    return f"({left}, {right}]"
+
+
 for var in vars_float:
     if f"{var}_binned" in df.columns:
         raise ValueError(f"{var}_binned already exists in df")
-    df[f"{var}_binned"] = pd.cut(
-        df[var].fillna(0), bins=np.histogram_bin_edges(df[var].fillna(0), bins="auto")
-    ).astype(str)
+    edges = np.histogram_bin_edges(df[var].fillna(0), bins="auto")
+    max_digits = max(len(str(int(edges.max()))), len(str(int(edges.min()))))
+    df[f"{var}_binned"] = (
+        pd.cut(df[var].fillna(0), bins=edges)
+        .map(lambda x: interval_to_padded_str(x, max_digits))
+        .astype(str)
+    )
 vars_float_binned = [f"{var}_binned" for var in vars_float]
 vars_float_binned
 

@@ -23,7 +23,7 @@ print(df_info.to_string())
 df["age_group"] = pd.cut(df["age"], bins=[0, 18, 40, 80]).astype(str)
 # %%
 edges = np.histogram_bin_edges(df["fare"].fillna(0), bins="auto")
-max_digits = len(str(int(edges.max())))
+max_digits = max(len(str(int(edges.max()))), len(str(int(edges.min()))))
 
 
 def interval_to_padded_str(interval):
