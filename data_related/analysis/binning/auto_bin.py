@@ -26,10 +26,10 @@ def make_binned_column_even(
 
 def make_binned_column_quantile(
     srs: pd.Series,
-    q: int = 10,
+    bins: int = 10,
     sortable_str: bool = False,
 ) -> pd.Series:
-    edges = pd.qcut(srs, q=q, duplicates="drop").cat.categories
+    edges = pd.qcut(srs, q=bins, duplicates="drop").cat.categories
     binned_series = pd.cut(srs, bins=edges)
 
     if sortable_str:

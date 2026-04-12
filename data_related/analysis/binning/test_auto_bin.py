@@ -22,7 +22,7 @@ res = make_binned_column_even(srs, sortable_str=True)
 print(res.value_counts())
 
 # %%
-res = make_binned_column_quantile(srs)
+res = make_binned_column_quantile(srs, bins=12)
 print(res.value_counts())
 
 # %%
