@@ -5,9 +5,9 @@ import pandas as pd
 # %%
 def topx_cat(
     con,
-    tbl: pd.DataFrame,
+    tbl: "pd.DataFrame",
     cat_col: str,
-    agg_expr: str,
+    agg_expr: str = "count(*)",
     max_cats: int = 15,
     other_cat: str = "other",
     where_cls: str = "",
@@ -25,12 +25,8 @@ def topx_cat(
         con,
         df,
         cat_col="new_cat",
-        agg_expr="sum(fare)",
-        max_cats=10,
-        where_cls="new_cat <> 'cat_34'",
-        print_qry=True,
     )
-    df["new_cat_top10"] = res
+    df["new_cat_top15"] = res
     ```
 
     Parameters
@@ -82,5 +78,4 @@ def topx_cat(
     """
     if print_qry:
         print(qry)
-    return con.execute(qry).df()[out_col]
     return con.execute(qry).df()[out_col]
