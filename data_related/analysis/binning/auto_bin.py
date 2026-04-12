@@ -3,27 +3,36 @@ import numpy as np
 import pandas as pd
 
 
-def interval_to_padded_str(interval: pd.Interval, max_digits: int) -> str:
-    if not hasattr(interval, "left"):
-        return "nan"
-    left = str(int(interval.left)).zfill(max_digits)
-    right = str(int(interval.right)).zfill(max_digits)
-    return f"({left}, {right}]"
+def _make_sortable_labels(cats: pd.Index) -> dict:
+    pad = max(2, len(str(len(cats) - 1)))
+    label_map = {iv: f"{i:0{pad}d} {iv}" for i, iv in enumerate(cats)}
+    return label_map
 
 
-def make_binned_column(
+def make_binned_column_even(
     srs: pd.Series,
     bins: str | int | np.ndarray = "auto",
-    fill_value: float = 0,
-    make_padded_str: bool = False,
+    sortable_str: bool = False,
 ) -> pd.Series:
-    series = srs.fillna(fill_value)
-    edges = np.histogram_bin_edges(series, bins=bins)
-    max_digits = max(len(str(int(edges.max()))), len(str(int(edges.min()))))
+    srs2 = srs.dropna()
+    edges = np.histogram_bin_edges(srs2, bins=bins)
+    binned_series = pd.cut(srs, bins=edges)
 
-    binned_series = pd.cut(series, bins=edges)
-    if make_padded_str:
-        binned_series = binned_series.map(
-            lambda interval: interval_to_padded_str(interval, max_digits)
-        )
+    if sortable_str:
+        label_map = _make_sortable_labels(binned_series.cat.categories)
+        binned_series = binned_series.cat.rename_categories(label_map)
+    return binned_series
+
+
+def make_binned_column_quantile(
+    srs: pd.Series,
+    q: int = 10,
+    sortable_str: bool = False,
+) -> pd.Series:
+    edges = pd.qcut(srs, q=q, duplicates="drop").cat.categories
+    binned_series = pd.cut(srs, bins=edges)
+
+    if sortable_str:
+        label_map = _make_sortable_labels(binned_series.cat.categories)
+        binned_series = binned_series.cat.rename_categories(label_map)
     return binned_series

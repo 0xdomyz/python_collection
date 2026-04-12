@@ -2,24 +2,29 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from auto_bin import make_binned_column
+from auto_bin import make_binned_column_even, make_binned_column_quantile
 
 # %%
 # initial data
 df = sns.load_dataset("titanic")
+srs = df["fare"].copy()
 
 # %%
-df["fare_binned"] = make_binned_column(df["fare"])
-df["fare_binned"].value_counts()
+res = make_binned_column_even(srs)
+print(res.value_counts())
 
 # %%
-df["fare_binned"] = make_binned_column(
-    df["fare"], bins="auto", fill_value=0, make_padded_str=True
-)
-df["fare_binned"].value_counts()
+res = make_binned_column_even(srs, bins=10)
+print(res.value_counts())
 
 # %%
-df["fare_binned"] = make_binned_column(
-    df["fare"], bins="auto", fill_value=0, make_padded_str=False
-)
-df["fare_binned"].value_counts()
+res = make_binned_column_even(srs, sortable_str=True)
+print(res.value_counts())
+
+# %%
+res = make_binned_column_quantile(srs)
+print(res.value_counts())
+
+# %%
+res = make_binned_column_quantile(srs, sortable_str=True)
+print(res.value_counts().sort_index())
