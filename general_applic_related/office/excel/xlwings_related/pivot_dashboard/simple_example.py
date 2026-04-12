@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import xlwings as xw
-from piv_dash_utils import make_binned_column
+from piv_dash_utils import *
 from xlwings_pivot_dashboard import PivotDashboard
 
 # %%
@@ -15,10 +15,8 @@ df_info.columns = ["example_value", "dtypes", "nunique", "n_null"]
 df_info = df_info.sort_index()
 print(df_info.to_string())
 # %%
-df["age_group"] = make_binned_column(df["age"], bins=20, make_padded_str=True)
-df["fare_binned"] = make_binned_column(
-    df["fare"], bins="auto", fill_value=0, make_padded_str=True
-)
+df["age_group"] = make_binned_column_quantile(df["age"], bins=10, sortable_str=True)
+df["fare_binned"] = make_binned_column_quantile(df["fare"], bins=10, sortable_str=True)
 df["n"] = 1
 
 # %% [markdown]
@@ -29,7 +27,7 @@ wb = xw.Book()
 dashboard = PivotDashboard(wb)
 dashboard.write_table(df)
 
-PIVOT_CONFIGS = [
+pivot_configs = [
     # fmt: off
     dict(row_field="who", col_field="survived", data_field="n"),
     dict(row_field="embark_town", col_field="survived", data_field="n"),
@@ -38,7 +36,7 @@ PIVOT_CONFIGS = [
     dict(row_field="deck", col_field="survived", data_field="n"),
     # fmt: on
 ]
-dashboard.add_pivots(PIVOT_CONFIGS)
+dashboard.add_pivots(pivot_configs)
 
 dashboard.add_slicers(
     fields=[
