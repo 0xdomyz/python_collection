@@ -74,7 +74,7 @@ _CHART_LAYOUT_DEFAULT = {
 _PIVOT_DEST_DEFAULT = {
     "col": "AM",
     "start_row": 5,
-    "row_step": 50,
+    "row_step": 100,
     "ncols": 2,
     "col_step": 100,
 }
@@ -357,13 +357,17 @@ class PivotDashboard:
         Parameters
         ----------
         configs : list of dict
-            Required keys per entry: ``row_field``, ``col_field``,
-            ``data_field``.
-            Optional keys: ``name`` (str), ``title`` (str), ``data_label`` (str),
-            ``xl_func`` (int or XL_FUNC
-            key string, default ``"sum"``), ``chart_type`` (xlwings chart
-            type string, default ``"bar_clustered"``),
-            ``sort_col_asc_by_data_field`` (bool).
+            Required keys per entry:
+                ``row_field``,
+                ``col_field``,
+                ``data_field``.
+            Optional keys:
+                ``name`` (str),
+                ``title`` (str),
+                ``data_label`` (str),
+                ``xl_func`` (int or XL_FUNC key string, default ``"sum"``),
+                ``chart_type`` (xlwings chart type string, default ``"bar_clustered"``),
+                ``sort_col_asc_by_data_field`` (bool).
         chart_layout : dict, optional
             Override chart/grid layout. Keys: ``ncols``, ``col_width``,
             ``row_height``, ``top_offset``, ``left_offset``, ``chart_width``,
