@@ -378,29 +378,29 @@ class PivotDashboard:
         pause_updates : bool, default True
             Whether to suspend Excel updates, calculation, and events during action.
         """
-        # clear existing pivot tables and charts using stored COM refs (idempotent)
-        for pt_com in self._pivot_coms:
-            pt_com.TableRange2.Clear()
-        for chart in self._chart_coms:
-            chart.delete()
-        self._pivot_coms = []
-        self._chart_coms = []
-
-        # re-create the pivot cache each time — Excel drops it when all pivots are deleted
-        self._pivot_cache = self.wb.api.PivotCaches().Create(
-            SourceType=1,  # xlDatabase
-            SourceData=self._table_name,
-        )
-
         cl = {**_CHART_LAYOUT_DEFAULT, **(chart_layout or {})}
         dl = {**_PIVOT_DEST_DEFAULT, **(dest_layout or {})}
-
         pos_gen = _grid_positions(**cl)
         dest_gen = _grid_excel_refs(**dl)
         n_gen = count(1)
 
         ctx = _paused(self.wb.app) if pause_updates else nullcontext()
         with ctx:
+
+            # clear existing pivot tables and charts using stored COM refs (idempotent)
+            for pt_com in self._pivot_coms:
+                pt_com.TableRange2.Clear()
+            for chart in self._chart_coms:
+                chart.delete()
+            self._pivot_coms = []
+            self._chart_coms = []
+
+            # re-create the pivot cache each time — Excel drops it when all pivots are deleted
+            self._pivot_cache = self.wb.api.PivotCaches().Create(
+                SourceType=1,  # xlDatabase
+                SourceData=self._table_name,
+            )
+
             for cfg, dest, (left, top), idx in zip(configs, dest_gen, pos_gen, n_gen):
                 xl_func = cfg.get("xl_func", "sum")
                 if isinstance(xl_func, str):
@@ -473,16 +473,17 @@ class PivotDashboard:
         sl = {**_SLICER_LAYOUT_DEFAULT, **(layout or {})}
         pos_gen = _grid_positions(**sl)
 
-        # delete existing slicer caches using stored COM refs (idempotent)
-        for sc in self._slicer_cache_coms:
-            sc.Delete()
-        self._slicer_cache_coms = []
-
-        # use stored pivot COM objects directly
-        pt_coms = self._pivot_coms
-
         ctx = _paused(self.wb.app) if pause_updates else nullcontext()
         with ctx:
+
+            # delete existing slicer caches using stored COM refs (idempotent)
+            for sc in self._slicer_cache_coms:
+                sc.Delete()
+            self._slicer_cache_coms = []
+
+            # use stored pivot COM objects directly
+            pt_coms = self._pivot_coms
+
             for field, (left, top) in zip(fields, pos_gen):
                 sc = self.wb.api.SlicerCaches.Add2(Source=pt_coms[0], SourceField=field)
 
