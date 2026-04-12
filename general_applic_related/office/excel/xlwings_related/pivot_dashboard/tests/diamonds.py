@@ -16,16 +16,10 @@ from xlwings_pivot_dashboard import PivotDashboard
 
 # %%
 # initial data
-df = sns.load_dataset("taxis")
-print(f"{df.shape = }")
-
-# %%
-# cols info
-df_info = pd.concat([
-    df.head(1).T, df.dtypes.astype(str), df.nunique(), df.isna().sum(),
-    df.describe(include="all").T[["min", "max"]]], axis=1) # fmt: skip
-df_info.columns = ["example_value", "dtypes", "nunique", "n_null", "min", "max"]
-df_info = df_info.sort_index().sort_values("dtypes")
+df = sns.load_dataset("diamonds")
+df_info = pd.concat([df.head(1).T, df.dtypes.astype(str), df.nunique(), df.isna().sum()], axis=1) # fmt: skip
+df_info.columns = ["example_value", "dtypes", "nunique", "n_null"]
+df_info = df_info.sort_index()
 print(df_info.to_string())
 
 # %%
@@ -56,6 +50,12 @@ new_cols += ["n"]
 print(f"{df.shape = }")
 print(df.head(1).T.to_string())
 
+# %%
+print(f"{df.shape = }")
+print(df.head().T.to_string())
+
+target_var = "price_binned"
+
 # %% [markdown]
 # ### simple usage
 
@@ -64,24 +64,19 @@ wb = xw.Book()
 dashboard = PivotDashboard(wb)
 dashboard.write_table(df)
 
-pivot_configs = []
+PIVOT_CONFIGS = []
 for var in new_cols:
-    if var not in ["pickup_binned", "n"]:
+    if var not in [target_var, "n"]:
         cfg = dict(
-            row_field="pickup_binned",
+            row_field=target_var,
             col_field=var,
             data_field="n",
             chart_type="area_stacked",
         )
-        pivot_configs.append(cfg)
+        PIVOT_CONFIGS.append(cfg)
 
-dashboard.add_pivots(pivot_configs)
+dashboard.add_pivots(PIVOT_CONFIGS)
 
 dashboard.add_slicers(
     fields=new_cols[:3],
 )
-
-# %%
-df["fare_binned2"] = make_binned_column_quantile(df["fare"], bins=15, sortable_str=True)
-# %%
-dashboard.write_table(df)

@@ -2,13 +2,16 @@
 import pathlib
 import sys
 
+import duckdb
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import xlwings as xw
 
+con = duckdb.connect()
+
 sys.path.append(str(pathlib.Path().cwd().parent))
-from piv_dash_utils import make_binned_column, topx_cat
+from piv_dash_utils import *
 from xlwings_pivot_dashboard import PivotDashboard
 
 # %%
@@ -20,22 +23,32 @@ df_info = df_info.sort_index()
 print(df_info.to_string())
 
 # %%
-nunique_threshold = 20
-vars_cat = df_info.loc[lambda x: x["nunique"] < nunique_threshold, :].index.tolist()
-vars_cat_too_many = df_info.loc[
-    lambda x: (x["nunique"] >= nunique_threshold) & (x["dtypes"] == "object"), :
-].index.tolist()
-vars_float = df_info.loc[
-    lambda x: (x["nunique"] >= nunique_threshold) & (x["dtypes"] == "float64"), :
-].index.tolist()
-for var in vars_float:
-    df[f"{var}_binned"] = make_binned_column(df[var], bins="auto", make_padded_str=True)
-vars_float_binned = [f"{var}_binned" for var in vars_float]
+# classify variables
+groups = classify_vars(df_info, nunique_threshold=15)
+for group, vars in groups.items():
+    print(f"{group}: {vars}")
+
+new_cols = []
+new_cols += groups["orig"]
+
+max_cats = 10
+for var in groups["str"]:
+    df[f"{var}_top{max_cats}"] = topx_cat(con, df, cat_col=var, max_cats=max_cats)
+new_cols += [f"{var}_top{max_cats}" for var in groups["str"]]
+
+for var in groups["float"] + groups["int"]:
+    df[f"{var}_binned"] = make_binned_column_quantile(df[var], bins=10, sortable_str=True) # fmt: skip
+new_cols += [f"{var}_binned" for var in groups["float"] + groups["int"]]
+
+for var in groups["dt"]:
+    df[f"{var}_binned"], _, _ = auto_floor_for_target_nunique(df[var], 75)
+new_cols += [f"{var}_binned" for var in groups["dt"]]
 
 df["n"] = 1
-print(f"{vars_cat = }")
-print(f"{vars_cat_too_many = }")
-print(f"{vars_float_binned = }")
+new_cols += ["n"]
+
+print(f"{df.shape = }")
+print(df.head(1).T.to_string())
 
 # %%
 print(f"{df.shape = }")
@@ -52,15 +65,17 @@ dashboard = PivotDashboard(wb)
 dashboard.write_table(df)
 
 PIVOT_CONFIGS = []
-for var in vars_cat + vars_cat_too_many + vars_float_binned:
-    cfg = dict(
-        row_field=var,
-        col_field=target_var,
-        data_field="n",
-    )
-    PIVOT_CONFIGS.append(cfg)
+for var in new_cols:
+    if var not in [target_var, "n"]:
+        cfg = dict(
+            row_field=var,
+            col_field=target_var,
+            data_field="n",
+        )
+        PIVOT_CONFIGS.append(cfg)
+
 dashboard.add_pivots(PIVOT_CONFIGS)
 
 dashboard.add_slicers(
-    fields=vars_cat + vars_cat_too_many + vars_float_binned,
+    fields=new_cols[:3],
 )
