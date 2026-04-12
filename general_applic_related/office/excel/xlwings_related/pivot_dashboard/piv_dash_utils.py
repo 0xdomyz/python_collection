@@ -82,33 +82,43 @@ def topx_cat(
 
 
 # %%
+# %%
 import numpy as np
 import pandas as pd
 
 
-def interval_to_padded_str(interval: pd.Interval, max_digits: int) -> str:
-    if not hasattr(interval, "left"):
-        return "nan"
-    left = str(int(interval.left)).zfill(max_digits)
-    right = str(int(interval.right)).zfill(max_digits)
-    return f"({left}, {right}]"
+def _make_sortable_labels(cats: pd.Index) -> dict:
+    pad = max(2, len(str(len(cats) - 1)))
+    label_map = {iv: f"{i:0{pad}d} {iv}" for i, iv in enumerate(cats)}
+    return label_map
 
 
-def make_binned_column(
+def make_binned_column_even(
     srs: pd.Series,
     bins: str | int | np.ndarray = "auto",
-    fill_value: float = 0,
-    make_padded_str: bool = False,
+    sortable_str: bool = False,
 ) -> pd.Series:
-    series = srs.fillna(fill_value)
-    edges = np.histogram_bin_edges(series, bins=bins)
-    max_digits = max(len(str(int(edges.max()))), len(str(int(edges.min()))))
+    srs2 = srs.dropna()
+    edges = np.histogram_bin_edges(srs2, bins=bins)
+    binned_series = pd.cut(srs, bins=edges)
 
-    binned_series = pd.cut(series, bins=edges)
-    if make_padded_str:
-        binned_series = binned_series.map(
-            lambda interval: interval_to_padded_str(interval, max_digits)
-        )
+    if sortable_str:
+        label_map = _make_sortable_labels(binned_series.cat.categories)
+        binned_series = binned_series.cat.rename_categories(label_map)
+    return binned_series
+
+
+def make_binned_column_quantile(
+    srs: pd.Series,
+    bins: int = 10,
+    sortable_str: bool = False,
+) -> pd.Series:
+    edges = pd.qcut(srs, q=bins, duplicates="drop").cat.categories
+    binned_series = pd.cut(srs, bins=edges)
+
+    if sortable_str:
+        label_map = _make_sortable_labels(binned_series.cat.categories)
+        binned_series = binned_series.cat.rename_categories(label_map)
     return binned_series
 
 
@@ -194,3 +204,68 @@ def auto_floor_for_target_nunique(
                 break
 
     return dt_series.dt.floor(selected_freq), selected_freq, selected_nunique
+
+
+# %%
+import re
+
+import pandas as pd
+
+_DTYPE_RULES: list[tuple[str, re.Pattern[str]]] = [
+    ("str", re.compile(r"^(object|category|string)$")),
+    ("float", re.compile(r"^float")),
+    ("int", re.compile(r"^[uU]?[iI]nt")),
+    ("dt", re.compile(r"datetime")),
+]
+
+
+def _classify_high_cardinality_col(col: str, dtype: str) -> str:
+    """Return the group key for a single high-cardinality column.
+
+    Raises ValueError if the dtype is not matched by any known rule.
+    """
+    for group_key, pattern in _DTYPE_RULES:
+        if pattern.search(dtype):
+            return group_key
+    raise ValueError(
+        f"Column {col!r} has dtype {dtype!r} which is not handled by any "
+        f"classification rule. Add a rule to _DTYPE_RULES to cover it."
+    )
+
+
+def classify_vars(
+    df_info: pd.DataFrame,
+    nunique_threshold: int = 20,
+    # df_nunique_threshold: int = 75,
+) -> dict[str, list[str]]:
+    """Classify columns into type-groups based on dtype and cardinality.
+
+    Returns original column names only; no DataFrame mutation.
+    Groups:
+    - orig:    low-cardinality (any dtype) — used as-is.
+    - str:    high-cardinality object / category / string.
+    - float:  high-cardinality float*.
+    - int:    high-cardinality int* / uint*.
+    - dt:     high-cardinality datetime*.
+
+    Raises ValueError for any high-cardinality column whose dtype is unknown.
+    """
+    groups: dict[str, list[str]] = {
+        "orig": [],
+        "str": [],
+        "float": [],
+        "int": [],
+        "dt": [],
+    }
+    for col, row in df_info.iterrows():
+        if row["nunique"] < nunique_threshold:
+            groups["orig"].append(col)
+        # elif (
+        #     re.compile(r"datetime").search(row["dtypes"])
+        #     and row["nunique"] < df_nunique_threshold
+        # ):
+        #     groups["orig"].append(col)
+        else:
+            group_key = _classify_high_cardinality_col(col, row["dtypes"])
+            groups[group_key].append(col)
+    return groups
