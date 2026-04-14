@@ -25,7 +25,7 @@ df["n"] = 1
 # %%
 wb = xw.Book()
 dashboard = PivotDashboard(wb)
-dashboard.write_table(df)
+dashboard.write_table(df, sql=f"SELECT * FROM df")
 
 pivot_configs = [
     # fmt: off
@@ -33,7 +33,6 @@ pivot_configs = [
     dict(row_field="embark_town", col_field="survived", data_field="n"),
     dict(row_field="age_group",col_field="survived",data_field="n",chart_type="area_stacked",), 
     dict(row_field="fare_binned",col_field="survived",data_field="n",chart_type="area_stacked",),
-    dict(row_field="deck", col_field="survived", data_field="n"),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs)
@@ -45,7 +44,5 @@ dashboard.add_slicers(
         "deck",
         "sibsp",
         "parch",
-        "age_group",
-        "fare_binned",
     ],
 )
