@@ -1,5 +1,4 @@
 # %%
-import os
 from pathlib import Path
 
 path = Path(".")
@@ -18,7 +17,7 @@ def reformat(func_str: str) -> str:
 
 # %%
 func_str = """
-xxx
+
 """
 
 print(reformat(func_str))
