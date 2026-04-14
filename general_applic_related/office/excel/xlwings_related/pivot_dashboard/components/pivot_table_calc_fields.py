@@ -43,7 +43,6 @@ pt = pivot_cache.CreatePivotTable(
 # %%
 # fields
 pt.PivotFields("who").Orientation = 1  # xlRowField
-pt.PivotFields("survived").Orientation = 2  # xlColumnField
 pt.AddDataField(pt.PivotFields("survived"), "Sum of survived", -4157)  # -4157 = xlSum
 pt.AddDataField(pt.PivotFields("n"), "Sum of n", -4157)  # -4157 = xlSum
 
