@@ -83,10 +83,9 @@
             "select",
             "    $1,",
             "    $2,",
-            "    count(1) as n,",
-            "    sum(exp) as exp",
+            "    count(1) as n",
             "from $3",
-            "where infokey = 'Version'",
+            "where $4 = '$5'",
             "group by 1,2",
             "order by 1,2",
             "\"\"\"",
@@ -204,6 +203,13 @@
             "[i$1 for i in $2]"
         ]
     },
+    "withopen": {
+        "prefix": "withopen",
+        "body": [
+            "with open(\"$1\", 'r') as f:",
+            "    $2 = f.read()"
+        ]
+    },
     "iterdir": {
         "prefix": "iterdir",
         "body": [
@@ -231,6 +237,18 @@
         "body": [
             "with open(Path('sql') / \"$1.sql\"), \"w\") as f:",
             "    f.write(qry)"
+        ]
+    },
+    "xwdata": {
+        "prefix": "xwdata",
+        "body": [
+            "wb = xw.Book()",
+            "ws = wb.sheets[0]",
+            "ws.name = \"Data\"",
+            "",
+            "ws.clear()",
+            "ws[\"A1\"].value = df$1",
+            "ws.tables.add(source=ws[\"A1\"].expand(), name=\"Data1\")"
         ]
     },
     "pivdash": {
@@ -296,18 +314,18 @@
             "sas = saspy.SASsession()"
         ]
     },
-    "Submit SAS": {
-        "prefix": "sassubmit",
+    "sasrun": {
+        "prefix": "sasrun",
         "body": [
             "sas.submitLST(",
             "f\"\"\"",
             "$0",
             "run;",
-            "\"\"\", method=\"listorlog\")"
+            "\"\"\")"
         ]
     },
-    "submit sas lst and log": {
-        "prefix": "sassubmitlstlog",
+    "sasrunlog": {
+        "prefix": "sasrunlog",
         "body": [
             "sas.submitLST(",
             "f\"\"\"",
@@ -316,94 +334,147 @@
             "\"\"\", method=\"listandlog\")"
         ]
     },
-    "sas error count": {
+    "saserrorcount": {
         "prefix": "saserrorcount",
         "body": [
             "print(f\"{sas.saslog().count('ERROR') = }\")$0"
         ]
     },
-    "SAS print": {
+    "sasprint": {
         "prefix": "sasprint",
         "body": [
-            "sas.submitLST(",
-            "f\"\"\"",
-            "proc print data = $1;",
-            "run;",
-            "\"\"\", method=\"listorlog\")$0"
+            "sas.submitLST(f\"proc print data = $1;run;\")"
         ]
     },
-    "sas data head": {
+    "sasdatahead": {
         "prefix": "sasdatahead",
         "body": [
             "sas.sasdata(\"$1\",\"work$2\").head()"
         ]
     },
-    "sas df": {
+    "sasdrop": {
+        "prefix": "sasdrop",
+        "body": [
+            "sas.submitLST(f\"proc sql;drop table $1;run;\")"
+        ]
+    },
+    "saslet": {
+        "prefix": "saslet",
+        "body": [
+            "sas.submitLST(",
+            "f\"\"\"",
+            "%let $1=$2;",
+            "\"\"\")"
+        ]
+    },
+    "sasdf": {
         "prefix": "sasdf",
         "body": [
             "df = sas.sasdata(\"$1\",\"work$2\").to_df()",
             "df$0"
         ]
     },
-    "sas last log": {
+    "saslastlog": {
         "prefix": "saslastlog",
         "body": [
             "print(sas.lastlog())$0"
         ]
     },
-    "porc freq and receive df": {
-        "prefix": "pfreqdf",
+    "saspfreqdf": {
+        "prefix": "saspfreqdf",
         "body": [
             "sas.submitLST(",
             "f\"\"\"",
             "proc freq data=$1 noprint;",
             "    tables $2 / missing out=_tmp;",
             "run;",
-            "\"\"\", method=\"listonly\")",
+            "\"\"\")",
             "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
             "df.columns = df.columns.str.lower()",
             "df"
         ]
     },
-    "porc summary and receive df": {
-        "prefix": "psumdf",
+    "saspsumdf": {
+        "prefix": "saspsumdf",
         "body": [
             "sas.submitLST(",
             "f\"\"\"",
-            "proc sort data=sashelp.cars$1 out=_sorted;",
-            "    by type$2;",
+            "proc sort data=$1 out=_sorted;",
+            "    by $2;",
             "",
             "proc summary data=_sorted;",
-            "    by type$2;",
-            "    var msrp$3;",
+            "    by $2;",
+            "    var $3;",
             "    output out=_tmp",
-            "        mean(msrp$3) = mean_msrp$3",
+            "        mean($3) = mean_$3",
             "    ;",
             "run;",
-            "\"\"\", method=\"listonly\")",
+            "\"\"\")",
             "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
-            "df.columns = df.columns.str.lower()",
             "df"
         ]
     },
-    "sas proc sql simple version": {
-        "prefix": "psqlsimple",
+    "saspcontent": {
+        "prefix": "saspcontent",
         "body": [
             "sas.submitLST(",
             "f\"\"\"",
-            "proc sql;",
-            "    select",
-            "        count(*) as n",
-            "    from $1",
-            "    where",
-            "        $0",
-            "    ;",
-            "quit;",
-            "\"\"\", method=\"listorlog\")"
+            "PROC CONTENTS DATA=$1 OUT=_tmp;",
+            "run;",
+            "\"\"\")",
+            "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+            "df"
         ]
     },
-    "sas proc sql full version": {
-        "prefix": "psqlfull",
+    "sasqry": {
+        "prefix": "sasqry",
+        "body": [
+            "sas.submitLST(",
+            "    f\"\"\"",
+            "proc sql;",
+            "create table _tmp as",
+            "    select",
+            "        *",
+            "    from $1",
+            "    where $2= '$3'",
+            "    ;",
+            "quit;",
+            "\"\"\")",
+            "df = sas.sasdata(\"_tmp\", \"work\").to_df()",
+            "df"
+        ]
+    },
+    "sasgrp": {
+        "prefix": "sasgrp",
+        "body": [
+            "sas.submitLST(",
+            "    f\"\"\"",
+            "proc sql;",
+            "create table _tmp as",
+            "    select",
+            "        $1,",
+            "        $2,",
+            "        count(1) as n",
+            "    from $3",
+            "    where $4 = '$5'",
+            "    group by 1,2",
+            "    order by 1,2",
+            "    ;",
+            "quit;",
+            "\"\"\")",
+            "df = sas.sasdata(\"_tmp\", \"work\").to_df()",
+            "df"
+        ]
+    },
+    "sastop1": {
+        "prefix": "sastop1",
+        "body": [
+            "sas.submitLST(f\"proc sql (inobs=1); create table _tmp as select * from $1; quit;\")",
+            "print(sas.sasdata(\"_tmp\", \"work\").to_df().T.to_string())"
+        ]
+    },
+    "sasjoin": {
+        "prefix": "sasjoin",
         "body": [
             "sas.submitLST(",
             "f\"\"\"",
@@ -423,9 +494,8 @@
             "    order by 1,2",
             "    ;",
             "quit;",
-            "\"\"\", method=\"listorlog\")",
+            "\"\"\")",
             "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
-            "df.columns = df.columns.str.lower()",
             "df"
         ]
     },

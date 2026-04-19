@@ -18,6 +18,13 @@
             "[i$1 for i in $2]",
         ],
     },
+    "withopen": {
+        "prefix": "withopen",
+        "body": [
+            "with open(\"$1\", 'r') as f:",
+            "    $2 = f.read()",
+        ],
+    },
     "iterdir": {
         "prefix": "iterdir",
         "body": [
@@ -45,6 +52,18 @@
         "body": [
             "with open(Path('sql') / \"$1.sql\"), \"w\") as f:",
             "    f.write(qry)",
+        ],
+    },
+    "xwdata": {
+        "prefix": "xwdata",
+        "body": [
+            "wb = xw.Book()",
+            "ws = wb.sheets[0]",
+            "ws.name = \"Data\"",
+            "",
+            "ws.clear()",
+            "ws[\"A1\"].value = df$1",
+            "ws.tables.add(source=ws[\"A1\"].expand(), name=\"Data1\")",
         ],
     },
     "pivdash": {
