@@ -21,3 +21,7 @@ func_str = """
 """
 
 print(reformat(func_str))
+
+# %%
+
+# %%
