@@ -7,19 +7,19 @@ import pandas as pd
 import sqlalchemy as alc
 
 
-def save_sql(
+def save_code(
     self: alc.engine.Engine,
     sql_file: str | os.PathLike[str] | None = None,
     enabled: bool = True,
 ) -> alc.engine.Engine:
-    self._save_sql_enabled = enabled
+    self._save_code_enabled = enabled
     if sql_file is not None:
         self._sql_file = str(sql_file)
     return self
 
 
-def _save_sql(self: alc.engine.Engine, sql: str) -> None:
-    if not getattr(self, "_save_sql_enabled", False):
+def _save_code(self: alc.engine.Engine, sql: str) -> None:
+    if not getattr(self, "_save_code_enabled", False):
         return
 
     sql_file = getattr(self, "_sql_file", None)
@@ -34,7 +34,7 @@ def _save_sql(self: alc.engine.Engine, sql: str) -> None:
 # add run method to engine
 def run(self: alc.engine.Engine, sql: str) -> pd.DataFrame | None:
     print(f"Running SQL:\n{sql}")
-    _save_sql(self, sql)
+    _save_code(self, sql)
     # with self.begin() as conn:
     #     res = conn.execute(alc.text(sql))
     #     if res.returns_rows:
@@ -42,7 +42,7 @@ def run(self: alc.engine.Engine, sql: str) -> pd.DataFrame | None:
     return None
 
 
-alc.engine.Engine.save_sql = save_sql
+alc.engine.Engine.save_code = save_code
 alc.engine.Engine.run = run
 
 connection_string = f"teradatasql://demo_user:{os.environ['password']}@test-l36lujzkc0420a7n.env.clearscape.teradata.com"
@@ -51,15 +51,15 @@ eng = alc.create_engine(connection_string)
 # %%
 sf = Path("run.sql")
 sf.unlink(missing_ok=True)
-eng.save_sql(sf)
+eng.save_code(sf)
 
 # %%
 eng.run("SELECT * FROM demo_user.test_table")
 eng.run("SELECT * FROM demo_user.test_table1")
 eng.run("SELECT * FROM demo_user.test_table2")
-eng.save_sql(enabled=False)
+eng.save_code(enabled=False)
 eng.run("SELECT * FROM demo_user.test_table3")
-eng.save_sql(enabled=True)
+eng.save_code(enabled=True)
 eng.run("SELECT * FROM demo_user.test_table4")
 
 # %%
