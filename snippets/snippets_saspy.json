@@ -1,6 +1,6 @@
 {
     // saspy related
-    "setup SAS": {
+    "sassetup": {
         "prefix": "sassetup",
         "body": [
             "import saspy",
@@ -159,10 +159,10 @@
             "df",
         ],
     },
-    "sastop1": {
-        "prefix": "sastop1",
+    "sastop": {
+        "prefix": "sastop",
         "body": [
-            "sas.submitLST(f\"proc sql (inobs=1); create table _tmp as select * from $1; quit;\")",
+            "sas.submitLST(f\"proc sql inobs=1; create table _tmp as select * from $1; quit;\", method=\"listonly\")",
             "print(sas.sasdata(\"_tmp\", \"work\").to_df().T.to_string())",
         ],
     },

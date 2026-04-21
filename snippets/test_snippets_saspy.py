@@ -1,8 +1,10 @@
 # %%
+# setup
 import saspy
 
 sas = saspy.SASsession()
 # %%
+# run
 sas.submitLST(
     f"""
 proc print data=sashelp.cars (obs=5);
@@ -11,6 +13,7 @@ run;
 )
 
 # %%
+# runlog
 sas.submitLST(
     f"""
 proc print data=sashelp.cars (obs=5);
@@ -19,12 +22,16 @@ run;
     method="listandlog",
 )
 # %%
+# errorcount
 print(f"{sas.saslog().count('ERROR') = }")
 # %%
+# print
 sas.submitLST(f"proc print data = sashelp.cars (obs=5);run;")
 # %%
+# datahead
 sas.sasdata("cars", "sashelp").head()
 # %%
+# ctbl
 sas.submitLST(
     f"""
 proc sql;
@@ -41,8 +48,10 @@ quit;
 df = sas.sasdata("_tmp", "work").to_df()
 df
 # %%
+# drop
 sas.submitLST(f"proc sql;drop table _tmp;run;", method="listonly")
 # %%
+# let
 sas.submitLST(
     rf"""
 %let myvar=myvalue;
@@ -51,8 +60,10 @@ libname mylib 'C:\temp';
     method="listonly",
 )
 # %%
+# log
 print(sas.lastlog())
 # %%
+# freq
 sas.submitLST(
     f"""
 proc freq data=sashelp.cars noprint;
@@ -64,6 +75,7 @@ df = sas.sasdata("_tmp", "work").to_df()
 df.columns = df.columns.str.lower()
 df
 # %%
+# stat
 sas.submitLST(
     f"""
 proc sort data=sashelp.cars out=_sorted;
@@ -81,6 +93,7 @@ run;
 df = sas.sasdata("_tmp", "work").to_df()
 df
 # %%
+# info
 sas.submitLST(
     f"""
 PROC CONTENTS DATA=sashelp.cars OUT=_tmp;
@@ -90,6 +103,7 @@ run;
 df = sas.sasdata("_tmp", "work").to_df()
 df
 # %%
+# qry
 sas.submitLST(
     f"""
 proc sql;
@@ -109,11 +123,15 @@ quit;
 df = sas.sasdata("_tmp", "work").to_df()
 df
 # %%
+# top
 sas.submitLST(
-    f"proc sql (inobs=1); create table _tmp as select * from sashelp.cars; quit;"
+    f"proc sql inobs=1; create table _tmp as select * from sashelp.cars; quit;",
+    method="listonly",
 )
 print(sas.sasdata("_tmp", "work").to_df().T.to_string())
+
 # %%
+# join
 sas.submitLST(
     f"""
 proc sql;
