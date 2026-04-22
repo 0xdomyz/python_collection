@@ -1,8 +1,40 @@
+# %% [markdown]
+# ## test
+# ####################################################################################################
+# %%
+import saspy
+
+sas = saspy.SASsession()
+# %%
+for i in dir(sas.sasdata("cars", "sashelp")):
+    if not i.startswith("_"):
+        print(i)
+
+# %% [markdown]
+# ## snippets
+# ####################################################################################################
+
 # %%
 # setup
 import saspy
 
 sas = saspy.SASsession()
+sas
+
+# %%
+# head
+df_h = sas.sasdata("cars", "sashelp").head()
+df_h
+
+# %%
+# count
+n_obs = sas.sasdata("cars", "sashelp").obs()
+n_obs
+
+# %% [markdown]
+# ## unprocessed
+# ####################################################################################################
+
 # %%
 # run
 sas.submitLST(
@@ -27,9 +59,6 @@ print(f"{sas.saslog().count('ERROR') = }")
 # %%
 # print
 sas.submitLST(f"proc print data = sashelp.cars (obs=5);run;")
-# %%
-# datahead
-sas.sasdata("cars", "sashelp").head()
 # %%
 # ctbl
 sas.submitLST(
@@ -153,4 +182,5 @@ quit;
 """
 )
 df = sas.sasdata("_tmp", "work").to_df()
+df
 df
