@@ -1,5 +1,5 @@
 # %% [markdown]
-# ## test
+# ## pre-test
 # ####################################################################################################
 # %%
 import saspy
@@ -22,6 +22,15 @@ sas = saspy.SASsession()
 sas
 
 # %%
+sas.submitLST(
+    rf"""
+%let myvar=myvalue;
+libname mylib 'C:\temp';
+""",
+    method="listonly",
+)
+
+# %%
 # head
 df_h = sas.sasdata("cars", "sashelp").head()
 df_h
@@ -31,9 +40,49 @@ df_h
 n_obs = sas.sasdata("cars", "sashelp").obs()
 n_obs
 
-# %% [markdown]
-# ## unprocessed
-# ####################################################################################################
+# %%
+# shape
+sd = sas.sasdata("cars", "sashelp")
+shape = (sd.obs(), len(sd.columnInfo()))
+print(shape)
+
+# %%
+# shapehead
+sd = sas.sasdata("cars", "sashelp")
+shape = (sd.obs(), len(sd.columnInfo()))
+df_h = sd.head()
+print(shape)
+df_h
+
+# %%
+# top
+df_h1 = sas.sasdata("cars", "sashelp").head(1)
+print(df_h1.T.to_string())
+
+# %%
+# info
+df_info = sas.sasdata("cars", "sashelp").columnInfo()
+df_info
+
+# %%
+# col
+df_info = sas.sasdata("cars", "sashelp").columnInfo()
+cols = df_info["Variable"].tolist()
+[c for c in cols if "cylin" in c.lower()]
+
+# %%
+# valc
+sas.submitLST(
+    f"""
+proc freq data=sashelp.cars noprint;
+    tables Origin / missing out=_tmp;
+run;
+""",
+    method="listonly",
+)
+df = sas.sasdata("_tmp", "work").to_df()
+df.columns = df.columns.str.lower()
+df
 
 # %%
 # run
@@ -45,7 +94,6 @@ run;
 )
 
 # %%
-# runlog
 sas.submitLST(
     f"""
 proc print data=sashelp.cars (obs=5);
@@ -53,12 +101,57 @@ run;
 """,
     method="listandlog",
 )
+
 # %%
-# errorcount
-print(f"{sas.saslog().count('ERROR') = }")
+# grp
+sas.submitLST(
+    f"""
+proc sort data=sashelp.cars out=_sorted;
+    by Origin;
+
+proc summary data=_sorted;
+    by Origin;
+    var MSRP;
+    output out=_tmp
+        mean(MSRP) = mean_MSRP
+    ;
+run;
+""",
+    method="listonly",
+)
+df = sas.sasdata("_tmp", "work").to_df()
+df
+
 # %%
-# print
-sas.submitLST(f"proc print data = sashelp.cars (obs=5);run;")
+# qry
+sas.submitLST(
+    f"""
+proc sql;
+create table _tmp as
+    select
+        Origin,
+        Type,
+        count(1) as n
+    from sashelp.cars
+    where Origin = 'USA'
+    group by 1,2
+    order by 1,2
+    ;
+quit;
+""",
+    method="listonly",
+)
+df = sas.sasdata("_tmp", "work").to_df()
+df
+
+# %%
+# drop
+sas.submitLST(f"proc sql;drop table work._tmp;quit;", method="listonly")
+
+# %%
+# write
+sas.df2sd(df, "_tmp", "work")
+
 # %%
 # ctbl
 sas.submitLST(
@@ -76,88 +169,7 @@ quit;
 )
 df = sas.sasdata("_tmp", "work").to_df()
 df
-# %%
-# drop
-sas.submitLST(f"proc sql;drop table _tmp;run;", method="listonly")
-# %%
-# let
-sas.submitLST(
-    rf"""
-%let myvar=myvalue;
-libname mylib 'C:\temp';
-""",
-    method="listonly",
-)
-# %%
-# log
-print(sas.lastlog())
-# %%
-# freq
-sas.submitLST(
-    f"""
-proc freq data=sashelp.cars noprint;
-    tables Origin / missing out=_tmp;
-run;
-"""
-)
-df = sas.sasdata("_tmp", "work").to_df()
-df.columns = df.columns.str.lower()
-df
-# %%
-# stat
-sas.submitLST(
-    f"""
-proc sort data=sashelp.cars out=_sorted;
-    by Origin;
 
-proc summary data=_sorted;
-    by Origin;
-    var MSRP;
-    output out=_tmp
-        mean(MSRP) = mean_MSRP
-    ;
-run;
-"""
-)
-df = sas.sasdata("_tmp", "work").to_df()
-df
-# %%
-# info
-sas.submitLST(
-    f"""
-PROC CONTENTS DATA=sashelp.cars OUT=_tmp;
-run;
-"""
-)
-df = sas.sasdata("_tmp", "work").to_df()
-df
-# %%
-# qry
-sas.submitLST(
-    f"""
-proc sql;
-create table _tmp as
-    select
-        Origin,
-        Type,
-        count(1) as n
-    from sashelp.cars
-    where Origin = 'USA'
-    group by 1,2
-    order by 1,2
-    ;
-quit;
-"""
-)
-df = sas.sasdata("_tmp", "work").to_df()
-df
-# %%
-# top
-sas.submitLST(
-    f"proc sql inobs=1; create table _tmp as select * from sashelp.cars; quit;",
-    method="listonly",
-)
-print(sas.sasdata("_tmp", "work").to_df().T.to_string())
 
 # %%
 # join
@@ -184,3 +196,12 @@ quit;
 df = sas.sasdata("_tmp", "work").to_df()
 df
 df
+
+
+# %%
+# errors
+print(f"{sas.saslog().count('ERROR') = }")
+
+# %%
+# log
+print(sas.lastlog())
