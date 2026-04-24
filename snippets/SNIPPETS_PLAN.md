@@ -23,6 +23,7 @@ Operations
 | drop | drop table |
 | write | create table and write |
 | ctbl | drop and write and qry prefiled |
+| join | join tables |
 | errors | number of errors |
 | log | log information |
 
