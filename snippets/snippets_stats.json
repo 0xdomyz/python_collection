@@ -155,6 +155,12 @@
             ")",
         ],
     },
+    "collower": {
+        "prefix": "collower",
+        "body": [
+            "$1.columns = $1.columns.str.lower()",
+        ],
+    },
     //plot related
     "figax": {
         "prefix": "figax",
