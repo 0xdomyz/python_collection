@@ -36,6 +36,9 @@ df_h = sas.sasdata("cars", "sashelp").head()
 df_h
 
 # %%
+sas.submitLST(f"proc print data=sashelp.cars (obs=5);run;", method="listonly")
+
+# %%
 # count
 n_obs = sas.sasdata("cars", "sashelp").obs()
 n_obs
@@ -85,6 +88,26 @@ df.columns = df.columns.str.lower()
 df
 
 # %%
+sas.submitLST(
+    f"""
+proc sql;
+create table _tmp as
+    select
+        origin,
+        count(1) as n
+    from sashelp.cars
+    where msrp > 20000
+    group by 1
+    order by 1;
+quit;
+""",
+    method="listonly",
+)
+df = sas.sasdata("_tmp", "work").to_df()
+df
+
+
+# %%
 # run
 sas.submitLST(
     f"""
@@ -104,6 +127,8 @@ run;
 
 # %%
 # grp
+
+# %%
 sas.submitLST(
     f"""
 proc sort data=sashelp.cars out=_sorted;
@@ -121,6 +146,10 @@ run;
 )
 df = sas.sasdata("_tmp", "work").to_df()
 df
+
+# %%
+# stat
+
 
 # %%
 # qry
