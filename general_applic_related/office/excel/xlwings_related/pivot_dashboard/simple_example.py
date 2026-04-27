@@ -31,8 +31,8 @@ pivot_configs = [
     # fmt: off
     dict(row_field="who", col_field="survived", data_field="n"),
     dict(row_field="embark_town", col_field="survived", data_field="n"),
-    dict(row_field="age_group",col_field="survived",data_field="n",chart_type="area_stacked",), 
-    dict(row_field="fare_binned",col_field="survived",data_field="n",chart_type="area_stacked",),
+    dict(row_field="age_group",col_field="survived",data_field="n",chart_type="area_stacked",sort_col_asc_by_data_field =True), 
+    dict(row_field="fare_binned",data_field="n",rate_calc={'nume':'survived','deno':'n'}),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs)

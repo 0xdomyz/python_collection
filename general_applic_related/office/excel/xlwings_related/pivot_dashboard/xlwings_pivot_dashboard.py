@@ -358,16 +358,22 @@ class PivotDashboard:
         ----------
         configs : list of dict
             Required keys per entry:
-                ``row_field``,
-                ``col_field``,
-                ``data_field``.
+                ``row_field`` (str),
+                ``data_field`` (str).
             Optional keys:
+                ``col_field`` (str),
                 ``name`` (str),
                 ``title`` (str),
                 ``data_label`` (str),
                 ``xl_func`` (int or XL_FUNC key string, default ``"sum"``),
-                ``chart_type`` (xlwings chart type string, default ``"bar_clustered"``),
-                ``sort_col_asc_by_data_field`` (bool).
+                ``chart_type`` (xlwings chart type string, default ``"column_clustered"``),
+                ``sort_col_asc_by_data_field`` (bool),
+                ``rate_calc`` (dict):
+                    ``nume`` (str, required),
+                    ``deno`` (str, required),
+                    ``label`` (str, optional; default ``"{nume}_rate"``).
+                    When present, this rate series is automatically plotted as
+                    a line on the secondary axis.
         chart_layout : dict, optional
             Override chart/grid layout. Keys: ``ncols``, ``col_width``,
             ``row_height``, ``top_offset``, ``left_offset``, ``chart_width``,
@@ -412,7 +418,7 @@ class PivotDashboard:
                 data_label = cfg.get(
                     "data_label", f"{func_label} of {cfg['data_field']}"
                 )
-                chart_type = cfg.get("chart_type", "bar_clustered")
+                chart_type = cfg.get("chart_type", "column_clustered")
 
                 # create pivot table
                 pt = self._pivot_cache.CreatePivotTable(
@@ -420,9 +426,36 @@ class PivotDashboard:
                     TableName=cfg.get("name", f"PivotTable{idx}"),
                 )
                 pt.PivotFields(cfg["row_field"]).Orientation = 1  # xlRowField
-                pt.PivotFields(cfg["col_field"]).Orientation = 2  # xlColumnField
+                if "col_field" in cfg:
+                    pt.PivotFields(cfg["col_field"]).Orientation = 2  # xlColumnField
                 pt.AddDataField(pt.PivotFields(cfg["data_field"]), data_label, xl_func)
-                if cfg.get("sort_col_asc_by_data_field"):
+
+                # Optional calculated rate metric (e.g. survived / n) added as a second data field.
+                rate_cfg = cfg.get("rate_calc")
+                if rate_cfg:
+                    numerator = rate_cfg["nume"]
+                    denominator = rate_cfg["deno"]
+                    rate_label = rate_cfg.get("label", f"{numerator}_rate")
+                    calc_field_name = f"_{rate_label}"
+                    calc_formula = f"={numerator}/{denominator}"
+
+                    try:
+                        pt.CalculatedFields().Add(calc_field_name, calc_formula)
+                    except Exception:
+                        # Field can already exist in the shared pivot cache.
+                        try:
+                            pt.PivotFields(calc_field_name)
+                        except Exception:
+                            raise
+
+                    rate_field = pt.AddDataField(
+                        pt.PivotFields(calc_field_name),
+                        rate_label,
+                        XL_FUNC["average"],
+                    )
+                    rate_field.NumberFormat = "0.0%"
+
+                if cfg.get("sort_col_asc_by_data_field") and "col_field" in cfg:
                     pt.PivotFields(cfg["col_field"]).AutoSort(
                         Order=1,  # 1=xlAscending, 2=xlDescending
                         Field=data_label,
@@ -439,10 +472,19 @@ class PivotDashboard:
                 chart.set_source_data(self.ws_pivot[dest].expand())
                 chart.chart_type = chart_type
                 chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
+
+                if rate_cfg:
+                    try:
+                        srs_ln = chart_com.SeriesCollection(rate_label)
+                        srs_ln.ChartType = 4  # xlLine
+                        srs_ln.AxisGroup = 2  # secondary axis
+                    except Exception:
+                        # raise
+                        pass
+
                 chart_com.HasTitle = True
-                title = (
-                    cfg.get("title")
-                    or f"{data_label} by {cfg['row_field']} and {cfg['col_field']}"
+                title = cfg.get("title") or f"{data_label} by {cfg['row_field']}" + (
+                    f" and {cfg['col_field']}" if "col_field" in cfg else ""
                 )
                 chart_com.ChartTitle.Text = title
                 self._chart_coms.append(chart)
