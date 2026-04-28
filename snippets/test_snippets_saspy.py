@@ -21,6 +21,14 @@ import saspy
 sas = saspy.SASsession()
 sas
 
+
+# %%
+# setupcfg
+import saspy  # isort: skip
+from pathlib import Path  # isort: skip
+
+print(Path(saspy.SAScfg).as_posix())
+
 # %%
 sas.submitLST(
     rf"""
@@ -46,21 +54,21 @@ n_obs
 # %%
 # shape
 sd = sas.sasdata("cars", "sashelp")
-shape = (sd.obs(), len(sd.columnInfo()))
-print(shape)
+_shape = (sd.obs(), len(sd.columnInfo()))
+print(_shape)
 
-# %%
-# shapehead
-sd = sas.sasdata("cars", "sashelp")
-shape = (sd.obs(), len(sd.columnInfo()))
-df_h = sd.head()
-print(shape)
-df_h
 
 # %%
 # top
 df_h1 = sas.sasdata("cars", "sashelp").head(1)
 print(df_h1.T.to_string())
+
+# %%
+# shapehead
+sd = sas.sasdata("cars", "sashelp")
+_shape, df_h = (sd.obs(), len(sd.columnInfo())), sd.head()
+print(_shape)
+df_h
 
 # %%
 # info
@@ -109,12 +117,10 @@ df
 
 # %%
 # run
-sas.submitLST(
-    f"""
+sas.submitLST(f"""
 proc print data=sashelp.cars (obs=5);
 run;
-"""
-)
+""")
 
 # %%
 sas.submitLST(
@@ -148,8 +154,67 @@ df = sas.sasdata("_tmp", "work").to_df()
 df
 
 # %%
-# stat
+# uni
+sas.submitLST(
+    f"""
+title;
+proc univariate data=sashelp.baseball;
+    var salary;
+    histogram salary / lognormal;
+run;
+""",
+    method="listorlog",
+)
 
+# %%
+# logi
+sas.submitLST(
+    """
+proc logistic data=sashelp.heart plots(only)=roc;
+    where status in ('Alive','Dead');
+    model status(event='Dead') = height;
+    output out=work._pred p=phat;
+run;
+""",
+    method="listonly",
+)
+
+# %%
+# sfa
+sas.submitLST(
+    f"""
+proc rank
+    data=sashelp.baseball(where=(division in ('East','West')))
+    out=_tmp_h_dec
+    groups=10;
+    var salary;
+    ranks decile0;
+run;
+
+proc sql;
+create table _tmp_rates as
+select
+    case
+        when missing(decile0) then 'NA'
+        else strip(put(decile0 + 1, 2.))
+    end as decile,
+    count(*) as n,
+    mean(division='East') as rate
+from _tmp_h_dec
+group by decile0
+order by decile;
+quit;
+
+proc sgplot data=_tmp_rates;
+    vbarparm category=decile response=n / datalabel transparency=0.15;
+    series x=decile y=rate / y2axis markers lineattrs=(thickness=2);
+    yaxis  label='Volume';
+    y2axis label='Rate' values=(0 to 1 by 0.1);
+    xaxis  label='Decile' integer;
+run;
+    """,
+    method="listonly",
+)
 
 # %%
 # qry
@@ -158,11 +223,16 @@ sas.submitLST(
 proc sql;
 create table _tmp as
     select
-        Origin,
-        Type,
+        a.make,
+        b.type,
         count(1) as n
-    from sashelp.cars
-    where Origin = 'USA'
+    from sashelp.cars a
+    left join sashelp.cars b
+    on
+        a.make = b.make and
+        a.type = b.type
+    where
+        a.origin = 'USA'
     group by 1,2
     order by 1,2
     ;
@@ -170,8 +240,10 @@ quit;
 """,
     method="listonly",
 )
+
 df = sas.sasdata("_tmp", "work").to_df()
 df
+
 
 # %%
 # drop
@@ -183,21 +255,32 @@ sas.df2sd(df, "_tmp", "work")
 
 # %%
 # ctbl
+sas.submitLST(f"proc sql;drop table work._tmp;quit;", method="listonly")
+
 sas.submitLST(
     f"""
 proc sql;
 create table _tmp as
     select
-        *
-    from sashelp.cars
-    where Length > 220
+        a.make,
+        b.type,
+        count(1) as n
+    from sashelp.cars a
+    left join sashelp.cars b
+    on
+        a.make = b.make and
+        a.type = b.type
+    where
+        a.origin = 'USA'
+    group by 1,2
+    order by 1,2
     ;
 quit;
 """,
     method="listonly",
 )
-df = sas.sasdata("_tmp", "work").to_df()
-df
+
+sas.sasdata("_tmp", "work").obs()
 
 
 # %%
@@ -207,24 +290,23 @@ sas.submitLST(
 proc sql;
 create table _tmp as
     select
-        a.*,
-        b.*
+        a.make,
+        b.model,
+        b.make as make2
     from sashelp.cars a
     left join sashelp.cars b
     on
-        a.Make = b.Make and
-        a.Type = b.Type
+        a.make = b.make and
+        a.model = b.model
     where
-        a.Origin = 'USA'
-    group by 1,2
-    order by 1,2
+        a.make = 'Ford'
     ;
 quit;
-"""
+""",
+    method="listonly",
 )
-df = sas.sasdata("_tmp", "work").to_df()
-df
-df
+
+sas.sasdata("_tmp", "work").obs()
 
 
 # %%
