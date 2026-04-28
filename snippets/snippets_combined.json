@@ -434,12 +434,24 @@
             "proc sql;",
             "create table _tmp as",
             "    select",
-            "        *",
-            "    from $1",
-            "    where $2= '$3'",
+            "        a.$1,",
+            "        b.$2,",
+            "        count(1) as n",
+            "    from $3 a",
+            "    left join $4 b",
+            "    on",
+            "        a.$1 = b.$1 and",
+            "        a.$2 = b.$2",
+            "    where",
+            "        a.$5 = '$6'",
+            "    group by 1,2",
+            "    order by 1,2",
             "    ;",
             "quit;",
-            "\"\"\")",
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")",
+            "",
             "df = sas.sasdata(\"_tmp\", \"work\").to_df()",
             "df"
         ]
@@ -652,6 +664,12 @@
             "$1.groupby(['$2'], dropna=False, group_keys=False).apply(",
             "    lambda x: (x - x.mean()) / x.std()",
             ")"
+        ]
+    },
+    "collower": {
+        "prefix": "collower",
+        "body": [
+            "$1.columns = $1.columns.str.lower()"
         ]
     },
     "figax": {
