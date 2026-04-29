@@ -15,7 +15,15 @@ def reformat(func_str: str) -> str:
 # %%
 # 1 str
 func_str = """
-
+sas.submitLST(
+    f/"/"/"
+title;
+proc freq data=sashelp.cars;
+    tables origin type / chisq;
+run;
+/"/"/",
+    method="listonly",
+)
 """
 
 print(reformat(func_str))

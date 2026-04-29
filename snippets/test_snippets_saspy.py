@@ -1,26 +1,9 @@
-# %% [markdown]
-# ## pre-test
-# ####################################################################################################
 # %%
-import saspy
-
-sas = saspy.SASsession()
-# %%
-for i in dir(sas.sasdata("cars", "sashelp")):
-    if not i.startswith("_"):
-        print(i)
-
-# %% [markdown]
-# ## snippets
-# ####################################################################################################
-
-# %%
-# setup
+# sassetup
 import saspy
 
 sas = saspy.SASsession()
 sas
-
 
 # %%
 # setupcfg
@@ -28,8 +11,8 @@ import saspy  # isort: skip
 from pathlib import Path  # isort: skip
 
 print(Path(saspy.SAScfg).as_posix())
-
 # %%
+# setuplib
 sas.submitLST(
     rf"""
 %let myvar=myvalue;
@@ -42,60 +25,36 @@ libname mylib 'C:\temp';
 # head
 df_h = sas.sasdata("cars", "sashelp").head()
 df_h
-
-# %%
-sas.submitLST(f"proc print data=sashelp.cars (obs=5);run;", method="listonly")
-
 # %%
 # count
 n_obs = sas.sasdata("cars", "sashelp").obs()
 n_obs
-
 # %%
 # shape
 sd = sas.sasdata("cars", "sashelp")
 _shape = (sd.obs(), len(sd.columnInfo()))
 print(_shape)
-
-
 # %%
 # top
 df_h1 = sas.sasdata("cars", "sashelp").head(1)
 print(df_h1.T.to_string())
-
 # %%
 # shapehead
 sd = sas.sasdata("cars", "sashelp")
 _shape, df_h = (sd.obs(), len(sd.columnInfo())), sd.head()
 print(_shape)
 df_h
-
 # %%
 # info
 df_info = sas.sasdata("cars", "sashelp").columnInfo()
 df_info
-
 # %%
 # col
 df_info = sas.sasdata("cars", "sashelp").columnInfo()
 cols = df_info["Variable"].tolist()
 [c for c in cols if "cylin" in c.lower()]
-
 # %%
 # valc
-sas.submitLST(
-    f"""
-proc freq data=sashelp.cars noprint;
-    tables Origin / missing out=_tmp;
-run;
-""",
-    method="listonly",
-)
-df = sas.sasdata("_tmp", "work").to_df()
-df.columns = df.columns.str.lower()
-df
-
-# %%
 sas.submitLST(
     f"""
 proc sql;
@@ -113,16 +72,17 @@ quit;
 )
 df = sas.sasdata("_tmp", "work").to_df()
 df
-
-
 # %%
 # run
-sas.submitLST(f"""
+sas.submitLST(
+    f"""
 proc print data=sashelp.cars (obs=5);
 run;
-""")
-
+""",
+    method="listonly",
+)
 # %%
+# runlog
 sas.submitLST(
     f"""
 proc print data=sashelp.cars (obs=5);
@@ -130,29 +90,26 @@ run;
 """,
     method="listandlog",
 )
-
 # %%
 # grp
-
-# %%
 sas.submitLST(
     f"""
-proc sort data=sashelp.cars out=_sorted;
-    by Origin;
-
-proc summary data=_sorted;
-    by Origin;
-    var MSRP;
-    output out=_tmp
-        mean(MSRP) = mean_MSRP
-    ;
-run;
+proc sql;
+create table _tmp as
+    select
+        origin,
+        type,
+        count(1) as n
+    from sashelp.cars
+    where msrp > 20000
+    group by 1,2
+    order by 1,2;
+quit;
 """,
     method="listonly",
 )
 df = sas.sasdata("_tmp", "work").to_df()
 df
-
 # %%
 # uni
 sas.submitLST(
@@ -163,7 +120,18 @@ proc univariate data=sashelp.baseball;
     histogram salary / lognormal;
 run;
 """,
-    method="listorlog",
+    method="listonly",
+)
+# %%
+# freq
+sas.submitLST(
+    f"""
+title;
+proc freq data=sashelp.cars;
+    tables origin type / chisq;
+run;
+""",
+    method="listonly",
 )
 
 # %%
@@ -178,7 +146,6 @@ run;
 """,
     method="listonly",
 )
-
 # %%
 # sfa
 sas.submitLST(
@@ -215,7 +182,6 @@ run;
     """,
     method="listonly",
 )
-
 # %%
 # qry
 sas.submitLST(
@@ -243,16 +209,12 @@ quit;
 
 df = sas.sasdata("_tmp", "work").to_df()
 df
-
-
 # %%
 # drop
 sas.submitLST(f"proc sql;drop table work._tmp;quit;", method="listonly")
-
 # %%
 # write
 sas.df2sd(df, "_tmp", "work")
-
 # %%
 # ctbl
 sas.submitLST(f"proc sql;drop table work._tmp;quit;", method="listonly")
@@ -281,8 +243,6 @@ quit;
 )
 
 sas.sasdata("_tmp", "work").obs()
-
-
 # %%
 # join
 sas.submitLST(
@@ -307,12 +267,9 @@ quit;
 )
 
 sas.sasdata("_tmp", "work").obs()
-
-
 # %%
 # errors
 print(f"{sas.saslog().count('ERROR') = }")
-
 # %%
 # log
 print(sas.lastlog())
