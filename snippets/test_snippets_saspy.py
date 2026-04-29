@@ -20,18 +20,17 @@ libname mylib 'C:\temp';
 """,
     method="listonly",
 )
-
 # %%
 # head
 df_h = sas.sasdata("cars", "sashelp").head()
 df_h
 # %%
 # count
-n_obs = sas.sasdata("cars", "sashelp").obs()
+n_obs = sas.sasdata("baseball", "sashelp").obs()
 n_obs
 # %%
 # shape
-sd = sas.sasdata("cars", "sashelp")
+sd = sas.sasdata("heart", "sashelp")
 _shape = (sd.obs(), len(sd.columnInfo()))
 print(_shape)
 # %%
@@ -40,19 +39,19 @@ df_h1 = sas.sasdata("cars", "sashelp").head(1)
 print(df_h1.T.to_string())
 # %%
 # shapehead
-sd = sas.sasdata("cars", "sashelp")
+sd = sas.sasdata("heart", "sashelp")
 _shape, df_h = (sd.obs(), len(sd.columnInfo())), sd.head()
 print(_shape)
 df_h
 # %%
 # info
-df_info = sas.sasdata("cars", "sashelp").columnInfo()
+df_info = sas.sasdata("baseball", "sashelp").columnInfo()
 df_info
 # %%
 # col
-df_info = sas.sasdata("cars", "sashelp").columnInfo()
+df_info = sas.sasdata("baseball", "sashelp").columnInfo()
 cols = df_info["Variable"].tolist()
-[c for c in cols if "cylin" in c.lower()]
+[c for c in cols if "salary" in c.lower()]
 # %%
 # valc
 sas.submitLST(
@@ -60,10 +59,10 @@ sas.submitLST(
 proc sql;
 create table _tmp as
     select
-        origin,
+        division,
         count(1) as n
-    from sashelp.cars
-    where msrp > 20000
+    from sashelp.baseball
+    where salary > 200
     group by 1
     order by 1;
 quit;
@@ -76,7 +75,7 @@ df
 # run
 sas.submitLST(
     f"""
-proc print data=sashelp.cars (obs=5);
+proc print data=sashelp.baseball (obs=5);
 run;
 """,
     method="listonly",
@@ -85,7 +84,7 @@ run;
 # runlog
 sas.submitLST(
     f"""
-proc print data=sashelp.cars (obs=5);
+proc print data=sashelp.heart (obs=5);
 run;
 """,
     method="listandlog",
@@ -97,11 +96,11 @@ sas.submitLST(
 proc sql;
 create table _tmp as
     select
-        origin,
-        type,
+        deathcause,
+        weight_status,
         count(1) as n
-    from sashelp.cars
-    where msrp > 20000
+    from sashelp.heart
+    where smoking > 0
     group by 1,2
     order by 1,2;
 quit;
@@ -112,23 +111,25 @@ df = sas.sasdata("_tmp", "work").to_df()
 df
 # %%
 # uni
+# baseball salary
 sas.submitLST(
     f"""
 title;
-proc univariate data=sashelp.baseball;
-    var salary;
-    histogram salary / lognormal;
+proc univariate data=sashelp.heart;
+    var smoking;
+    histogram smoking / normal;
 run;
 """,
     method="listonly",
 )
 # %%
 # freq
+# cars origin
 sas.submitLST(
     f"""
 title;
-proc freq data=sashelp.cars;
-    tables origin type / chisq;
+proc freq data=sashelp.heart;
+    tables weight_status * deathcause / chisq;
 run;
 """,
     method="listonly",
@@ -136,11 +137,13 @@ run;
 
 # %%
 # logi
+# heart height to predict status Alive or Dead
 sas.submitLST(
-    """
+    f"""
 proc logistic data=sashelp.heart plots(only)=roc;
     where status in ('Alive','Dead');
-    model status(event='Dead') = height;
+    class weight_status (ref='Normal');
+    model status(event='Dead') = smoking weight_status;
     output out=work._pred p=phat;
 run;
 """,
@@ -148,13 +151,14 @@ run;
 )
 # %%
 # sfa
+# baseball salary to predict division East vs West
 sas.submitLST(
     f"""
 proc rank
-    data=sashelp.baseball(where=(division in ('East','West')))
+    data=sashelp.heart(where=(status in ('Alive','Dead')))
     out=_tmp_h_dec
     groups=10;
-    var salary;
+    var smoking;
     ranks decile0;
 run;
 
@@ -163,10 +167,10 @@ create table _tmp_rates as
 select
     case
         when missing(decile0) then 'NA'
-        else strip(put(decile0 + 1, 2.))
+        else strip(put(decile0, 2.))
     end as decile,
     count(*) as n,
-    mean(division='East') as rate
+    mean(status='Dead') as rate
 from _tmp_h_dec
 group by decile0
 order by decile;
@@ -189,16 +193,16 @@ sas.submitLST(
 proc sql;
 create table _tmp as
     select
-        a.make,
-        b.type,
+        a.smoking_status,
+        b.weight_status,
         count(1) as n
-    from sashelp.cars a
-    left join sashelp.cars b
+    from sashelp.heart a
+    left join sashelp.heart b
     on
-        a.make = b.make and
-        a.type = b.type
+        a.smoking_status = b.smoking_status and
+        a.weight_status = b.weight_status
     where
-        a.origin = 'USA'
+        a.height > 1
     group by 1,2
     order by 1,2
     ;
@@ -211,29 +215,29 @@ df = sas.sasdata("_tmp", "work").to_df()
 df
 # %%
 # drop
-sas.submitLST(f"proc sql;drop table work._tmp;quit;", method="listonly")
+sas.submitLST(f"proc sql;drop table _tmp;quit;", method="listonly")
 # %%
 # write
 sas.df2sd(df, "_tmp", "work")
 # %%
 # ctbl
-sas.submitLST(f"proc sql;drop table work._tmp;quit;", method="listonly")
+sas.submitLST(f"proc sql;drop table _tmp;quit;", method="listonly")
 
 sas.submitLST(
     f"""
 proc sql;
 create table _tmp as
     select
-        a.make,
-        b.type,
+        a.weight_status,
+        b.smoking_status,
         count(1) as n
-    from sashelp.cars a
-    left join sashelp.cars b
+    from sashelp.heart a
+    left join sashelp.heart b
     on
-        a.make = b.make and
-        a.type = b.type
+        a.weight_status = b.weight_status and
+        a.smoking_status = b.smoking_status
     where
-        a.origin = 'USA'
+        a.weight > 1
     group by 1,2
     order by 1,2
     ;
@@ -242,31 +246,7 @@ quit;
     method="listonly",
 )
 
-sas.sasdata("_tmp", "work").obs()
-# %%
-# join
-sas.submitLST(
-    f"""
-proc sql;
-create table _tmp as
-    select
-        a.make,
-        b.model,
-        b.make as make2
-    from sashelp.cars a
-    left join sashelp.cars b
-    on
-        a.make = b.make and
-        a.model = b.model
-    where
-        a.make = 'Ford'
-    ;
-quit;
-""",
-    method="listonly",
-)
-
-sas.sasdata("_tmp", "work").obs()
+sas.sasdata(f"_tmp".split(".")[1], f"_tmp".split(".")[0]).obs()
 # %%
 # errors
 print(f"{sas.saslog().count('ERROR') = }")
