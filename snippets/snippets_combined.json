@@ -311,119 +311,220 @@
         "prefix": "sassetup",
         "body": [
             "import saspy",
-            "sas = saspy.SASsession()"
+            "",
+            "sas = saspy.SASsession()",
+            "sas"
+        ]
+    },
+    "sassetupcfg": {
+        "prefix": "sassetupcfg",
+        "body": [
+            "import saspy  # isort: skip",
+            "from pathlib import Path  # isort: skip",
+            "",
+            "print(Path(saspy.SAScfg).as_posix())"
+        ]
+    },
+    "sassetuplib": {
+        "prefix": "sassetuplib",
+        "body": [
+            "sas.submitLST(",
+            "    rf\"\"\"",
+            "%let myvar=myvalue;",
+            "libname mylib 'C:\\temp';",
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")"
+        ]
+    },
+    "sashead": {
+        "prefix": "sashead",
+        "body": [
+            "df_h = sas.sasdata(\"cars\", \"sashelp\").head()",
+            "df_h"
+        ]
+    },
+    "sascount": {
+        "prefix": "sascount",
+        "body": [
+            "n_obs = sas.sasdata(\"cars\", \"sashelp\").obs()",
+            "n_obs"
+        ]
+    },
+    "sasshape": {
+        "prefix": "sasshape",
+        "body": [
+            "sd = sas.sasdata(\"cars\", \"sashelp\")",
+            "_shape = (sd.obs(), len(sd.columnInfo()))",
+            "print(_shape)"
+        ]
+    },
+    "sastop": {
+        "prefix": "sastop",
+        "body": [
+            "df_h1 = sas.sasdata(\"cars\", \"sashelp\").head(1)",
+            "print(df_h1.T.to_string())"
+        ]
+    },
+    "sasshapehead": {
+        "prefix": "sasshapehead",
+        "body": [
+            "sd = sas.sasdata(\"cars\", \"sashelp\")",
+            "_shape, df_h = (sd.obs(), len(sd.columnInfo())), sd.head()",
+            "print(_shape)",
+            "df_h"
+        ]
+    },
+    "sasinfo": {
+        "prefix": "sasinfo",
+        "body": [
+            "df_info = sas.sasdata(\"cars\", \"sashelp\").columnInfo()",
+            "df_info"
+        ]
+    },
+    "sascol": {
+        "prefix": "sascol",
+        "body": [
+            "df_info = sas.sasdata(\"cars\", \"sashelp\").columnInfo()",
+            "cols = df_info[\"Variable\"].tolist()",
+            "[c for c in cols if \"cylin\" in c.lower()]"
+        ]
+    },
+    "sasvalc": {
+        "prefix": "sasvalc",
+        "body": [
+            "sas.submitLST(",
+            "    f\"\"\"",
+            "proc sql;",
+            "create table _tmp as",
+            "    select",
+            "        origin,",
+            "        count(1) as n",
+            "    from sashelp.cars",
+            "    where msrp > 20000",
+            "    group by 1",
+            "    order by 1;",
+            "quit;",
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")",
+            "df = sas.sasdata(\"_tmp\", \"work\").to_df()",
+            "df"
         ]
     },
     "sasrun": {
         "prefix": "sasrun",
         "body": [
             "sas.submitLST(",
-            "f\"\"\"",
-            "$0",
+            "    f\"\"\"",
+            "proc print data=sashelp.cars (obs=5);",
             "run;",
-            "\"\"\")"
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")"
         ]
     },
     "sasrunlog": {
         "prefix": "sasrunlog",
         "body": [
             "sas.submitLST(",
-            "f\"\"\"",
-            "$0",
+            "    f\"\"\"",
+            "proc print data=sashelp.cars (obs=5);",
             "run;",
-            "\"\"\", method=\"listandlog\")"
+            "\"\"\",",
+            "    method=\"listandlog\",",
+            ")"
         ]
     },
-    "saserrorcount": {
-        "prefix": "saserrorcount",
-        "body": [
-            "print(f\"{sas.saslog().count('ERROR') = }\")$0"
-        ]
-    },
-    "sasprint": {
-        "prefix": "sasprint",
-        "body": [
-            "sas.submitLST(f\"proc print data = $1;run;\")"
-        ]
-    },
-    "sasdatahead": {
-        "prefix": "sasdatahead",
-        "body": [
-            "sas.sasdata(\"$1\",\"work$2\").head()"
-        ]
-    },
-    "sasdrop": {
-        "prefix": "sasdrop",
-        "body": [
-            "sas.submitLST(f\"proc sql;drop table $1;run;\")"
-        ]
-    },
-    "saslet": {
-        "prefix": "saslet",
+    "sasgrp": {
+        "prefix": "sasgrp",
         "body": [
             "sas.submitLST(",
-            "f\"\"\"",
-            "%let $1=$2;",
-            "\"\"\")"
-        ]
-    },
-    "sasdf": {
-        "prefix": "sasdf",
-        "body": [
-            "df = sas.sasdata(\"$1\",\"work$2\").to_df()",
-            "df$0"
-        ]
-    },
-    "saslastlog": {
-        "prefix": "saslastlog",
-        "body": [
-            "print(sas.lastlog())$0"
-        ]
-    },
-    "saspfreqdf": {
-        "prefix": "saspfreqdf",
-        "body": [
-            "sas.submitLST(",
-            "f\"\"\"",
-            "proc freq data=$1 noprint;",
-            "    tables $2 / missing out=_tmp;",
-            "run;",
-            "\"\"\")",
-            "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
-            "df.columns = df.columns.str.lower()",
-            "df"
-        ]
-    },
-    "saspsumdf": {
-        "prefix": "saspsumdf",
-        "body": [
-            "sas.submitLST(",
-            "f\"\"\"",
-            "proc sort data=$1 out=_sorted;",
-            "    by $2;",
+            "    f\"\"\"",
+            "proc sort data=sashelp.cars out=_sorted;",
+            "    by Origin;",
             "",
             "proc summary data=_sorted;",
-            "    by $2;",
-            "    var $3;",
+            "    by Origin;",
+            "    var MSRP;",
             "    output out=_tmp",
-            "        mean($3) = mean_$3",
+            "        mean(MSRP) = mean_MSRP",
             "    ;",
             "run;",
-            "\"\"\")",
-            "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")",
+            "df = sas.sasdata(\"_tmp\", \"work\").to_df()",
             "df"
         ]
     },
-    "saspcontent": {
-        "prefix": "saspcontent",
+    "sasuni": {
+        "prefix": "sasuni",
         "body": [
             "sas.submitLST(",
-            "f\"\"\"",
-            "PROC CONTENTS DATA=$1 OUT=_tmp;",
+            "    f\"\"\"",
+            "title;",
+            "proc univariate data=sashelp.baseball;",
+            "    var salary;",
+            "    histogram salary / lognormal;",
             "run;",
-            "\"\"\")",
-            "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
-            "df"
+            "\"\"\",",
+            "    method=\"listorlog\",",
+            ")"
+        ]
+    },
+    "saslogi": {
+        "prefix": "saslogi",
+        "body": [
+            "sas.submitLST(",
+            "    \"\"\"",
+            "proc logistic data=sashelp.heart plots(only)=roc;",
+            "    where status in ('Alive','Dead');",
+            "    model status(event='Dead') = height;",
+            "    output out=work._pred p=phat;",
+            "run;",
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")"
+        ]
+    },
+    "sassfa": {
+        "prefix": "sassfa",
+        "body": [
+            "sas.submitLST(",
+            "    f\"\"\"",
+            "proc rank",
+            "    data=sashelp.baseball(where=(division in ('East','West')))",
+            "    out=_tmp_h_dec",
+            "    groups=10;",
+            "    var salary;",
+            "    ranks decile0;",
+            "run;",
+            "",
+            "proc sql;",
+            "create table _tmp_rates as",
+            "select",
+            "    case",
+            "        when missing(decile0) then 'NA'",
+            "        else strip(put(decile0 + 1, 2.))",
+            "    end as decile,",
+            "    count(*) as n,",
+            "    mean(division='East') as rate",
+            "from _tmp_h_dec",
+            "group by decile0",
+            "order by decile;",
+            "quit;",
+            "",
+            "proc sgplot data=_tmp_rates;",
+            "    vbarparm category=decile response=n / datalabel transparency=0.15;",
+            "    series x=decile y=rate / y2axis markers lineattrs=(thickness=2);",
+            "    yaxis  label='Volume';",
+            "    y2axis label='Rate' values=(0 to 1 by 0.1);",
+            "    xaxis  label='Decile' integer;",
+            "run;",
+            "    \"\"\",",
+            "    method=\"listonly\",",
+            ")"
         ]
     },
     "sasqry": {
@@ -434,16 +535,16 @@
             "proc sql;",
             "create table _tmp as",
             "    select",
-            "        a.$1,",
-            "        b.$2,",
+            "        a.make,",
+            "        b.type,",
             "        count(1) as n",
-            "    from $3 a",
-            "    left join $4 b",
+            "    from sashelp.cars a",
+            "    left join sashelp.cars b",
             "    on",
-            "        a.$1 = b.$1 and",
-            "        a.$2 = b.$2",
+            "        a.make = b.make and",
+            "        a.type = b.type",
             "    where",
-            "        a.$5 = '$6'",
+            "        a.origin = 'USA'",
             "    group by 1,2",
             "    order by 1,2",
             "    ;",
@@ -456,59 +557,86 @@
             "df"
         ]
     },
-    "sasgrp": {
-        "prefix": "sasgrp",
+    "sasdrop": {
+        "prefix": "sasdrop",
         "body": [
+            "sas.submitLST(f\"proc sql;drop table work._tmp;quit;\", method=\"listonly\")"
+        ]
+    },
+    "saswrite": {
+        "prefix": "saswrite",
+        "body": [
+            "sas.df2sd(df, \"_tmp\", \"work\")"
+        ]
+    },
+    "sasctbl": {
+        "prefix": "sasctbl",
+        "body": [
+            "sas.submitLST(f\"proc sql;drop table work._tmp;quit;\", method=\"listonly\")",
+            "",
             "sas.submitLST(",
             "    f\"\"\"",
             "proc sql;",
             "create table _tmp as",
             "    select",
-            "        $1,",
-            "        $2,",
+            "        a.make,",
+            "        b.type,",
             "        count(1) as n",
-            "    from $3",
-            "    where $4 = '$5'",
+            "    from sashelp.cars a",
+            "    left join sashelp.cars b",
+            "    on",
+            "        a.make = b.make and",
+            "        a.type = b.type",
+            "    where",
+            "        a.origin = 'USA'",
             "    group by 1,2",
             "    order by 1,2",
             "    ;",
             "quit;",
-            "\"\"\")",
-            "df = sas.sasdata(\"_tmp\", \"work\").to_df()",
-            "df"
-        ]
-    },
-    "sastop": {
-        "prefix": "sastop",
-        "body": [
-            "sas.submitLST(f\"proc sql inobs=1; create table _tmp as select * from $1; quit;\", method=\"listonly\")",
-            "print(sas.sasdata(\"_tmp\", \"work\").to_df().T.to_string())"
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")",
+            "",
+            "sas.sasdata(\"_tmp\", \"work\").obs()"
         ]
     },
     "sasjoin": {
         "prefix": "sasjoin",
         "body": [
             "sas.submitLST(",
-            "f\"\"\"",
+            "    f\"\"\"",
             "proc sql;",
             "create table _tmp as",
             "    select",
-            "        a.*,",
-            "        b.*",
-            "    from $1 a",
-            "    left join $2 b",
+            "        a.make,",
+            "        b.model,",
+            "        b.make as make2",
+            "    from sashelp.cars a",
+            "    left join sashelp.cars b",
             "    on",
-            "        a.id = b.id and",
-            "        a.date = b.date",
+            "        a.make = b.make and",
+            "        a.model = b.model",
             "    where",
-            "        $0",
-            "    group by 1,2",
-            "    order by 1,2",
+            "        a.make = 'Ford'",
             "    ;",
             "quit;",
-            "\"\"\")",
-            "df = sas.sasdata(\"_tmp\",\"work\").to_df()",
-            "df"
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")",
+            "",
+            "sas.sasdata(\"_tmp\", \"work\").obs()"
+        ]
+    },
+    "saserrors": {
+        "prefix": "saserrors",
+        "body": [
+            "print(f\"{sas.saslog().count('ERROR') = }\")"
+        ]
+    },
+    "saslog": {
+        "prefix": "saslog",
+        "body": [
+            "print(sas.lastlog())"
         ]
     },
     "iana": {
