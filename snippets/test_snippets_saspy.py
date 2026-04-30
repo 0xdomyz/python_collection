@@ -81,6 +81,23 @@ run;
     method="listonly",
 )
 # %%
+sas.submitLST(
+    f"""
+proc sql;
+create table tbl as
+    select
+        a.*,
+        weight * 2 as weight2
+    from sashelp.heart a
+    where height > 5
+    ;
+quit;
+""",
+    method="listonly",
+)
+df_h1 = sas.sasdata(f"tbl", "work").head(1)
+print(df_h1.T.to_string())
+# %%
 # runlog
 sas.submitLST(
     f"""
