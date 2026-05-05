@@ -25,6 +25,13 @@ libname mylib 'C:\temp';
 df_h = sas.sasdata("cars", "sashelp").head()
 df_h
 # %%
+_lib, _tbl = "sashelp.heart".split(".")
+df_h = sas.sasdata(_tbl, _lib).head()
+df_h
+# %%
+df_h = sas.sasdata("sashelp.heart".split(".")[1], "sashelp.heart".split(".")[0]).head()
+df_h
+# %%
 # count
 n_obs = sas.sasdata("baseball", "sashelp").obs()
 n_obs

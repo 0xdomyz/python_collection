@@ -33,21 +33,24 @@
     "sashead": {
         "prefix": "sashead",
         "body": [
-            "df_h = sas.sasdata($2, $1).head()",
+            "_lib, _tbl = $1.split(\".\")",
+            "df_h = sas.sasdata(_tbl, _lib).head()",
             "df_h",
         ],
     },
     "sascount": {
         "prefix": "sascount",
         "body": [
-            "n_obs = sas.sasdata($2, $1).obs()",
+            "_lib, _tbl = $1.split(\".\")",
+            "n_obs = sas.sasdata(_tbl, _lib).obs()",
             "n_obs",
         ],
     },
     "sasshape": {
         "prefix": "sasshape",
         "body": [
-            "sd = sas.sasdata($2, $1)",
+            "_lib, _tbl = $1.split(\".\")",
+            "sd = sas.sasdata(_tbl, _lib)",
             "_shape = (sd.obs(), len(sd.columnInfo()))",
             "print(_shape)",
         ],
@@ -55,14 +58,16 @@
     "sastop": {
         "prefix": "sastop",
         "body": [
-            "df_h1 = sas.sasdata($2, $1).head(1)",
+            "_lib, _tbl = $1.split(\".\")",
+            "df_h1 = sas.sasdata(_tbl, _lib).head(1)",
             "print(df_h1.T.to_string())",
         ],
     },
     "sasshapehead": {
         "prefix": "sasshapehead",
         "body": [
-            "sd = sas.sasdata($2, $1)",
+            "_lib, _tbl = $1.split(\".\")",
+            "sd = sas.sasdata(_tbl, _lib)",
             "_shape, df_h = (sd.obs(), len(sd.columnInfo())), sd.head()",
             "print(_shape)",
             "df_h",
@@ -71,14 +76,16 @@
     "sasinfo": {
         "prefix": "sasinfo",
         "body": [
-            "df_info = sas.sasdata($2, $1).columnInfo()",
+            "_lib, _tbl = $1.split(\".\")",
+            "df_info = sas.sasdata(_tbl, _lib).columnInfo()",
             "df_info",
         ],
     },
     "sascol": {
         "prefix": "sascol",
         "body": [
-            "df_info = sas.sasdata($2, $1).columnInfo()",
+            "_lib, _tbl = $1.split(\".\")",
+            "df_info = sas.sasdata(_tbl, _lib).columnInfo()",
             "cols = df_info[\"Variable\"].tolist()",
             "[c for c in cols if $3 in c.lower()]",
         ],
@@ -314,7 +321,8 @@
             "    method=\"listonly\",",
             ")",
             "",
-            "sas.sasdata(f\"$1\".split('.')[1], f\"$1\".split('.')[0]).obs()",
+            "_lib, _tbl = f\"$1\".split(\".\")",
+            "sas.sasdata(_tbl, _lib).obs()",
         ],
     },
     "saserrors": {
