@@ -340,21 +340,24 @@
     "sashead": {
         "prefix": "sashead",
         "body": [
-            "df_h = sas.sasdata($2, $1).head()",
+            "_lib, _tbl = $1.split(\".\")",
+            "df_h = sas.sasdata(_tbl, _lib).head()",
             "df_h"
         ]
     },
     "sascount": {
         "prefix": "sascount",
         "body": [
-            "n_obs = sas.sasdata($2, $1).obs()",
+            "_lib, _tbl = $1.split(\".\")",
+            "n_obs = sas.sasdata(_tbl, _lib).obs()",
             "n_obs"
         ]
     },
     "sasshape": {
         "prefix": "sasshape",
         "body": [
-            "sd = sas.sasdata($2, $1)",
+            "_lib, _tbl = $1.split(\".\")",
+            "sd = sas.sasdata(_tbl, _lib)",
             "_shape = (sd.obs(), len(sd.columnInfo()))",
             "print(_shape)"
         ]
@@ -362,14 +365,16 @@
     "sastop": {
         "prefix": "sastop",
         "body": [
-            "df_h1 = sas.sasdata($2, $1).head(1)",
+            "_lib, _tbl = $1.split(\".\")",
+            "df_h1 = sas.sasdata(_tbl, _lib).head(1)",
             "print(df_h1.T.to_string())"
         ]
     },
     "sasshapehead": {
         "prefix": "sasshapehead",
         "body": [
-            "sd = sas.sasdata($2, $1)",
+            "_lib, _tbl = $1.split(\".\")",
+            "sd = sas.sasdata(_tbl, _lib)",
             "_shape, df_h = (sd.obs(), len(sd.columnInfo())), sd.head()",
             "print(_shape)",
             "df_h"
@@ -378,14 +383,17 @@
     "sasinfo": {
         "prefix": "sasinfo",
         "body": [
-            "df_info = sas.sasdata($2, $1).columnInfo()",
-            "df_info"
+            "sas.submitLST(",
+            "    f\"proc contents data=$1;run;\",",
+            "    method=\"listonly\",",
+            ")"
         ]
     },
     "sascol": {
         "prefix": "sascol",
         "body": [
-            "df_info = sas.sasdata($2, $1).columnInfo()",
+            "_lib, _tbl = $1.split(\".\")",
+            "df_info = sas.sasdata(_tbl, _lib).columnInfo()",
             "cols = df_info[\"Variable\"].tolist()",
             "[c for c in cols if $3 in c.lower()]"
         ]
@@ -396,7 +404,7 @@
             "sas.submitLST(",
             "    f\"\"\"",
             "proc sql;",
-            "create table _tmp as",
+            "create table _tmp_valc as",
             "    select",
             "        $3,",
             "        count(1) as n",
@@ -408,7 +416,7 @@
             "\"\"\",",
             "    method=\"listonly\",",
             ")",
-            "df = sas.sasdata(\"_tmp\", \"work\").to_df()",
+            "df = sas.sasdata(\"_tmp_valc\", \"work\").to_df()",
             "df"
         ]
     },
@@ -451,7 +459,7 @@
             "sas.submitLST(",
             "    f\"\"\"",
             "proc sql;",
-            "create table _tmp as",
+            "create table _tmp_grp as",
             "    select",
             "        $3,",
             "        $4,",
@@ -464,7 +472,7 @@
             "\"\"\",",
             "    method=\"listonly\",",
             ")",
-            "df = sas.sasdata(\"_tmp\", \"work\").to_df()",
+            "df = sas.sasdata(\"_tmp_grp\", \"work\").to_df()",
             "df"
         ]
     },
@@ -490,11 +498,15 @@
             "    f\"\"\"",
             "title;",
             "proc freq data=$1;",
-            "    tables $2 / chisq;",
+            "    tables $2 / all;",
+            "    output out=work._tmp_freq all;",
             "run;",
             "\"\"\",",
             "    method=\"listonly\",",
-            ")"
+            ")",
+            "_lib, _tbl = \"work._tmp_freq\".split(\".\")",
+            "df = sas.sd2df(_tbl, _lib)",
+            "df.T"
         ]
     },
     "saslogi": {
@@ -557,7 +569,7 @@
             "sas.submitLST(",
             "    f\"\"\"",
             "proc sql;",
-            "create table _tmp as",
+            "create table _tmp_qry as",
             "    select",
             "        a.$3,",
             "        b.$4,",
@@ -577,7 +589,7 @@
             "    method=\"listonly\",",
             ")",
             "",
-            "df = sas.sasdata(\"_tmp\", \"work\").to_df()",
+            "df = sas.sasdata(\"_tmp_qry\", \"work\").to_df()",
             "df"
         ]
     },
@@ -590,7 +602,16 @@
     "saswrite": {
         "prefix": "saswrite",
         "body": [
-            "sas.df2sd(df, $1, $2)"
+            "_lib, _tbl = \"$1\".split(\".\")",
+            "sas.df2sd(df, _tbl, _lib, index=False, if_exists=\"replace\")"
+        ]
+    },
+    "sasread": {
+        "prefix": "sasread",
+        "body": [
+            "_lib, _tbl = \"$1\".split(\".\")",
+            "df = sas.sd2df(_tbl, _lib)",
+            "df.shape"
         ]
     },
     "sasctbl": {
@@ -621,7 +642,8 @@
             "    method=\"listonly\",",
             ")",
             "",
-            "sas.sasdata(f\"$1\".split('.')[1], f\"$1\".split('.')[0]).obs()"
+            "_lib, _tbl = f\"$1\".split(\".\")",
+            "sas.sasdata(_tbl, _lib).obs()"
         ]
     },
     "saserrors": {

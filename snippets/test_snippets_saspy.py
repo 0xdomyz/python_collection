@@ -52,8 +52,18 @@ print(_shape)
 df_h
 # %%
 # info
-df_info = sas.sasdata("baseball", "sashelp").columnInfo()
-df_info
+_lib, _tbl = "sashelp.baseball".split(".")
+content_dict = sas.sasdata(_tbl, _lib).contents()
+content_dict["Variables"]  # content_dict["Attributes"], content_dict["Enginehost"]
+# %%
+sas.submitLST(
+    f"""
+title;
+proc contents data=sashelp.baseball;
+run;
+""",
+    method="listonly",
+)
 # %%
 # col
 df_info = sas.sasdata("baseball", "sashelp").columnInfo()
@@ -160,6 +170,33 @@ run;
 )
 
 # %%
+sas.submitLST(
+    f"""
+proc freq data=sashelp.heart;
+    tables weight_status*smoking_status / all;
+    output out=work._tmp4 all;
+run;
+""",
+    method="listonly",
+)
+_lib, _tbl = "work._tmp4".split(".")
+df = sas.sd2df(_tbl, _lib)
+df.T
+# %%
+sas.submitLST(
+    f"""
+title;
+proc freq data=sashelp.heart;
+    tables weight_status * smoking_status / all;
+    output out=work._tmp_freq all;
+run;
+""",
+    method="listonly",
+)
+_lib, _tbl = "work._tmp_freq".split(".")
+df = sas.sd2df(_tbl, _lib)
+df.T
+# %%
 # logi
 # heart height to predict status Alive or Dead
 sas.submitLST(
@@ -242,7 +279,13 @@ df
 sas.submitLST(f"proc sql;drop table _tmp;quit;", method="listonly")
 # %%
 # write
-sas.df2sd(df, "_tmp", "work")
+_lib, _tbl = "work._tmp".split(".")
+sas.df2sd(df, _tbl, _lib, index=False, if_exists="replace")
+# %%
+# read
+_lib, _tbl = "work._tmp".split(".")
+df = sas.sd2df(_tbl, _lib)
+df
 # %%
 # ctbl
 sas.submitLST(f"proc sql;drop table _tmp;quit;", method="listonly")
