@@ -8,6 +8,13 @@ import pandas as pd
 # ## combi table
 # ####################################################################################################
 # %%
+include = (
+    "all",
+    "single",
+    "cross",
+)
+
+# %%
 
 # ---------------------------------------------------------
 # 1. Define all factor levels (always available)
@@ -31,7 +38,7 @@ print(f"Total combinations from FACTORS: {n_combi}")
 # ---------------------------------------------------------
 CROSS = {
     # fmt: off
-    "A": ["P1", "P2", "Missing"],
+    "A": ["P1", "P2", "Missing", ('P1', 'Missing')],
     "C": ["in", "out"],
     "D": ["US", "EU"],
     # fmt: on
@@ -63,24 +70,27 @@ print(f"Generated multi-factor CROSS rows (r>=2): {n_cross_generated}")
 rows = []
 
 # --- Add the "All" row (no filters)
-rows.append({col: "All" for col in FACTORS})
+if "all" in include:
+    rows.append({col: "All" for col in FACTORS})
 
 # --- Single-factor cases (always included)
-for f, levels in FACTORS.items():
-    for lvl in levels:
-        row = {col: "All" for col in FACTORS}
-        row[f] = lvl
-        rows.append(row)
+if "single" in include:
+    for f, levels in FACTORS.items():
+        for lvl in levels:
+            row = {col: "All" for col in FACTORS}
+            row[f] = lvl
+            rows.append(row)
 
 # --- Multi-factor cross cases
-cross_factors = list(CROSS.keys())
+if "cross" in include:
+    cross_factors = list(CROSS.keys())
 
-for r in range(2, len(cross_factors) + 1):
-    for selected in itertools.combinations(cross_factors, r):
-        for levels in itertools.product(*(CROSS[f] for f in selected)):
-            row = {col: "All" for col in FACTORS}
-            row.update(dict(zip(selected, levels)))
-            rows.append(row)
+    for r in range(2, len(cross_factors) + 1):
+        for selected in itertools.combinations(cross_factors, r):
+            for levels in itertools.product(*(CROSS[f] for f in selected)):
+                row = {col: "All" for col in FACTORS}
+                row.update(dict(zip(selected, levels)))
+                rows.append(row)
 # %%
 
 # ---------------------------------------------------------
@@ -103,9 +113,14 @@ def row_to_sql(row):
                 parts.append(f"{col} = '{val}'")
             elif issubclass(type(val), (int, float)):
                 parts.append(f"{col} = {val}")
+            elif issubclass(type(val), tuple):
+                items = ", ".join(
+                    f"'{v}'" if issubclass(type(v), str) else str(v) for v in val
+                )
+                parts.append(f"{col} IN ({items})")
             else:
                 raise ValueError(
-                    f"Unsupported value type for column {col}: {type(val)}, can only handle str, int, float"
+                    f"Unsupported value type for column {col}: {type(val)}, can only handle str, int, float, tuple"
                 )
     return " AND ".join(parts)
 
