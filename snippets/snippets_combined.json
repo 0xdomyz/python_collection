@@ -403,20 +403,13 @@
         "body": [
             "sas.submitLST(",
             "    f\"\"\"",
-            "proc sql;",
-            "create table _tmp_valc as",
-            "    select",
-            "        $3,",
-            "        count(1) as n",
-            "    from $1",
-            "    where $2",
-            "    group by 1",
-            "    order by 1;",
-            "quit;",
+            "proc freq data=$1;",
+            "    tables $2 * $3 / missing chisq plots(only)=freqplot out=work._tmp_freq outpct;",
+            "run;",
             "\"\"\",",
             "    method=\"listonly\",",
             ")",
-            "df = sas.sasdata(\"_tmp_valc\", \"work\").to_df()",
+            "df = sas.sasdata(\"_tmp_freq\", \"work\").to_df()",
             "df"
         ]
     },
@@ -489,15 +482,15 @@
             "sas.submitLST(",
             "    f\"\"\"",
             "proc freq data=$1;",
-            "    tables $2 * $3 / all;",
-            "    output out=work._tmp_freq measures;",
+            "    tables $2 * $3 / missing all;",
+            "    output out=work._tmp_meas measures;",
             "run;",
             "\"\"\",",
             "    method=\"listonly\",",
             ")",
-            "_lib, _tbl = \"work._tmp_freq\".split(\".\")",
+            "_lib, _tbl = \"work._tmp_meas\".split(\".\")",
             "df = sas.sd2df(_tbl, _lib)",
-            "df.T"
+            "df"
         ]
     },
     "saslogi": {
