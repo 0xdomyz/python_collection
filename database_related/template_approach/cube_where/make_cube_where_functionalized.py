@@ -71,22 +71,37 @@ def row_to_sql(row: pd.Series, all_value: str = "All") -> str:
 
 
 # %%
+def stringify_factor_value(v):
+    if isinstance(v, tuple):
+        return f"({', '.join(map(str, v))})"
+    return str(v)
+
+
+# %%
 # Example usage
 if __name__ == "__main__":
     FACTORS = {
         "A": ["P1", "P2", "Missing"],
         "B": ["r1", "r2"],
-        "C": ["in", "out"],
+        "C": [0, 1],
         "D": ["US", "EU", "APAC"],
     }
 
     CROSS = {
         "A": ["P1", "P2", "Missing", ("P1", "Missing")],
-        "C": ["in", "out"],
+        "C": [0, 1],
         "D": ["US", "EU"],
     }
 
     layout_df = make_cube_where_table(FACTORS, CROSS)
     layout_df["WHERE_CLAUSE"] = layout_df.apply(lambda r: row_to_sql(r), axis=1)
+    factor_cols = list(FACTORS.keys())
+    layout_df[factor_cols] = layout_df[factor_cols].apply(
+        lambda col: col.map(stringify_factor_value)
+    )
     print(layout_df.shape)
     print(layout_df.to_string(index=False))
+
+    # %%
+    for k, v in layout_df.iloc[-1:, :].items():
+        print(f"{k}: {v.values[0]} : {type(v.values[0])}")

@@ -129,3 +129,23 @@ def row_to_sql(row):
 # Example usage
 df["WHERE_CLAUSE"] = df.apply(row_to_sql, axis=1)
 df
+
+
+# %% [markdown]
+# ## make tuple str if need to
+# ####################################################################################################
+# %%
+def stringify_factor_value(v):
+    if isinstance(v, tuple):
+        return f"({', '.join(map(str, v))})"
+    return str(v)
+
+
+# %%
+df[list(FACTORS.keys())] = df[list(FACTORS.keys())].apply(
+    lambda col: col.map(stringify_factor_value)
+)
+
+# %%
+for col, val in df.iloc[-1, :].items():
+    print(f"{col}: {val} : {type(val)}")
