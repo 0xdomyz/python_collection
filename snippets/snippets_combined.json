@@ -404,13 +404,11 @@
             "sas.submitLST(",
             "    f\"\"\"",
             "proc freq data=$1;",
-            "    tables $2 * $3 / missing chisq plots(only)=freqplot out=work._tmp_freq outpct;",
+            "    tables $2 / missing;",
             "run;",
             "\"\"\",",
             "    method=\"listonly\",",
-            ")",
-            "df = sas.sasdata(\"_tmp_freq\", \"work\").to_df()",
-            "df"
+            ")"
         ]
     },
     "sasrun": {
