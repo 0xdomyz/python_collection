@@ -358,29 +358,39 @@ class PivotDashboard:
         ----------
         configs : list of dict
             Required keys per entry:
-                ``row_field`` (str),
-                ``data_field`` (str).
+                - ``row_field`` (str),
+                - ``data_field`` (str).
+
             Optional keys:
-                ``col_field`` (str),
-                ``name`` (str),
-                ``title`` (str),
-                ``data_label`` (str),
-                ``xl_func`` (int or XL_FUNC key string, default ``"sum"``),
-                ``chart_type`` (xlwings chart type string, default ``"column_clustered"``),
-                ``sort_col_asc_by_data_field`` (bool),
-                ``rate_calc`` (dict):
-                    ``nume`` (str, required),
-                    ``deno`` (str, required),
-                    ``label`` (str, optional; default ``"{nume}_rate"``).
-                    When present, this rate series is automatically plotted as
+                - ``col_field`` (str)
+                - ``title`` (str)
+                - ``name`` (str) unlikely neede
+                - ``data_label`` (str) unlikely needed
+                - ``xl_func`` (int or XL_FUNC key string, default ``"sum"``),
+                - ``chart_type`` (xlwings chart type string, default ``"column_clustered"``),
+                - ``sort_col_asc_by_data_field`` (bool),
+                - ``rate_calc`` (dict):
+                    - ``nume`` (str, required),
+                    - ``deno`` (str, required),
+                    - ``label`` (str, optional; default ``"{nume}_rate"``).
+                    - When present, this rate series is automatically plotted as
                     a line on the secondary axis.
         chart_layout : dict, optional
-            Override chart/grid layout. Keys: ``ncols``, ``col_width``,
-            ``row_height``, ``top_offset``, ``left_offset``, ``chart_width``,
-            ``chart_height``.
+            Override chart/grid layout. Keys:
+                - ``ncols``
+                - ``col_width``,
+                - ``row_height``
+                - ``top_offset``
+                - ``left_offset``
+                - ``chart_width``,
+                - ``chart_height``.
         dest_layout : dict, optional
-            Override pivot table destination grid. Keys: ``col``,
-            ``start_row``, ``row_step``, ``ncols``, ``col_step``.
+            Override pivot table destination grid. Keys:
+                - ``col``,
+                - ``start_row``
+                - ``row_step``
+                - ``ncols``
+                - ``col_step``.
         pause_updates : bool, default True
             Whether to suspend Excel updates, calculation, and events during action.
         """
