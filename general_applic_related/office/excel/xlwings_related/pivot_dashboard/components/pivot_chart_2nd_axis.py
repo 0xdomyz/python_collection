@@ -40,11 +40,18 @@ pt = pivot_cache.CreatePivotTable(
 )
 
 pt.PivotFields("who").Orientation = 1  # xlRowField
-count_field = pt.AddDataField(pt.PivotFields("n"), "Sum of n", -4157)  # -4157 = xlSum
+pt.PivotFields("class").Orientation = 2  # xlColumnField
+
 field_numerator = "survived"
 field_denominator = "n"
 field_calc = f"{field_numerator}_rate"
 pt.CalculatedFields().Add(f"_{field_calc}", f"={field_numerator}/{field_denominator}")
+
+# %%
+count_field = pt.AddDataField(pt.PivotFields("n"), "Sum of n", -4157)  # -4157 = xlSum
+target_field = pt.AddDataField(
+    pt.PivotFields("survived"), "Sum of target", -4157
+)  # -4157 = xlSum
 rate_field = pt.AddDataField(
     pt.PivotFields(f"_{field_calc}"),
     field_calc,
@@ -56,8 +63,6 @@ rate_field.NumberFormat = "0.0%"
 # %% [markdown]
 # ### make pivot chart
 # %%
-# chart.delete()
-# %%
 pt_range = ws_pivot["L5"].expand()
 
 # chart to the leftmost of the pivot table
@@ -68,23 +73,59 @@ chart = ws_pivot.charts.add(
     height=300,
 )
 chart.set_source_data(pt_range)
+# chart.chart_type = "column_clustered"
 chart.chart_type = "area_stacked"
 
 # %%
 chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
 
-srs_ln = chart_com.SeriesCollection(field_calc)
+# %%
+series_names = [
+    chart_com.SeriesCollection(i).Name
+    for i in range(1, chart_com.SeriesCollection().Count + 1)
+]
+for i in series_names:
+    print(i)
+print(series_names)
 
-srs_ln.ChartType = 4  # xlLine
-srs_ln.AxisGroup = 2  # secondary axis
+# %%
+n_srs_names = [s for s in series_names if s.endswith("Sum of n")]
+n_srs_names
+# %%
+target_srs_names = [s for s in series_names if s.endswith("Sum of target")]
+target_srs_names
+# %%
+rate_srs_names = [s for s in series_names if s.endswith(f"{field_calc}")]
+rate_srs_names
 
+# %%
+for rate_srs_name in rate_srs_names:
+    srs = chart_com.SeriesCollection(rate_srs_name)
+    srs.ChartType = 4  # xlLine
+    srs.AxisGroup = 2  # secondary axis
+
+# %%
+for srs_name in target_srs_names:
+    chart_com.SeriesCollection(srs_name).Delete()
+
+# %%
+# srs_ln = chart_com.SeriesCollection(field_calc)
+# srs_ln.ChartType = 4  # xlLine
+# srs_ln.AxisGroup = 2  # secondary axis
+
+# %%
 chart_com.HasTitle = True
 chart_com.ChartTitle.Text = "Sum of n and Survival Rate by Who"
 # chart_com.Axes(2).TickLabels.NumberFormat = "0%"
 
+# %% [markdown]
+# ## admin
+# ####################################################################################################
+
+
 # %%
-# remove chart
-chart.delete()
+# pt.TableRange2.Clear()
+# chart.delete()
 
 # %% [markdown]
 # ### ref
@@ -100,5 +141,5 @@ chart.delete()
 # %% [markdown]
 # ### save
 # %%
-wb.save(r"output.xlsx")
-wb.close()
+# wb.save(r"output.xlsx")
+# wb.close()

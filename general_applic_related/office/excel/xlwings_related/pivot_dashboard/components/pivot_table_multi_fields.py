@@ -71,7 +71,7 @@ for agg, name, xl_func in zip(aggs, names, xl_funcs):
 
 # %%
 # wipe table
-pt.TableRange2.Clear()
+# pt.TableRange2.Clear()
 
 
 # %% [markdown]
@@ -87,7 +87,7 @@ for field in pt.CalculatedFields():
 
 # %%
 # remove the calculated field
-pt.CalculatedFields().Item("survival_rate").Delete()
+# pt.CalculatedFields().Item("survival_rate").Delete()
 # pt.PivotFields().Item("survival_rate").Delete()
 
 # %% [markdown]
