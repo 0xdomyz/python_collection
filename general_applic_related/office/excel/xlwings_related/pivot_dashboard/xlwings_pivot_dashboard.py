@@ -357,24 +357,20 @@ class PivotDashboard:
         Parameters
         ----------
         configs : list of dict
-            Required keys per entry:
-                - ``row_field`` (str),
-                - ``data_field`` (str).
-
-            Optional keys:
-                - ``col_field`` (str)
-                - ``title`` (str)
-                - ``name`` (str) unlikely neede
-                - ``data_label`` (str) unlikely needed
-                - ``xl_func`` (int or XL_FUNC key string, default ``"sum"``),
-                - ``chart_type`` (xlwings chart type string, default ``"column_clustered"``),
-                - ``sort_col_asc_by_data_field`` (bool),
+            Possible keys per entry:
+                - ``data_field`` (str, required)
+                - ``row_field`` (str) or list(str)
+                - ``col_field`` (str) or list(str)
+                - ``sort_col_asc_by_data_field`` (bool, default False)
+                - ``xl_func`` (int or XL_FUNC key string, default ``"sum"``)
+                - ``chart_type`` (xlwings chart type string, default ``"column_clustered"``)
                 - ``rate_calc`` (dict):
-                    - ``nume`` (str, required),
-                    - ``deno`` (str, required),
-                    - ``label`` (str, optional; default ``"{nume}_rate"``).
-                    - When present, this rate series is automatically plotted as
-                    a line on the secondary axis.
+                    - ``nume`` (str, required if parent dict is present)
+                    - ``deno`` (str, required if parent dict is present)
+                    - ``value`` (str, optional; default ``"{nume}_rate"``)
+                    - ``plot_on_2nd_axis`` (bool, default True)
+                    - ``srs_types_to_remove`` (list of str, default ["nume"]; options: "data", "nume", "rate")
+                - ``title`` (str)
         chart_layout : dict, optional
             Override chart/grid layout. Keys:
                 - ``ncols``
@@ -418,61 +414,125 @@ class PivotDashboard:
             )
 
             for cfg, dest, (left, top), idx in zip(configs, dest_gen, pos_gen, n_gen):
+
+                # parse configs
+                if cfg.get("row_field") and isinstance(cfg["row_field"], str):
+                    row_fields = [cfg["row_field"]]
+                else:
+                    row_fields = cfg.get("row_field", [])
+                if cfg.get("col_field") and isinstance(cfg["col_field"], str):
+                    col_fields = [cfg["col_field"]]
+                else:
+                    col_fields = cfg.get("col_field", [])
+                sort_col_asc_by_data_field = cfg.get(
+                    "sort_col_asc_by_data_field", False
+                )
+
                 xl_func = cfg.get("xl_func", "sum")
                 if isinstance(xl_func, str):
                     func_label = xl_func.capitalize()
                     xl_func = XL_FUNC[xl_func]
                 else:
                     func_label = "Aggregate"
-
-                data_label = cfg.get(
-                    "data_label", f"{func_label} of {cfg['data_field']}"
-                )
+                data_field = cfg["data_field"]
+                data_value = cfg.get(
+                    "data_value", f"{func_label} of {data_field}"
+                )  # undocu, appear in values
                 chart_type = cfg.get("chart_type", "column_clustered")
+
+                if cfg.get("rate_calc"):
+                    rate_cfg = cfg["rate_calc"].copy()
+                    assert rate_cfg["nume"], "rate_calc config requires 'nume' key"
+                    assert rate_cfg["deno"], "rate_calc config requires 'deno' key"
+                    rate_cfg["formula"] = f"={rate_cfg['nume']}/{rate_cfg['deno']}"
+                    rate_cfg["value"] = (
+                        rate_cfg.get("value") or f"{rate_cfg['nume']}_rate"
+                    )
+                    rate_cfg["field"] = (
+                        f"__{rate_cfg['value']}_formula"  # appear in fields
+                    )
+                    rate_cfg["plot_on_2nd_axis"] = rate_cfg.get(
+                        "plot_on_2nd_axis", True
+                    )
+                    rate_cfg["srs_types_to_remove"] = rate_cfg.get(
+                        "srs_types_to_remove", ("nume",)
+                    )
+                else:
+                    rate_cfg = None
+
+                title = cfg.get("title")
+                if not title:
+                    title_metrics = [data_value]
+                    if rate_cfg:
+                        title_metrics.append(rate_cfg["value"])
+
+                    title_dims = []
+                    if row_fields:
+                        title_dims.append(", ".join(row_fields))
+                    if col_fields:
+                        title_dims.append(", ".join(col_fields))
+
+                    metrics_part = " and ".join(title_metrics)
+                    title = (
+                        metrics_part
+                        if not title_dims
+                        else f"{metrics_part} by {' and '.join(title_dims)}"
+                    )
+
+                pt_name = cfg.get("name", f"PivotTable{idx}")  # undocu
 
                 # create pivot table
                 pt = self._pivot_cache.CreatePivotTable(
                     TableDestination=self.ws_pivot[dest].api,
-                    TableName=cfg.get("name", f"PivotTable{idx}"),
+                    TableName=pt_name,
                 )
-                pt.PivotFields(cfg["row_field"]).Orientation = 1  # xlRowField
-                if "col_field" in cfg:
-                    pt.PivotFields(cfg["col_field"]).Orientation = 2  # xlColumnField
-                pt.AddDataField(pt.PivotFields(cfg["data_field"]), data_label, xl_func)
+                print(f"{pt_name = }")
 
-                # Optional calculated rate metric (e.g. survived / n) added as a second data field.
-                rate_cfg = cfg.get("rate_calc")
+                # Optional calculated rate metric (e.g. survived / n)
                 if rate_cfg:
-                    numerator = rate_cfg["nume"]
-                    denominator = rate_cfg["deno"]
-                    rate_label = rate_cfg.get("label", f"{numerator}_rate")
-                    calc_field_name = f"_{rate_label}"
-                    calc_formula = f"={numerator}/{denominator}"
-
                     try:
-                        pt.CalculatedFields().Add(calc_field_name, calc_formula)
-                    except Exception:
-                        # Field can already exist in the shared pivot cache.
+                        print(f"add {rate_cfg['field']} = {rate_cfg['formula']}")
+                        pt.CalculatedFields().Add(
+                            rate_cfg["field"], rate_cfg["formula"]
+                        )
+                    except Exception:  # may already exist
+                        print(f"field exist: {rate_cfg['field']}")
                         try:
-                            pt.PivotFields(calc_field_name)
+                            pt.PivotFields(rate_cfg["field"])
                         except Exception:
                             raise
 
-                    rate_field = pt.AddDataField(
-                        pt.PivotFields(calc_field_name),
-                        rate_label,
-                        XL_FUNC["average"],
+                # layout pt rows, columns, and values
+                for rf in row_fields:
+                    pt.PivotFields(rf).Orientation = 1  # xlRowField
+                for cf in col_fields:
+                    pt.PivotFields(cf).Orientation = 2  # xlColumnField
+                pt.AddDataField(pt.PivotFields(data_field), data_value, xl_func)
+                if rate_cfg:
+                    data_nume_value = f"{func_label} of {rate_cfg['nume']}"
+                    pt.AddDataField(
+                        pt.PivotFields(rate_cfg["nume"]), data_nume_value, xl_func
                     )
-                    rate_field.NumberFormat = "0.0%"
 
-                if cfg.get("sort_col_asc_by_data_field") and "col_field" in cfg:
-                    pt.PivotFields(cfg["col_field"]).AutoSort(
-                        Order=1,  # 1=xlAscending, 2=xlDescending
-                        Field=data_label,
+                    field_com = pt.AddDataField(
+                        pt.PivotFields(rate_cfg["field"]),
+                        rate_cfg["value"],
+                        -4106,  # xlAverage
                     )
+                    field_com.NumberFormat = rate_cfg.get(
+                        "rate_format", "0.0%"
+                    )  # undocu
+
+                if sort_col_asc_by_data_field and col_fields:
+                    for cf in col_fields:
+                        pt.PivotFields(cf).AutoSort(
+                            Order=1,  # 1=xlAscending, 2=xlDescending
+                            Field=data_value,
+                        )
+
                 self._pivot_coms.append(pt)
 
-                # create paired chart
+                # create chart on all data
                 chart = self.ws_pivot.charts.add(
                     left=left,
                     top=top,
@@ -481,23 +541,59 @@ class PivotDashboard:
                 )
                 chart.set_source_data(self.ws_pivot[dest].expand())
                 chart.chart_type = chart_type
-                chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
+                chart_com_win = chart.api[1]  # (Shape, Chart) tuple on Windows
+
+                # update chart for potential cfg driven axis and removal
+                series_names = [
+                    chart_com_win.SeriesCollection(i).Name
+                    for i in range(1, chart_com_win.SeriesCollection().Count + 1)
+                ]
+                print(f"{series_names = }")
+
+                data_srs_names = []
+                nume_srs_names = []
+                rate_srs_names = []
+                for s in series_names:
+                    if s.endswith(data_value):
+                        data_srs_names.append(s)
+                    elif rate_cfg and s.endswith(data_nume_value):
+                        nume_srs_names.append(s)
+                    elif rate_cfg and s.endswith(rate_cfg["value"]):
+                        rate_srs_names.append(s)
+
+                print(f"{data_srs_names = }, {nume_srs_names = }, {rate_srs_names = }")
 
                 if rate_cfg:
-                    try:
-                        srs_ln = chart_com.SeriesCollection(rate_label)
-                        srs_ln.ChartType = 4  # xlLine
-                        srs_ln.AxisGroup = 2  # secondary axis
-                    except Exception:
-                        # raise
-                        pass
 
-                chart_com.HasTitle = True
-                title = cfg.get("title") or f"{data_label} by {cfg['row_field']}" + (
-                    f" and {cfg['col_field']}" if "col_field" in cfg else ""
-                )
-                chart_com.ChartTitle.Text = title
+                    if rate_cfg["plot_on_2nd_axis"]:
+                        for srs_name in rate_srs_names:
+                            print(f"2nd axis calls: {srs_name = }")
+                            srs = chart_com_win.SeriesCollection(srs_name)
+                            srs.ChartType = 4  # xlLine
+                            srs.AxisGroup = 2  # secondary axis
+
+                    for srs_type in rate_cfg["srs_types_to_remove"]:
+                        if srs_type == "data":
+                            for srs_name in data_srs_names:
+                                chart_com_win.SeriesCollection(srs_name).Delete()
+                        elif srs_type == "nume":
+                            print(f"removal calls: {nume_srs_names = }")
+                            for srs_name in nume_srs_names:
+                                chart_com_win.SeriesCollection(srs_name).Delete()
+                        elif srs_type == "rate":
+                            for srs_name in rate_srs_names:
+                                chart_com_win.SeriesCollection(srs_name).Delete()
+                        else:
+                            raise ValueError(f"Invalid srs_type_to_remove: {srs_type}")
+
+                # chart title
+                chart_com_win.HasTitle = True
+                chart_com_win.ChartTitle.Text = title
                 self._chart_coms.append(chart)
+
+                import time
+
+                time.sleep(1)
 
     # ------------------------------------------------------------------
     # Step 3 — slicers
