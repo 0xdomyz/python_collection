@@ -105,8 +105,8 @@ for rate_srs_name in rate_srs_names:
     srs.AxisGroup = 2  # secondary axis
 
 # %%
-for srs_name in target_srs_names:
-    chart_com.SeriesCollection(srs_name).Delete()
+# for srs_name in target_srs_names:
+#     chart_com.SeriesCollection(srs_name).Delete()
 
 # %%
 # srs_ln = chart_com.SeriesCollection(field_calc)
