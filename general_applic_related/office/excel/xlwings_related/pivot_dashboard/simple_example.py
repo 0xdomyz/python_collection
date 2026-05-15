@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import xlwings as xw
-from piv_dash_utils import *
 from xlwings_pivot_dashboard import PivotDashboard
 
 # %%
@@ -15,8 +14,10 @@ df_info.columns = ["example_value", "dtypes", "nunique", "n_null"]
 df_info = df_info.sort_index()
 print(df_info.to_string())
 # %%
-df["age_group"] = make_binned_column_quantile(df["age"], bins=10, sortable_str=True)
-df["fare_binned"] = make_binned_column_quantile(df["fare"], bins=10, sortable_str=True)
+df["age_group"] = pd.cut(
+    df["age"], bins=[0, 18, 40, 80], labels=["0-18", "19-40", "41-80"]
+)
+df["fare_binned"] = pd.qcut(df["fare"], q=10, labels=False)
 df["n"] = 1
 
 # %% [markdown]
