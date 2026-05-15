@@ -50,7 +50,6 @@ df.describe()
 # ## test
 # ####################################################################################################
 
-
 # %%
 import xlwings as xw
 
@@ -61,6 +60,14 @@ wb = xw.Book()
 dashboard = PivotDashboard(wb)
 
 # %%
+from loguru import logger
+
+logger.add(
+    sys.stdout,
+    level="DEBUG",
+)
+
+# %%
 dashboard.write_table(df, sql="")
 
 # %%
@@ -68,21 +75,25 @@ pivot_configs = [
     # fmt: off
 
     # areas
-    dict(row_field='category',data_field="n",chart_type='column_stacked',rate_calc=dict(nume='target',deno='n',srs_types_to_remove=(),)),
-    dict(row_field='Country',data_field="n",chart_type='column_stacked',rate_calc=dict(nume='target',deno='n',srs_types_to_remove=(),)),
+    dict(row_field='category',data_field="n",chart_type='column_stacked'),
+    dict(row_field=['category','Country'],data_field="goods",chart_type='column_stacked',rate_calc=dict(nume='target',deno='n',)),
     dict(row_field='decade_ending',col_field='category',data_field="n", chart_type="area_stacked",),
-    dict(row_field=['category','Country'],data_field="n",chart_type='column_stacked',rate_calc=dict(nume='target',deno='n',srs_types_to_remove=(),)),
-    # dict(row_field='Country',data_field="n",rate_calc=dict(nume='target',deno='n',)),
-    # dict(row_field='decade_ending',col_field='category',data_field="n", chart_type="area_stacked",rate_calc=dict(nume='target',deno='n',)),
+    dict(row_field='decade_ending',col_field='category',data_field="goods", chart_type="area_stacked",rate_calc=dict(nume='target',deno='n',)),
     # columns
     # fmt: on
 ]
-dashboard.add_pivots(pivot_configs, pause_updates=False)
+dashboard.add_pivots(pivot_configs, pause_updates=True)
 
 # %%
-dashboard._chart_coms[0]
+# dashboard._chart_coms[0]
 
 # %%
-# dashboard.add_slicers(
-#     fields=df.columns.tolist()[:2],
-# )
+dashboard.add_slicers(
+    fields=df.columns.tolist()[:2],
+)
+
+# %%
+# wb.save("output.xlsx")
+# wb.close()
+
+# %%

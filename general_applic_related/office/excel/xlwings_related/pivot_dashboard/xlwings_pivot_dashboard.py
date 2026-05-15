@@ -17,6 +17,9 @@ from contextlib import contextmanager, nullcontext
 from itertools import count
 
 import xlwings as xw
+from loguru import logger
+
+logger.remove()
 
 
 @contextmanager
@@ -369,7 +372,6 @@ class PivotDashboard:
                     - ``deno`` (str, required if parent dict is present)
                     - ``value`` (str, optional; default ``"{nume}_rate"``)
                     - ``plot_on_2nd_axis`` (bool, default True)
-                    - ``srs_types_to_remove`` (list of str, default ["nume"]; options: "data", "nume", "rate")
                 - ``title`` (str)
         chart_layout : dict, optional
             Override chart/grid layout. Keys:
@@ -486,17 +488,17 @@ class PivotDashboard:
                     TableDestination=self.ws_pivot[dest].api,
                     TableName=pt_name,
                 )
-                print(f"{pt_name = }")
+                logger.debug(f"{pt_name = }")
 
                 # Optional calculated rate metric (e.g. survived / n)
                 if rate_cfg:
                     try:
-                        print(f"add {rate_cfg['field']} = {rate_cfg['formula']}")
+                        logger.debug(f"add {rate_cfg['field']} = {rate_cfg['formula']}")
                         pt.CalculatedFields().Add(
                             rate_cfg["field"], rate_cfg["formula"]
                         )
                     except Exception:  # may already exist
-                        print(f"field exist: {rate_cfg['field']}")
+                        logger.debug(f"field exist: {rate_cfg['field']}")
                         try:
                             pt.PivotFields(rate_cfg["field"])
                         except Exception:
@@ -548,7 +550,7 @@ class PivotDashboard:
                     chart_com_win.SeriesCollection(i).Name
                     for i in range(1, chart_com_win.SeriesCollection().Count + 1)
                 ]
-                print(f"{series_names = }")
+                logger.debug(f"{series_names = }")
 
                 data_srs_names = []
                 nume_srs_names = []
@@ -561,39 +563,26 @@ class PivotDashboard:
                     elif rate_cfg and s.endswith(rate_cfg["value"]):
                         rate_srs_names.append(s)
 
-                print(f"{data_srs_names = }, {nume_srs_names = }, {rate_srs_names = }")
+                logger.debug(
+                    f"{data_srs_names = }, {nume_srs_names = }, {rate_srs_names = }"
+                )
 
                 if rate_cfg:
 
                     if rate_cfg["plot_on_2nd_axis"]:
                         for srs_name in rate_srs_names:
-                            print(f"2nd axis calls: {srs_name = }")
+                            logger.debug(f"2nd axis calls: {srs_name = }")
                             srs = chart_com_win.SeriesCollection(srs_name)
                             srs.ChartType = 4  # xlLine
                             srs.AxisGroup = 2  # secondary axis
-
-                    for srs_type in rate_cfg["srs_types_to_remove"]:
-                        if srs_type == "data":
-                            for srs_name in data_srs_names:
-                                chart_com_win.SeriesCollection(srs_name).Delete()
-                        elif srs_type == "nume":
-                            print(f"removal calls: {nume_srs_names = }")
-                            for srs_name in nume_srs_names:
-                                chart_com_win.SeriesCollection(srs_name).Delete()
-                        elif srs_type == "rate":
-                            for srs_name in rate_srs_names:
-                                chart_com_win.SeriesCollection(srs_name).Delete()
-                        else:
-                            raise ValueError(f"Invalid srs_type_to_remove: {srs_type}")
 
                 # chart title
                 chart_com_win.HasTitle = True
                 chart_com_win.ChartTitle.Text = title
                 self._chart_coms.append(chart)
 
-                import time
-
-                time.sleep(1)
+                # import time
+                # time.sleep(1)
 
     # ------------------------------------------------------------------
     # Step 3 — slicers
