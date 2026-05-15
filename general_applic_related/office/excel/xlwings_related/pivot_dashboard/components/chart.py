@@ -6,6 +6,7 @@ import xlwings as xw
 # %%
 # data
 df = sns.load_dataset("titanic")
+df["n"] = 1
 print(f"{df.shape = }")
 print(df.head().to_string())
 
@@ -38,8 +39,10 @@ pt = pivot_cache.CreatePivotTable(
 )
 
 pt.PivotFields("who").Orientation = 1  # xlRowField
-pt.PivotFields("survived").Orientation = 2  # xlColumnField
+pt.PivotFields("class").Orientation = 2  # xlColumnField
+# pt.PivotFields("who").Orientation = 2  # xlColumnField
 pt.AddDataField(pt.PivotFields("fare"), "Count of Fare", -4112)  # -4112 = xlCount
+pt.AddDataField(pt.PivotFields("n"), "Sum of n", -4157)  # -4157 = xlSum
 
 # %% [markdown]
 # ### make pivot chart
@@ -54,25 +57,24 @@ chart = ws_pivot.charts.add(
     height=300,
 )
 chart.set_source_data(pt_range)
-chart.chart_type = "bar_clustered"
+chart.chart_type = "column_clustered"
 
 chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
 chart_com.HasTitle = True
-chart_com.ChartTitle.Text = "Titanic Fare by Who and Survival"
+chart_com.ChartTitle.Text = "Title"
+
 
 # %% [markdown]
-# ### ref
+# ## check
+# ####################################################################################################
+
+
 # %%
-# # chart to the bottom of the pivot table
-# chart = ws_pivot.charts.add(
-#     left=pt_range.left,
-#     top=pt_range.top + pt_range.height + 20,
-#     width=400,
-#     height=300,
-# )
+for field in pt.PivotFields():
+    print(f"{field.Name = }", f"{field.Orientation = }")
 
 # %% [markdown]
 # ### save
 # %%
-wb.save(r"output.xlsx")
-wb.close()
+# wb.save(r"output.xlsx")
+# wb.close()
