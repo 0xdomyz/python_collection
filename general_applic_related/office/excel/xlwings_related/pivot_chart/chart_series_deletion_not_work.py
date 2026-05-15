@@ -28,10 +28,13 @@ ws.tables.add(source=data_range, name="titanic_table")
 # %%
 ws_pivot = wb.sheets.add("Pivot")
 
+# %%
+
 pivot_cache = wb.api.PivotCaches().Create(
     SourceType=1,  # xlDatabase
     SourceData="titanic_table",
 )
+# %%
 
 pt = pivot_cache.CreatePivotTable(
     TableDestination=ws_pivot["L5"].api,
@@ -49,7 +52,7 @@ pt.AddDataField(pt.PivotFields("n"), "Sum of n", -4157)  # -4157 = xlSum
 # %%
 pt_range = ws_pivot["L5"].expand()
 
-# chart to the leftmost of the pivot table
+# %%
 chart = ws_pivot.charts.add(
     left=1,
     top=pt_range.top,
@@ -58,16 +61,60 @@ chart = ws_pivot.charts.add(
 )
 chart.set_source_data(pt_range)
 chart.chart_type = "column_clustered"
+chart_com = chart.api[1]
 
-chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
-chart_com.HasTitle = True
-chart_com.ChartTitle.Text = "Title"
+# Keep only selected series that already exist in the PivotChart
+keep_suffixes = ("Sum of n",)  # adjust to your names
+
+for i in range(chart_com.SeriesCollection().Count, 0, -1):
+    s = chart_com.SeriesCollection(i)
+    name = str(s.Name)
+    if not any(name.endswith(k) for k in keep_suffixes):
+        s.Delete()
+
+# %% [markdown]
+# ## test new piv, will break and no good way to address
+# ####################################################################################################
+# %%
+pt = pivot_cache.CreatePivotTable(
+    TableDestination=ws_pivot["L35"].api,
+    TableName="TitanicPivot2",
+)
+
+pt.PivotFields("who").Orientation = 1  # xlRowField
+pt.PivotFields("class").Orientation = 2  # xlColumnField
+# pt.PivotFields("who").Orientation = 2  # xlColumnField
+pt.AddDataField(pt.PivotFields("fare"), "Count of Fare", -4112)  # -4112 = xlCount
+pt.AddDataField(pt.PivotFields("n"), "Sum of n", -4157)  # -4157 = xlSum
+
+pt_range = ws_pivot["L35"].expand()
+
+chart = ws_pivot.charts.add(
+    left=1,
+    top=pt_range.top,
+    width=400,
+    height=300,
+)
+chart.set_source_data(pt_range)
+chart.chart_type = "column_clustered"
+chart_com = chart.api[1]
+
+# Keep only selected series that already exist in the PivotChart
+keep_suffixes = ("Sum of n",)  # adjust to your names
+
+for i in range(chart_com.SeriesCollection().Count, 0, -1):
+    s = chart_com.SeriesCollection(i)
+    name = str(s.Name)
+    if not any(name.endswith(k) for k in keep_suffixes):
+        s.Delete()
 
 
 # %% [markdown]
 # ## check
 # ####################################################################################################
 
+# %%
+chart.delete()
 
 # %%
 for field in pt.PivotFields():
