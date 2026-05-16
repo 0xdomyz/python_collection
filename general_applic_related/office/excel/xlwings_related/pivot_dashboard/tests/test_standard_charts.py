@@ -54,27 +54,31 @@ wb = xw.Book()
 dashboard = PivotDashboard(wb)
 
 # %%
-dashboard.write_table(df, sql="")
+from loguru import logger
+
+logger.add(sys.stdout, level="DEBUG")
+
+# %%
+dashboard.write_table(df, code="")
 
 # %%
 pivot_configs = [
     # fmt: off
 
-    # args
-    dict(row_field='Country',data_field="n"),
-    dict(row_field='Country',data_field="n",title="Title"),
-    dict(row_field='Country',data_field="n",col_field='category',),
-    dict(row_field='Country',data_field="n",col_field='category',sort_col_asc_by_data_field=True,),
-    dict(row_field='Country',data_field="n", xl_func='count'),
-    dict(row_field='Country',data_field="n", chart_type="bar_clustered"),
+    # bars
+    dict(data_field="n"),
+    dict(data_field="n",title="Title"),
+    dict(data_field="n",row_field='Country',),
+    dict(data_field="n",col_field='category',),
+    dict(data_field="n", xl_func='count'),
+    dict(data_field="n",row_field='Country',col_field='category',sort_col_asc_by_data_field=True,),
+    dict(data_field="n",row_field='Country', chart_type="bar_clustered"),
 
     # areas
     dict(row_field='Year',col_field='category',data_field="n", chart_type="area_stacked"),
     dict(row_field='Year',col_field='category',data_field="n", chart_type="area_stacked_100"),
-
-    # rate_calc
-    dict(row_field='category',data_field="n", xl_func='sum',
-         rate_calc=dict(nume='target',deno='n',)),
+    # lines
+    dict(row_field='Year',col_field='category',data_field="n", chart_type="line"),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs)
@@ -83,3 +87,6 @@ dashboard.add_pivots(pivot_configs)
 dashboard.add_slicers(
     fields=df.columns.tolist()[:2],
 )
+# %%
+wb.save("output.xlsx")
+wb.close()

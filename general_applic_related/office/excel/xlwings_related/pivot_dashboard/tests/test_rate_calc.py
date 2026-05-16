@@ -68,17 +68,17 @@ logger.add(
 )
 
 # %%
-dashboard.write_table(df, sql="")
+dashboard.write_table(df, code="")
 
 # %%
 pivot_configs = [
     # fmt: off
 
     # areas
-    dict(row_field='category',data_field="n",chart_type='column_stacked'),
-    dict(row_field=['category','Country'],data_field="goods",chart_type='column_stacked',rate_calc=dict(nume='target',deno='n',)),
-    dict(row_field='decade_ending',col_field='category',data_field="n", chart_type="area_stacked",),
-    dict(row_field='decade_ending',col_field='category',data_field="goods", chart_type="area_stacked",rate_calc=dict(nume='target',deno='n',)),
+    dict(data_field="n", row_field='category',chart_type='column_stacked'),
+    dict(data_field="n", row_field=['category','Country'],chart_type='column_stacked',rate_calc=dict(nume='target',deno='n',)),
+    dict(data_field="n", row_field='decade_ending',col_field='category', chart_type="area_stacked",),
+    dict(data_field="n", row_field='decade_ending',col_field='category', chart_type="area_stacked",rate_calc=dict(nume='target',deno='n',)),
     # columns
     # fmt: on
 ]
@@ -93,7 +93,7 @@ dashboard.add_slicers(
 )
 
 # %%
-# wb.save("output.xlsx")
-# wb.close()
+wb.save("output.xlsx")
+wb.close()
 
 # %%

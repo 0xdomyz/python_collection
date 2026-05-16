@@ -12,8 +12,13 @@ import pandas as pd
 import seaborn as sns
 import xlwings as xw
 
+# %%
 sys.path.append(str(pathlib.Path().cwd().parent))
+from loguru import logger
 from xlwings_pivot_dashboard import PivotDashboard
+
+# %%
+logger.add(sys.stdout, level="DEBUG")
 
 # %%
 # initial data
@@ -87,7 +92,7 @@ select
     end as age_group_new
 from titanic
 """
-dashboard.write_table(df2, sql=SQL2)
+dashboard.write_table(df2, code=SQL2)
 
 # %%
 wb.save(r"output.xlsx")
@@ -106,7 +111,7 @@ df3["age_group_newer"] = pd.cut(df3["age"], bins=[0, 25, 50, 80]).astype(str)
 print(f"{df3.shape = }")
 print(df3.head().to_string())
 # %%
-dashboard.write_table(df3, sql="new sql")
+dashboard.write_table(df3, code="new sql")
 
 # %%
 wb.save(r"output.xlsx")

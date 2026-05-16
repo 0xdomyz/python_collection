@@ -1,13 +1,12 @@
 """
-PivotDashboard — reusable xlwings class for building an Excel pivot dashboard.
+PivotDashboard — build Excel pivot dashboard
 
 Workflow
 --------
-1. ``write_table(df, sql)``  — write SQL to SQL sheet, DataFrame as named table
+1. ``write_table(df, code)``  — write code to code sheet, DataFrame as named table
 2. ``add_pivots(configs)``   — create pivot cache, pivot tables and paired charts
 3. ``add_slicers(fields)``   — add slicers connected to all pivot tables
-4. ``refresh(df, sql)``      — update SQL sheet, replace table data, refresh all pivots in-place
-5. ``PivotDashboard.from_workbook(wb)`` — reconnect to an existing workbook built with this class
+4. ``PivotDashboard.from_workbook(wb)`` — reconnect to an existing workbook built with this class
 
 Layout defaults can be overridden per-call via ``chart_layout``, ``dest_layout``,
 and ``slicer_layout`` dicts without subclassing.
@@ -22,23 +21,10 @@ from loguru import logger
 logger.remove()
 
 
-@contextmanager
-def _paused(app):
-    """Suspend Excel screen updates, calculation, events and status bar."""
-    app.screen_updating = False
-    app.calculation = "manual"
-    app.enable_events = False
-    app.display_status_bar = False
-    try:
-        yield
-    finally:
-        app.screen_updating = True
-        app.calculation = "automatic"
-        app.enable_events = True
-        app.display_status_bar = True
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
 
-
-# Excel aggregate function constants
 XL_FUNC = {
     "count": -4112,  # xlCount
     "sum": -4157,  # xlSum
@@ -47,7 +33,6 @@ XL_FUNC = {
     "min": -4139,  # xlMin
 }
 
-# Xlwings chart type strings (e.g. "bar_clustered") can be used directly on the Chart object
 XL_CHART_TYPES = {
     "bar_clustered": "bar_clustered",
     "bar_stacked": "bar_stacked",
@@ -94,7 +79,7 @@ _SLICER_LAYOUT_DEFAULT = {
 
 
 # ---------------------------------------------------------------------------
-# Private layout generators
+# Utils
 # ---------------------------------------------------------------------------
 
 
@@ -133,23 +118,28 @@ def _grid_excel_refs(col, start_row, row_step, ncols, col_step, **_):
         row += row_step
 
 
+@contextmanager
+def _paused(app):
+    """Suspend Excel screen updates, calculation, events and status bar."""
+    app.screen_updating = False
+    app.calculation = "manual"
+    app.enable_events = False
+    app.display_status_bar = False
+    try:
+        yield
+    finally:
+        app.screen_updating = True
+        app.calculation = "automatic"
+        app.enable_events = True
+        app.display_status_bar = True
+
+
 # ---------------------------------------------------------------------------
 # PivotDashboard class
 # ---------------------------------------------------------------------------
 
 
 class PivotDashboard:
-    """Build an Excel pivot dashboard (tables, charts, slicers) via xlwings COM.
-
-    Parameters
-    ----------
-    wb : xw.Book
-        An open xlwings workbook (e.g. ``xw.Book()``).
-    data_sheet : str
-        Name for the data sheet. The workbook's first sheet is renamed to this.
-    pivot_sheet : str
-        Name for the pivot/chart sheet. Added automatically.
-    """
 
     @classmethod
     def from_workbook(
@@ -157,7 +147,7 @@ class PivotDashboard:
         wb: xw.Book,
         data_sheet: str = "Data",
         pivot_sheet: str = "Pivot",
-        sql_sheet: str = "SQL",
+        code_sheet: str = "Code",
     ) -> "PivotDashboard":
         """Reconnect to an existing workbook previously built with this class.
 
@@ -167,14 +157,14 @@ class PivotDashboard:
         ----------
         wb : xw.Book
             An already-open xlwings workbook (e.g. ``xw.Book("output.xlsx")``).
-        data_sheet, pivot_sheet, sql_sheet : str
+        data_sheet, pivot_sheet, code_sheet : str
             Sheet names used when the workbook was originally created.
         """
         inst = cls.__new__(cls)
         inst.wb = wb
         inst.ws_data = wb.sheets[data_sheet]
         inst.ws_pivot = wb.sheets[pivot_sheet]
-        inst.ws_sql = wb.sheets[sql_sheet]
+        inst.ws_code = wb.sheets[code_sheet]
 
         # discover table name from the first ListObject on the data sheet
         list_objects = inst.ws_data.api.ListObjects
@@ -188,6 +178,7 @@ class PivotDashboard:
         try:
             inst._pivot_coms = [pts(i) for i in range(1, pts.Count + 1)]
         except Exception as e:  # earlier COM version
+            logger.debug(f"early COM version detected in retrieving pivot COM")
             inst._pivot_coms = [pts_raw(i) for i in range(1, pts.Count + 1)]
 
         if not inst._pivot_coms:
@@ -216,22 +207,35 @@ class PivotDashboard:
         wb: xw.Book,
         data_sheet: str = "Data",
         pivot_sheet: str = "Pivot",
-        sql_sheet: str = "SQL",
+        code_sheet: str = "Code",
     ):
+        """Build Excel pivot dashboard.
+
+        Parameters
+        ----------
+        wb : xw.Book
+            An open xlwings workbook (e.g. ``xw.Book()``).
+        data_sheet : str
+            Name for the data sheet. The workbook's first sheet is renamed to this.
+        pivot_sheet : str
+            Name for the pivot/chart sheet.
+        code_sheet : str
+            Name for the code sheet.
+        """
         self.wb = wb
 
         existing_sheets_names = [s.name for s in wb.sheets]
         if (
-            sql_sheet in existing_sheets_names
+            code_sheet in existing_sheets_names
             or data_sheet in existing_sheets_names
             or pivot_sheet in existing_sheets_names
         ):
             raise ValueError(
-                f"One of the specified sheets ({sql_sheet}, {data_sheet}, {pivot_sheet}) already exists in the workbook. "
+                f"One of the specified sheets ({code_sheet}, {data_sheet}, {pivot_sheet}) already exists in the workbook. "
                 f"Use PivotDashboard.from_workbook() to connect to an existing workbook or choose different sheet names."
             )
 
-        self.ws_sql = wb.sheets.add(sql_sheet)
+        self.ws_code = wb.sheets.add(code_sheet)
         self.ws_data = wb.sheets.add(data_sheet)
         self.ws_pivot = wb.sheets.add(pivot_sheet)
 
@@ -250,7 +254,7 @@ class PivotDashboard:
             f"PivotDashboard("
             f"data='{self.ws_data.name}', "
             f"pivot='{self.ws_pivot.name}', "
-            f"sql='{self.ws_sql.name}', "
+            f"code='{self.ws_code.name}', "
             f"table='{self._table_name}', "
             f"pivots={len(self._pivot_coms)}, "
             f"charts={len(self._chart_coms)}, "
@@ -262,7 +266,7 @@ class PivotDashboard:
             "PivotDashboard",
             f"  data sheet   : {self.ws_data.name}",
             f"  pivot sheet  : {self.ws_pivot.name}",
-            f"  sql sheet    : {self.ws_sql.name}",
+            f"  code sheet   : {self.ws_code.name}",
             f"  table name   : {self._table_name}",
             f"  pivot count  : {len(self._pivot_coms)}",
             f"  chart count  : {len(self._chart_coms)}",
@@ -271,19 +275,17 @@ class PivotDashboard:
         return "\n".join(lines)
 
     # ------------------------------------------------------------------
-    # SQL sheet helpers
+    # Code sheet helpers
     # ------------------------------------------------------------------
 
-    def _write_sql(self, sql: str) -> None:
-        """Write SQL text to the SQL sheet, one line per row.
-
-        Empty lines are stored as a single space so ``expand()`` can traverse
-        the full block without stopping at a blank cell.
-        """
-        lines = sql.split("\n")
-        if self.ws_sql["A1"].value is not None:
-            self.ws_sql["A1"].expand().clear()
-        self.ws_sql["A1"].value = [[line or " "] for line in lines]
+    def _write_code(self, code: str) -> None:
+        """Write code text to the code sheet, one line per row."""
+        lines = code.split("\n")
+        if self.ws_code["A1"].value is not None:
+            self.ws_code["A1"].expand().clear()
+        self.ws_code["A1"].value = [
+            [line or " "] for line in lines
+        ]  # allow ``expand()`` traversal
 
     # ------------------------------------------------------------------
     # Step 1 — data
@@ -292,11 +294,11 @@ class PivotDashboard:
     def write_table(
         self,
         df,
-        sql: str = "",
+        code: str = "",
         table_name: str = "data_table",
         pause_updates: bool = True,
     ) -> None:
-        """Write *sql* to the SQL sheet, *df* as a named Excel table, and
+        """Write *code* to the code sheet, *df* as a named Excel table, and
         initialise the pivot cache.
 
         If the table already exists, it is replaced in-place to preserve pivot cache connections.
@@ -304,8 +306,8 @@ class PivotDashboard:
         Parameters
         ----------
         df : pandas.DataFrame
-        sql : str
-            SQL query string to record on the SQL sheet.
+        code : str
+            Code string to record on the code sheet.
         table_name : str
             Name of the Excel ListObject (must be a valid Excel name).
         pause_updates : bool, default True
@@ -313,7 +315,7 @@ class PivotDashboard:
         """
         ctx = _paused(self.wb.app) if pause_updates else nullcontext()
         with ctx:
-            self._write_sql(sql)
+            self._write_code(code)
             self.ws_data.clear()
             if self._table_name is None:
                 self._table_name = table_name
@@ -325,24 +327,6 @@ class PivotDashboard:
             self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
             for pt_com in self._pivot_coms:
                 pt_com.RefreshTable()
-
-    def refresh(self, df, sql: str = "", pause_updates: bool = True) -> None:
-        """Update SQL sheet, replace source table, and refresh all pivots.
-
-        Uses ``ws_data.clear()`` + recreate table under the same name so Excel
-        resolves the pivot cache source by name — slicers remain connected and
-        no ``ChangePivotCache`` call is needed.
-
-        Parameters
-        ----------
-        df : pandas.DataFrame
-            New data, may differ in row count and column count from original.
-        sql : str
-            Updated SQL query string to record on the SQL sheet.
-        pause_updates : bool, default True
-            Whether to suspend Excel updates, calculation, and events during action.
-        """
-        self.write_table(df, sql=sql, pause_updates=pause_updates)
 
     # ------------------------------------------------------------------
     # Step 2 — pivot tables + charts
@@ -371,6 +355,7 @@ class PivotDashboard:
                     - ``nume`` (str, required if parent dict is present)
                     - ``deno`` (str, required if parent dict is present)
                     - ``value`` (str, optional; default ``"{nume}_rate"``)
+                    - ``add_nume_to_values`` (bool, default False)
                     - ``plot_on_2nd_axis`` (bool, default True)
                 - ``title`` (str)
         chart_layout : dict, optional
@@ -453,11 +438,11 @@ class PivotDashboard:
                     rate_cfg["field"] = (
                         f"__{rate_cfg['value']}_formula"  # appear in fields
                     )
+                    rate_cfg["add_nume_to_values"] = rate_cfg.get(
+                        "add_nume_to_values", False
+                    )
                     rate_cfg["plot_on_2nd_axis"] = rate_cfg.get(
                         "plot_on_2nd_axis", True
-                    )
-                    rate_cfg["srs_types_to_remove"] = rate_cfg.get(
-                        "srs_types_to_remove", ("nume",)
                     )
                 else:
                     rate_cfg = None
@@ -493,7 +478,7 @@ class PivotDashboard:
                 # Optional calculated rate metric (e.g. survived / n)
                 if rate_cfg:
                     try:
-                        logger.debug(f"add {rate_cfg['field']} = {rate_cfg['formula']}")
+                        # logger.debug(f"add {rate_cfg['field']} = {rate_cfg['formula']}")
                         pt.CalculatedFields().Add(
                             rate_cfg["field"], rate_cfg["formula"]
                         )
@@ -512,9 +497,11 @@ class PivotDashboard:
                 pt.AddDataField(pt.PivotFields(data_field), data_value, xl_func)
                 if rate_cfg:
                     data_nume_value = f"{func_label} of {rate_cfg['nume']}"
-                    pt.AddDataField(
-                        pt.PivotFields(rate_cfg["nume"]), data_nume_value, xl_func
-                    )
+
+                    if rate_cfg["add_nume_to_values"]:
+                        pt.AddDataField(
+                            pt.PivotFields(rate_cfg["nume"]), data_nume_value, xl_func
+                        )
 
                     field_com = pt.AddDataField(
                         pt.PivotFields(rate_cfg["field"]),
@@ -545,12 +532,11 @@ class PivotDashboard:
                 chart.chart_type = chart_type
                 chart_com_win = chart.api[1]  # (Shape, Chart) tuple on Windows
 
-                # update chart for potential cfg driven axis and removal
+                # update chart for potential cfg driven axis
                 series_names = [
                     chart_com_win.SeriesCollection(i).Name
                     for i in range(1, chart_com_win.SeriesCollection().Count + 1)
                 ]
-                logger.debug(f"{series_names = }")
 
                 data_srs_names = []
                 nume_srs_names = []
@@ -563,15 +549,11 @@ class PivotDashboard:
                     elif rate_cfg and s.endswith(rate_cfg["value"]):
                         rate_srs_names.append(s)
 
-                logger.debug(
-                    f"{data_srs_names = }, {nume_srs_names = }, {rate_srs_names = }"
-                )
-
                 if rate_cfg:
 
                     if rate_cfg["plot_on_2nd_axis"]:
+                        logger.debug(f"2nd axis calls: {rate_srs_names = }")
                         for srs_name in rate_srs_names:
-                            logger.debug(f"2nd axis calls: {srs_name = }")
                             srs = chart_com_win.SeriesCollection(srs_name)
                             srs.ChartType = 4  # xlLine
                             srs.AxisGroup = 2  # secondary axis
