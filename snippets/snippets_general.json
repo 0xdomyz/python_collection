@@ -54,6 +54,13 @@
             "    f.write(qry)",
         ],
     },
+    "logurudebug": {
+        "prefix": "logurudebug",
+        "body": [
+            "from loguru import logger",
+            "logger.add(sys.stdout, level=\"DEBUG\")",
+        ],
+    },
     "xwdata": {
         "prefix": "xwdata",
         "body": [
@@ -72,11 +79,11 @@
             "import xlwings as xw",
             "wb = xw.Book()",
             "dashboard = PivotDashboard(wb)",
-            "dashboard.write_table(df, sql=$1)",
+            "dashboard.write_table(df, code=$1)",
             "",
             "pivot_configs = [",
             "    # fmt: off",
-            "    dict(row_field=$2,col_field=$3,data_field=\"n\",chart_type=\"area_stacked\",),",
+            "    dict(data_field=\"n\",row_field=$2,col_field=$3,chart_type=\"area_stacked\",),",
             "    # fmt: on",
             "]",
             "dashboard.add_pivots(pivot_configs)",
@@ -85,7 +92,6 @@
             "    fields=[",
             "        $2,",
             "        $3,",
-            "        $4,",
             "    ],",
             ")",
         ],
