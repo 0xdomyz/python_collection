@@ -57,6 +57,7 @@
     "logurudebug": {
         "prefix": "logurudebug",
         "body": [
+            "import sys",
             "from loguru import logger",
             "logger.add(sys.stdout, level=\"DEBUG\")",
         ],
