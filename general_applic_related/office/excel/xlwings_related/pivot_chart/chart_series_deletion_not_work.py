@@ -125,3 +125,7 @@ for field in pt.PivotFields():
 # %%
 # wb.save(r"output.xlsx")
 # wb.close()
+
+# %%
+# pt.TableRange2.Clear()
+# chart.delete()

@@ -28,6 +28,7 @@ ws.tables.add(source=data_range, name="titanic_table")
 # %%
 ws_pivot = wb.sheets.add("Pivot")
 
+# %%
 pivot_cache = wb.api.PivotCaches().Create(
     SourceType=1,  # xlDatabase
     SourceData="titanic_table",
@@ -41,8 +42,20 @@ pt = pivot_cache.CreatePivotTable(
 pt.PivotFields("who").Orientation = 1  # xlRowField
 pt.PivotFields("class").Orientation = 2  # xlColumnField
 # pt.PivotFields("who").Orientation = 2  # xlColumnField
-pt.AddDataField(pt.PivotFields("fare"), "Count of Fare", -4112)  # -4112 = xlCount
 pt.AddDataField(pt.PivotFields("n"), "Sum of n", -4157)  # -4157 = xlSum
+
+pt.PivotFields("embark_town").Orientation = 3  # xlPageField (filter field)
+pt.PivotFields("sibsp").Orientation = 3  # xlPageField (filter field)
+
+# set filter values
+pf = pt.PivotFields("embark_town")
+pf.EnableMultiplePageItems = True  # same as checking "Select Multiple Items"
+# pf.CurrentPage = "(All)"
+for item in pf.PivotItems():
+    item.Visible = item.Name in ("Southampton", "Cherbourg")
+
+# %%
+# pt.TableRange2.Clear()
 
 # %% [markdown]
 # ### make pivot chart
@@ -63,6 +76,8 @@ chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
 chart_com.HasTitle = True
 chart_com.ChartTitle.Text = "Title"
 
+# %%
+# chart.delete()
 
 # %% [markdown]
 # ## check
