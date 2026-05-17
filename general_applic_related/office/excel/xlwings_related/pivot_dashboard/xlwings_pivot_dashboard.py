@@ -347,20 +347,21 @@ class PivotDashboard:
                 - ``data_field`` (str) or list(str)
                 - ``row_field`` (str) or list(str)
                 - ``col_field`` (str) or list(str)
-                - ``sort_col_asc_by_data_field`` (bool, default False)
                 - ``xl_func`` (``count``, ``sum``, ``average``, ``max``, ``min``, default ``sum``, or list of such)
                 - ``chart_type`` (xlwings chart type string, default ``"column_clustered"``)
+                - ``title`` (str)
+                - ``page_filters`` (dict[str, value|list[value]])
+                - ``sort_col_asc_by_data_field`` (bool, default False)
+                - ``axis_min`` (float)
+                - ``axis_max`` (float)
+                - ``2nd_axis_min`` (float, default 0.0)
+                - ``2nd_axis_max`` (float, default 1.0)
                 - ``rate_calc`` (dict) rowwise rate then average for pivot, data must be at non-aggregated level:
 
                     - ``nume`` (str, required if parent dict is present)
                     - ``deno`` (str, required if parent dict is present)
                     - ``value`` (str, optional; default ``"{nume}_rate"``)
                     - ``plot_on_2nd_axis`` (bool, default True)
-                - ``title`` (str)
-                - ``axis_min`` (float, optional)
-                - ``axis_max`` (float, optional)
-                - ``2nd_axis_min`` (float, default 0.0)
-                - ``2nd_axis_max`` (float, default 1.0)
         chart_layout : dict, optional
             Override chart/grid layout. Keys:
                 - ``ncols``
@@ -407,6 +408,7 @@ class PivotDashboard:
             for cfg, dest, (left, top), idx in zip(configs, dest_gen, pos_gen, n_gen):
 
                 # parse configs
+                # ------------------------------------------------------------------------
                 if cfg.get("row_field") and isinstance(cfg["row_field"], str):
                     row_fields = [cfg["row_field"]]
                 else:
@@ -420,6 +422,8 @@ class PivotDashboard:
                     data_fields = [cfg["data_field"]]
                 else:
                     data_fields = cfg.get("data_field", [])
+
+                page_filters = cfg.get("page_filters", {})
                 if cfg.get("xl_func") and isinstance(cfg["xl_func"], str):
                     xl_funcs = [cfg["xl_func"] for _ in data_fields]
                 else:
@@ -468,6 +472,13 @@ class PivotDashboard:
                         title_dims.append(", ".join(row_fields))
                     if col_fields:
                         title_dims.append(", ".join(col_fields))
+                    if page_filters:
+                        if len(page_filters) > 1:
+                            msg = f"with {len(page_filters)} filters"
+                        else:
+                            k, v = next(iter(page_filters.items()))
+                            msg = f"with {k}={v}"
+                        title_dims.append(f"{msg}")
 
                     metrics_part = " and ".join(title_metrics)
                     title = (
@@ -479,6 +490,7 @@ class PivotDashboard:
                 pt_name = cfg.get("name", f"PivotTable{idx}")  # undocu
 
                 # create pivot table
+                # ------------------------------------------------------------------------
                 pt = self._pivot_cache.CreatePivotTable(
                     TableDestination=self.ws_pivot[dest].api,
                     TableName=pt_name,
@@ -486,6 +498,7 @@ class PivotDashboard:
                 logger.debug(f"{pt_name = }")
 
                 # Optional calculated rate metric (e.g. survived / n)
+                # ------------------------------------------------------------------------
                 if rate_cfg:
                     try:
                         # logger.debug(f"add {rate_cfg['field']} = {rate_cfg['formula']}")
@@ -500,10 +513,31 @@ class PivotDashboard:
                             raise
 
                 # layout pt rows, columns, and values
+                # ------------------------------------------------------------------------
                 for rf in row_fields:
                     pt.PivotFields(rf).Orientation = 1  # xlRowField
                 for cf in col_fields:
                     pt.PivotFields(cf).Orientation = 2  # xlColumnField
+
+                # report filters (page fields), supports both single and multi-select
+                for pf_name, pf_values in page_filters.items():
+                    pf = pt.PivotFields(pf_name)
+                    pf.Orientation = 3  # xlPageField
+
+                    if pf_values is None or not pf_values:
+                        continue
+                    if not isinstance(pf_values, (list, tuple, set)):
+                        pf_values = [pf_values]
+                    if len(pf_values) == 1:
+                        pf.CurrentPage = str(pf_values[0])  # COM res is str
+                        continue
+                    else:
+                        pf.EnableMultiplePageItems = True
+                        pf_values = set(str(v) for v in pf_values)  # COM res is str
+                        for item in pf.PivotItems():
+                            item.Visible = item.Name in pf_values
+
+                # data fields
                 for data_field, xl_func, data_value in zip(
                     data_fields, xl_funcs, data_values
                 ):
@@ -528,6 +562,7 @@ class PivotDashboard:
                 self._pivot_coms.append(pt)
 
                 # create chart on all data
+                # ------------------------------------------------------------------------
                 chart = self.ws_pivot.charts.add(
                     left=left,
                     top=top,
@@ -539,6 +574,7 @@ class PivotDashboard:
                 chart_com_win = chart.api[1]  # (Shape, Chart) tuple on Windows
 
                 # update chart for potential cfg driven axis
+                # ------------------------------------------------------------------------
                 series_names = [
                     chart_com_win.SeriesCollection(i).Name
                     for i in range(1, chart_com_win.SeriesCollection().Count + 1)
@@ -564,6 +600,7 @@ class PivotDashboard:
                             srs.AxisGroup = 2  # secondary axis
 
                 # chart auxiliary
+                # ------------------------------------------------------------------------
                 y1 = chart_com_win.Axes(2, 1)
                 if cfg.get("axis_min"):
                     y1.MinimumScale = cfg["axis_min"]
