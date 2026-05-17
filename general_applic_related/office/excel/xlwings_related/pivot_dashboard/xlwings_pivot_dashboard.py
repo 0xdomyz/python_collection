@@ -32,21 +32,21 @@ XL_FUNC = {
     "min": -4139,  # xlMin
 }
 
-XL_CHART_TYPES = {
-    "bar_clustered": "bar_clustered",
-    "bar_stacked": "bar_stacked",
-    "bar_stacked_100": "bar_stacked_100",
-    "column_clustered": "column_clustered",
-    "column_stacked": "column_stacked",
-    "column_stacked_100": "column_stacked_100",
-    "line": "line",
-    "line_markers": "line_markers",
-    "line_markers_stacked": "line_markers_stacked",
-    "line_markers_stacked_100": "line_markers_stacked_100",
-    "pie": "pie",
-    "area_stacked": "area_stacked",
-    "area_stacked_100": "area_stacked_100",
-}
+XL_CHART_TYPES = [
+    "bar_clustered",
+    "bar_stacked",
+    "bar_stacked_100",
+    "column_clustered",
+    "column_stacked",
+    "column_stacked_100",
+    "line",
+    "line_markers",
+    "line_markers_stacked",
+    "line_markers_stacked_100",
+    "pie",
+    "area_stacked",
+    "area_stacked_100",
+]
 
 _CHART_LAYOUT_DEFAULT = {
     "ncols": 2,
