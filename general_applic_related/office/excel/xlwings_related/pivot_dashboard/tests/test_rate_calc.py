@@ -11,41 +11,20 @@ import seaborn as sns
 import xlwings as xw
 
 # %%
-# data
-df = sns.load_dataset("healthexp")
+# initial data
+df = sns.load_dataset("titanic")
 
-# %%
-df["Country"] = df["Country"].map(
-    {
-        "Germany": "Germany",
-        "France": "France",
-        "Great Britain": "Germany",
-        "Japan": "France",
-        "USA": "Germany",
-        "Canada": "France",
-    }
-)
-
-
-import numpy as np
-
-np.random.seed(0)
-df["target"] = (np.random.rand(len(df)) > 0.9).astype(int)
-df["goods"] = 1 - df["target"]
+df["age_group"] = pd.cut(
+    df["age"],
+    bins=[0, 10, 20, 30, 40, 50, 60, 70, 80],
+    labels=[0, 10, 20, 30, 40, 50, 60, 70],
+).astype(pd.Int64Dtype())
+df["fare_binned"] = pd.qcut(df["fare"], q=10, labels=False)
 df["n"] = 1
 
-df["category"] = (np.random.choice(["A", "B", "C"], size=len(df))).astype(str)
-df["decade_ending"] = pd.cut(
-    df["Year"],
-    bins=[1960, 1970, 1980, 1990, 2000, 2010, 2020],
-    labels=[1970, 1980, 1990, 2000, 2010, 2020],
-).astype(int)
+print(df.shape)
+print(df.head(3).T.to_string())
 
-# %%
-
-print(f"{df.shape = }")
-print(df.head().to_string())
-df.describe()
 # %% [markdown]
 # ## test
 # ####################################################################################################
@@ -73,27 +52,21 @@ dashboard.write_table(df, code="")
 # %%
 pivot_configs = [
     # fmt: off
-
-    # areas
-    dict(data_field="n", row_field='category',chart_type='column_stacked'),
-    dict(data_field="n", row_field=['category','Country'],chart_type='column_stacked',rate_calc=dict(nume='target',deno='n',)),
-    dict(data_field="n", row_field='decade_ending',col_field='category', chart_type="area_stacked",),
-    dict(data_field="n", row_field='decade_ending',col_field='category', chart_type="area_stacked",rate_calc=dict(nume='target',deno='n',)),
-    # columns
+    dict(data_field="n", row_field="who",rate_calc={'nume':'survived','deno':'n'}),
+    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",rate_calc={'nume':'survived','deno':'n'}),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs, pause_updates=True)
 
 # %%
-# dashboard._chart_coms[0]
-
-# %%
 dashboard.add_slicers(
-    fields=df.columns.tolist()[:2],
+    fields=["age_group", "class", "embarked"],
 )
 
 # %%
 wb.save("output.xlsx")
 wb.close()
 
+
 # %%
+# dashboard._chart_coms[0]

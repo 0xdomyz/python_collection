@@ -66,19 +66,20 @@ pivot_configs = [
     # fmt: off
 
     # bars
+    dict(),
     dict(data_field="n"),
     dict(data_field="n",title="Title"),
     dict(data_field="n",row_field='Country',),
     dict(data_field="n",col_field='category',),
-    dict(data_field="n", xl_func='count'),
+    dict(data_field="n",xl_func='count'),
+    dict(data_field="n",row_field='Country',col_field='category',),
     dict(data_field="n",row_field='Country',col_field='category',sort_col_asc_by_data_field=True,),
-    dict(data_field="n",row_field='Country', chart_type="bar_clustered"),
+    dict(data_field="n",row_field='Country',chart_type="bar_clustered"),
 
     # areas
-    dict(row_field='Year',col_field='category',data_field="n", chart_type="area_stacked"),
-    dict(row_field='Year',col_field='category',data_field="n", chart_type="area_stacked_100"),
-    # lines
-    dict(row_field='Year',col_field='category',data_field="n", chart_type="line"),
+    dict(data_field="n", row_field='Year',col_field='category', chart_type="area_stacked"),
+    dict(data_field="n", row_field='Year',col_field='category', chart_type="area_stacked_100"),
+    dict(data_field="n", row_field='Year',col_field='category', chart_type="line", axis_min=0,axis_max=10),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs)

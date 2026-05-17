@@ -39,7 +39,7 @@ df["age_group"] = pd.cut(df["age"], bins=[0, 18, 40, 80]).astype(str)
 df[f"fare_binned"] = pd.cut(
     df["fare"].fillna(0), bins=np.histogram_bin_edges(df["fare"].fillna(0), bins="auto")
 ).astype(str)
-
+df["n"] = 1
 
 # %% [markdown]
 # ## test
@@ -53,21 +53,16 @@ df[f"fare_binned"] = pd.cut(
 wb = xw.Book()
 dashboard = PivotDashboard(wb)
 dashboard.write_table(df)
-PIVOT_CONFIGS = [
-    dict(
-        row_field="embark_town",
-        data_field="fare",
-    ),
-    dict(
-        row_field="embark_town",
-        col_field="survived",
-        data_field="fare",
-    ),
+pivot_configs = [
+    # fmt: off
+    dict(data_field="n",row_field='age_group',col_field='class',),
+    dict(data_field="n",row_field='age_group',col_field='survived',),
+    # fmt: on
 ]
-dashboard.add_pivots(PIVOT_CONFIGS)
+dashboard.add_pivots(pivot_configs)
 dashboard.add_slicers(
     fields=[
-        "survived",
+        "embark_town",
         "pclass",
     ],
 )
@@ -95,13 +90,30 @@ from titanic
 dashboard.write_table(df2, code=SQL2)
 
 # %%
+pivot_configs = [
+    # fmt: off
+    dict(data_field="n",row_field='age_group',col_field='class',),
+    dict(data_field="n",row_field='age_group',col_field='survived',),
+    dict(data_field="n",row_field='age_group_new',col_field='survived',),
+    # fmt: on
+]
+dashboard.add_pivots(pivot_configs)
+dashboard.add_slicers(
+    fields=[
+        "embark_town",
+        "pclass",
+    ],
+)
+
+
+# %%
 wb.save(r"output.xlsx")
 wb.close()
 
 # %% [markdown]
 # ### refresh from an existing workbook
 # %%
-wb = xw.Book("Output.xlsx")
+wb = xw.Book("output.xlsx")
 dashboard = PivotDashboard.from_workbook(wb)
 print(dashboard)
 
@@ -112,6 +124,23 @@ print(f"{df3.shape = }")
 print(df3.head().to_string())
 # %%
 dashboard.write_table(df3, code="new sql")
+
+# %%
+pivot_configs = [
+    # fmt: off
+    dict(data_field="n",row_field='age_group',col_field='class',),
+    dict(data_field="n",row_field='age_group',col_field='survived',),
+    dict(data_field="n",row_field='age_group_newer',col_field='survived',),
+    # fmt: on
+]
+dashboard.add_pivots(pivot_configs)
+dashboard.add_slicers(
+    fields=[
+        "embark_town",
+        "pclass",
+    ],
+)
+
 
 # %%
 wb.save(r"output.xlsx")
