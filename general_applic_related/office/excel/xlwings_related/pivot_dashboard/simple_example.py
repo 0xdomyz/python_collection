@@ -22,6 +22,14 @@ print(df.head(3).T.to_string())
 # ### simple usage
 
 # %%
+import sys
+
+from loguru import logger
+
+logger.add(sys.stdout, level="DEBUG")
+
+
+# %%
 wb = xw.Book()
 dashboard = PivotDashboard(wb)
 dashboard.write_table(df, code=f"SELECT * FROM df")
@@ -32,9 +40,9 @@ pivot_configs = [
     dict(data_field="n", row_field="who",col_field="survived",chart_type='column_stacked_100'),
     dict(data_field="n", row_field="who",rate_calc={'nume':'survived','deno':'n'}),
 
-    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",sort_col_asc_by_data_field =True),
-    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",sort_col_asc_by_data_field =True),
-    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",rate_calc={'nume':'survived','deno':'n'}),
+    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",),
+    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",page_filters={'survived':1,},),
+    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",rate_calc={'nume':'survived','deno':'n'},sort_col_asc_by_data_field =True),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs)

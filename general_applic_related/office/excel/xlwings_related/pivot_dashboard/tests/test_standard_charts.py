@@ -80,14 +80,19 @@ pivot_configs = [
     dict(data_field="n", row_field='Year',col_field='category', chart_type="area_stacked"),
     dict(data_field="n", row_field='Year',col_field='category', chart_type="area_stacked_100"),
     dict(data_field="n", row_field='Year',col_field='category', chart_type="line", axis_min=0,axis_max=10),
+    dict(data_field="n", row_field="Year",col_field="category", chart_type="area_stacked",page_filters={'target':1,'Country':['Germany',]},),
+    dict(data_field="n", row_field="Year",col_field="category", chart_type="area_stacked",page_filters={'target':None,'Country':()},),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs)
 
 # %%
 dashboard.add_slicers(
-    fields=df.columns.tolist()[:2],
+    fields=[
+        "Year",
+        "Country",
+    ],
 )
 # %%
-wb.save("output.xlsx")
-wb.close()
+# wb.save("output.xlsx")
+# wb.close()
