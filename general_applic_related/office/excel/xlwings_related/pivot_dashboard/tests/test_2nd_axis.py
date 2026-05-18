@@ -52,8 +52,8 @@ dashboard.write_table(df, code="")
 # %%
 pivot_configs = [
     # fmt: off
-    dict(data_field="n", row_field="who",rate_calc={'nume':'survived','deno':'n'}),
-    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",rate_calc={'nume':'survived','deno':'n'}),
+    dict(data_field=["n",'survived'], xl_func=['sum','average'], row_field="who", plot_on_2nd_axis='survived'),
+    dict(data_field=["n",'survived'], xl_func=['sum','average'], row_field="age_group",col_field="who",chart_type="area_stacked", plot_on_2nd_axis=['survived']),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs, pause_updates=True)
