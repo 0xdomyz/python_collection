@@ -37,12 +37,10 @@ dashboard.write_table(df, code=f"SELECT * FROM df")
 pivot_configs = [
     # fmt: off
     dict(data_field="n", row_field="who"),
-    dict(data_field="n", row_field="who",col_field="survived",chart_type='column_stacked_100'),
-    dict(data_field="n", row_field="who",rate_calc={'nume':'survived','deno':'n'}),
+    dict(data_field=["n",'survived'],xl_func=['sum','average'],row_field="who",plot_on_2nd_axis='survived'),
 
-    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",),
-    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",page_filters={'survived':1,},),
-    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",rate_calc={'nume':'survived','deno':'n'},sort_col_asc_by_data_field =True),
+    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",page_filters={'survived':None,},),
+    dict(data_field=["n",'survived'], xl_func=['sum','average'],row_field="age_group",col_field="who",chart_type="area_stacked",plot_on_2nd_axis=['survived']),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs)

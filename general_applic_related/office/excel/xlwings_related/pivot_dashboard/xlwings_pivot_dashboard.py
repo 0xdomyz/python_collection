@@ -351,17 +351,12 @@ class PivotDashboard:
                 - ``chart_type`` (xlwings chart type string, default ``"column_clustered"``)
                 - ``title`` (str)
                 - ``page_filters`` (dict[str, value|list[value]])
-                - ``sort_col_asc_by_data_field`` (bool, default False)
+                - ``sort_col_asc_by_1st_data_field`` (bool, default False)
                 - ``axis_min`` (float)
                 - ``axis_max`` (float)
                 - ``2nd_axis_min`` (float, default 0.0)
                 - ``2nd_axis_max`` (float, default 1.0)
-                - ``rate_calc`` (dict) rowwise rate then average for pivot, data must be at non-aggregated level:
-
-                    - ``nume`` (str, required if parent dict is present)
-                    - ``deno`` (str, required if parent dict is present)
-                    - ``value`` (str, optional; default ``"{nume}_rate"``)
-                    - ``plot_on_2nd_axis`` (bool, default True)
+                - ``plot_on_2nd_axis`` (str or list of str)
         chart_layout : dict, optional
             Override chart/grid layout. Keys:
                 - ``ncols``
@@ -435,8 +430,15 @@ class PivotDashboard:
                     for func_label, data_field in zip(func_labels, data_fields)
                 ]
 
-                sort_col_asc_by_data_field = cfg.get(
-                    "sort_col_asc_by_data_field", False
+                if cfg.get("plot_on_2nd_axis") and isinstance(
+                    cfg["plot_on_2nd_axis"], str
+                ):
+                    plot_on_2nd_axis = [cfg["plot_on_2nd_axis"]]
+                else:
+                    plot_on_2nd_axis = cfg.get("plot_on_2nd_axis", [])
+
+                sort_col_asc_by_1st_data_field = cfg.get(
+                    "sort_col_asc_by_1st_data_field", False
                 )
 
                 chart_type = cfg.get("chart_type", "column_clustered")
@@ -444,28 +446,9 @@ class PivotDashboard:
                 cfg["2nd_axis_min"] = cfg.get("2nd_axis_min", 0.0)
                 cfg["2nd_axis_max"] = cfg.get("2nd_axis_max", 1.0)
 
-                if cfg.get("rate_calc"):
-                    rate_cfg = cfg["rate_calc"].copy()
-                    assert rate_cfg["nume"], "rate_calc config requires 'nume' key"
-                    assert rate_cfg["deno"], "rate_calc config requires 'deno' key"
-                    rate_cfg["formula"] = f"={rate_cfg['nume']}/{rate_cfg['deno']}"
-                    rate_cfg["value"] = (
-                        rate_cfg.get("value") or f"{rate_cfg['nume']}_rate"
-                    )
-                    rate_cfg["field"] = (
-                        f"__{rate_cfg['value']}_formula"  # appear in fields
-                    )
-                    rate_cfg["plot_on_2nd_axis"] = rate_cfg.get(
-                        "plot_on_2nd_axis", True
-                    )
-                else:
-                    rate_cfg = None
-
                 title = cfg.get("title")
                 if not title:
                     title_metrics = data_values.copy()
-                    if rate_cfg:
-                        title_metrics.append(rate_cfg["value"])
 
                     title_dims = []
                     if row_fields:
@@ -497,21 +480,6 @@ class PivotDashboard:
                 )
                 logger.debug(f"{pt_name = }")
 
-                # Optional calculated rate metric (e.g. survived / n)
-                # ------------------------------------------------------------------------
-                if rate_cfg:
-                    try:
-                        # logger.debug(f"add {rate_cfg['field']} = {rate_cfg['formula']}")
-                        pt.CalculatedFields().Add(
-                            rate_cfg["field"], rate_cfg["formula"]
-                        )
-                    except Exception:  # may already exist
-                        logger.debug(f"field exist: {rate_cfg['field']}")
-                        try:
-                            pt.PivotFields(rate_cfg["field"])
-                        except Exception:
-                            raise
-
                 # layout pt rows, columns, and values
                 # ------------------------------------------------------------------------
                 for rf in row_fields:
@@ -542,17 +510,8 @@ class PivotDashboard:
                     data_fields, xl_funcs, data_values
                 ):
                     pt.AddDataField(pt.PivotFields(data_field), data_value, xl_func)
-                if rate_cfg:
-                    field_com = pt.AddDataField(
-                        pt.PivotFields(rate_cfg["field"]),
-                        rate_cfg["value"],
-                        -4106,  # xlAverage
-                    )
-                    field_com.NumberFormat = rate_cfg.get(
-                        "rate_format", "0.0%"
-                    )  # undocu
 
-                if sort_col_asc_by_data_field and col_fields:
+                if sort_col_asc_by_1st_data_field and col_fields:
                     for cf in col_fields:
                         pt.PivotFields(cf).AutoSort(
                             Order=1,  # 1=xlAscending, 2=xlDescending
@@ -575,29 +534,24 @@ class PivotDashboard:
 
                 # update chart for potential cfg driven axis
                 # ------------------------------------------------------------------------
-                series_names = [
-                    chart_com_win.SeriesCollection(i).Name
-                    for i in range(1, chart_com_win.SeriesCollection().Count + 1)
-                ]
+                if plot_on_2nd_axis:
+                    series_names = [
+                        chart_com_win.SeriesCollection(i).Name
+                        for i in range(1, chart_com_win.SeriesCollection().Count + 1)
+                    ]
+                    axis_2_series_names = []
+                    for srs_name in series_names:
+                        for srs_to_plot in plot_on_2nd_axis:
+                            if srs_name.endswith(srs_to_plot):
+                                axis_2_series_names.append(srs_name)
+                    logger.debug(f"2nd axis calls: {axis_2_series_names = }")
 
-                data_srs_names = []
-                rate_srs_names = []
-                for s in series_names:
-                    if s.endswith(data_value):
-                        data_srs_names.append(s)
-                    elif rate_cfg and s.endswith(rate_cfg["value"]):
-                        rate_srs_names.append(s)
-
-                if rate_cfg:
-
-                    if rate_cfg["plot_on_2nd_axis"]:
-                        logger.debug(f"2nd axis calls: {rate_srs_names = }")
-                        for srs_name in rate_srs_names:
-                            srs = chart_com_win.SeriesCollection(srs_name)
-                            srs.ChartType = 4  # xlLine
-                            srs.MarkerStyle = -4105  # auto
-                            # srs.MarkerSize = 8
-                            srs.AxisGroup = 2  # secondary axis
+                    for srs_name in axis_2_series_names:
+                        srs = chart_com_win.SeriesCollection(srs_name)
+                        srs.ChartType = 4  # xlLine
+                        srs.MarkerStyle = -4105  # auto
+                        # srs.MarkerSize = 8
+                        srs.AxisGroup = 2  # secondary axis
 
                 # chart auxiliary
                 # ------------------------------------------------------------------------
