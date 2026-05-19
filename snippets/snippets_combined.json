@@ -247,9 +247,17 @@
             "logger.add(sys.stdout, level=\"DEBUG\")"
         ]
     },
+    "xwview": {
+        "prefix": "xwview",
+        "body": [
+            "import xlwings as xw",
+            "xw.view($1)"
+        ]
+    },
     "xwdata": {
         "prefix": "xwdata",
         "body": [
+            "import xlwings as xw",
             "wb = xw.Book()",
             "ws = wb.sheets[0]",
             "ws.name = \"Data\"",
