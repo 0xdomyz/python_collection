@@ -2,12 +2,9 @@
 # ### set up
 # %%
 
-from make_cube import (
-    cube_rows_all,
-    cube_rows_multi_choice_all_combos,
-    cube_rows_one_by_one,
-    cube_rows_single_choice_all_combos,
-)
+import itertools
+
+from make_cube import cube_rows_cartesian
 
 
 # %%
@@ -58,13 +55,36 @@ key_factors = {
 }
 
 # %%
-rows = cube_rows_all(factors)
-rows.extend(cube_rows_one_by_one(factors))
-rows.extend(cube_rows_one_by_one(factors, determined_factors={"A": "P1"}))
-rows.extend(
-    cube_rows_single_choice_all_combos(key_factors, determined_factors={"B": "All"})
-)
-rows
+rows = []
+
+r = [{f: "All" for f in factors}]
+rows.extend(r)
+
+r = cube_rows_cartesian(factors)
+rows.extend(r)
+
+for factor, levels in factors.items():
+    r = cube_rows_cartesian(
+        {factor: levels},
+        determined_factors={k: "All" for k in factors if k != factor},
+    )
+    rows.extend(r)
+
+for factor, levels in factors.items():
+    r = cube_rows_cartesian(
+        factors,
+        determined_factors={factor: "All"},
+    )
+    rows.extend(r)
+
+for a, b in itertools.combinations(factors.keys(), 2):
+    r = cube_rows_cartesian(
+        factors,
+        determined_factors={a: "All", b: "All"},
+    )
+    rows.extend(r)
+
+print(f"{len(rows) = }")
 # %%
 import pandas as pd
 

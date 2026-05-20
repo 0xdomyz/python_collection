@@ -64,6 +64,20 @@ def cube_rows_one_by_one(factor_levels):
 
 
 @with_determined_factors
+def cube_rows_cartesian(factor_levels, include_all_level=False):
+    if include_all_level:
+        flpa = _with_all_level(factor_levels)
+    else:
+        flpa = factor_levels
+    keys = list(flpa.keys())
+    rows = [
+        dict(zip(keys, combo)) for combo in itertools.product(*(flpa[k] for k in keys))
+    ]
+
+    return rows
+
+
+@with_determined_factors
 def cube_rows_single_choice_all_combos(factor_levels):
     # full cartesian product over (levels + "All") for every factor
     flpa = _with_all_level(factor_levels)
@@ -72,8 +86,6 @@ def cube_rows_single_choice_all_combos(factor_levels):
         dict(zip(keys, combo)) for combo in itertools.product(*(flpa[k] for k in keys))
     ]
 
-    # expected = math.prod(len(v) for v in flpa.values())
-    # assert len(rows) == expected, f"got {len(rows)}, expected {expected}"
     return rows
 
 
@@ -108,6 +120,17 @@ if __name__ == "__main__":
     print(f"one_by_one: {len(rows) = }")
 
     # %%
+    rows = []
+    for factor, levels in factor_levels.items():
+        r = cube_rows_cartesian(
+            {factor: levels},
+            include_all_level=False,
+            determined_factors={k: "All" for k in factor_levels if k != factor},
+        )
+        rows.extend(r)
+    print(f"one_by_one with cartesian: {len(rows) = }")
+
+    # %%
     rows = cube_rows_one_by_one(factor_levels, determined_factors={"A": "P1"})
     print(f"one_by_one with A=P1: {len(rows) = }")
 
@@ -125,8 +148,53 @@ if __name__ == "__main__":
     print(f"one_by_one with A=P1: {len(rows) = }")
 
     # %%
+    rows = cube_rows_cartesian(factor_levels)
+    print(f"cartesian: {len(rows) = }")
+
+    # %%
+    rows = cube_rows_cartesian(factor_levels, include_all_level=True)
+    print(f"cartesian with all level: {len(rows) = }")
+
+    # %%
     rows = cube_rows_single_choice_all_combos(factor_levels)
     print(f"single_choice_all_combos: {len(rows) = }")
+
+    # %%
+    rows = []
+
+    # 0 facors have all
+    r = cube_rows_cartesian(factor_levels)
+    rows.extend(r)
+
+    # 1 factors have all
+    for factor, levels in factor_levels.items():
+        r = cube_rows_cartesian(
+            factor_levels,
+            determined_factors={factor: "All"},
+        )
+        rows.extend(r)
+
+    # 2 factors have all
+    for a, b in itertools.combinations(factor_levels.keys(), 2):
+        r = cube_rows_cartesian(
+            factor_levels,
+            determined_factors={a: "All", b: "All"},
+        )
+        rows.extend(r)
+
+    # 3 factors have all
+    for factor, levels in factor_levels.items():
+        r = cube_rows_cartesian(
+            {factor: levels},
+            determined_factors={k: "All" for k in factor_levels if k != factor},
+        )
+        rows.extend(r)
+
+    # 4 factors have all
+    r = [{f: "All" for f in factor_levels}]
+    rows.extend(r)
+
+    print(f"cartesian calls: {len(rows) = }")
 
     # %%
     rows = cube_rows_single_choice_all_combos(
@@ -150,3 +218,5 @@ if __name__ == "__main__":
     # %%
     rows = cube_rows_multi_choice_all_combos(factor_levels)
     print(f"multi_choice_all_combos: {len(rows) = }")
+
+# %%
