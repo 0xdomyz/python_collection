@@ -454,8 +454,7 @@
     "sasgrp": {
         "prefix": "sasgrp",
         "body": [
-            "sas.submitLST(",
-            "    f\"\"\"",
+            "qry = f\"\"\"",
             "proc sql;",
             "create table _tmp_grp as",
             "    select",
@@ -467,9 +466,8 @@
             "    group by 1,2",
             "    order by 1,2;",
             "quit;",
-            "\"\"\",",
-            "    method=\"listonly\",",
-            ")",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")",
             "df = sas.sasdata(\"_tmp_grp\", \"work\").to_df()",
             "df"
         ]
@@ -509,23 +507,35 @@
     "saslogi": {
         "prefix": "saslogi",
         "body": [
-            "sas.submitLST(",
-            "    f\"\"\"",
+            "qry = f\"\"\"",
             "proc logistic data=$1 plots(only)=roc;",
             "    where $2 in (0,1);",
             "    model $2(event=1) = $3;",
             "    output out=work._pred p=phat;",
             "run;",
-            "\"\"\",",
-            "    method=\"listonly\",",
-            ")"
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")"
+        ]
+    },
+    "sasrank": {
+        "prefix": "sasrank",
+        "body": [
+            "qry = f\"\"\"",
+            "proc rank",
+            "    data=$1(where=($2 in (0,1)))",
+            "    out=_tmp_h_dec",
+            "    groups=10;",
+            "    var $3;",
+            "    ranks decile0;",
+            "run;",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")"
         ]
     },
     "sassfa": {
         "prefix": "sassfa",
         "body": [
-            "sas.submitLST(",
-            "    f\"\"\"",
+            "qry = f\"\"\"",
             "proc rank",
             "    data=$1(where=($2 in (0,1)))",
             "    out=_tmp_h_dec",
@@ -555,7 +565,27 @@
             "    y2axis label='Rate' values=(0 to 1 by 0.1);",
             "    xaxis  label='Decile' integer;",
             "run;",
-            "    \"\"\",",
+            "    \"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")"
+        ]
+    },
+    "sasqry0": {
+        "prefix": "sasqry0",
+        "body": [
+            "sas.submitLST(",
+            "    f\"\"\"",
+            "proc sql;",
+            "    select",
+            "        a.$3,",
+            "        count(1) as n",
+            "    from $1 a",
+            "    where",
+            "        $5",
+            "    group by 1",
+            "    order by 1",
+            "    ;",
+            "quit;",
+            "\"\"\",",
             "    method=\"listonly\",",
             ")"
         ]
@@ -563,8 +593,7 @@
     "sasqry": {
         "prefix": "sasqry",
         "body": [
-            "sas.submitLST(",
-            "    f\"\"\"",
+            "qry = f\"\"\"",
             "proc sql;",
             "create table _tmp_qry as",
             "    select",
@@ -582,10 +611,8 @@
             "    order by 1,2",
             "    ;",
             "quit;",
-            "\"\"\",",
-            "    method=\"listonly\",",
-            ")",
-            "",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")",
             "df = sas.sasdata(\"_tmp_qry\", \"work\").to_df()",
             "df"
         ]
@@ -619,8 +646,7 @@
         "body": [
             "sas.submitLST(f\"proc sql;drop table $1;quit;\", method=\"listonly\")",
             "",
-            "sas.submitLST(",
-            "    f\"\"\"",
+            "qry = f\"\"\"",
             "proc sql;",
             "create table $1 as",
             "    select",
@@ -638,10 +664,8 @@
             "    order by 1,2",
             "    ;",
             "quit;",
-            "\"\"\",",
-            "    method=\"listonly\",",
-            ")",
-            "",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")",
             "_lib, _tbl = f\"$1\".split(\".\")",
             "sas.sasdata(_tbl, _lib).obs()"
         ]
