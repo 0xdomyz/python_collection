@@ -39,27 +39,28 @@ pivot_configs = [
     dict(data_field=["n",'survived'], xl_func=['sum','average'],row_field="age_group",col_field="who",chart_type="area_stacked",plot_on_2nd_axis=['survived']),
     # fmt: on
 ]
-chart_layout = {
-    "ncols": 1,
-}
-pivot_dest = {
-    "col": "N",
-    "start_row": 5,
-    "row_step": 30,
-    "ncols": 1,
-}
-dashboard.add_pivots(pivot_configs, chart_layout, pivot_dest)
 
-slicer_layout = {
-    "left_offset": 1400,
-}
+dashboard.add_pivots(
+    pivot_configs,
+    chart_layout={
+        "ncols": 1,
+    },
+    dest_layout={
+        "col": "N",
+        "start_row": 5,
+        "row_step": 30,
+        "ncols": 1,
+    },
+)
 
 dashboard.add_slicers(
     fields=[
         "class",
         "embark_town",
     ],
-    layout=slicer_layout,
+    layout={
+        "left_offset": 1400,
+    },
 )
 
 # %%
