@@ -155,7 +155,6 @@
         "body": [
             "sas.submitLST(",
             "    f\"\"\"",
-            "title;",
             "proc univariate data=$1;",
             "    var $2;",
             "    histogram $2 / lognormal;",
