@@ -74,7 +74,7 @@ pivot_configs = [
     dict(data_field="n",xl_func='count'),
     dict(data_field="n",row_field='Country',col_field='category',),
     dict(data_field="n",row_field='Country',col_field='category',sort_col_asc_by_data_field=True,),
-    dict(data_field="n",row_field='Country',chart_type="bar_clustered"),
+    dict(data_field="n",row_field='Country',chart_type="bar_clustered", individual_cache=True,),
 
     # areas
     dict(data_field="n", row_field='Year',col_field='category', chart_type="area_stacked"),

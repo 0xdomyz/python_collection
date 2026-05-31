@@ -31,12 +31,17 @@ print(df.head(3).T.to_string())
 wb = xw.Book()
 dashboard = PivotDashboard(wb)
 dashboard.write_table(df, code=f"SELECT * FROM df")
+# %%
+from loguru import logger
 
+logger.add(sys.stdout, level="DEBUG")
+
+# %%
 pivot_configs = [
     # fmt: off
     dict(data_field=["n",'survived'],xl_func=['sum','average'],row_field="who",plot_on_2nd_axis='survived'),
-
-    dict(data_field=["n",'survived'], xl_func=['sum','average'],row_field="age_group",col_field="who",chart_type="area_stacked",plot_on_2nd_axis=['survived']),
+    dict(data_field=["n"],xl_func=['sum'],row_field=["who",'class'],col_field=['class'],individual_cache=True,),
+    dict(data_field=["n",'survived'], xl_func=['sum','average'],row_field="age_group",col_field="who",chart_type="area_stacked",plot_on_2nd_axis=['survived'],individual_cache=True,),
     # fmt: on
 ]
 
@@ -47,7 +52,6 @@ dashboard.add_pivots(
     },
     dest_layout={
         "col": "N",
-        "start_row": 5,
         "row_step": 30,
         "ncols": 1,
     },
@@ -55,7 +59,6 @@ dashboard.add_pivots(
 
 dashboard.add_slicers(
     fields=[
-        "class",
         "embark_town",
     ],
     layout={
