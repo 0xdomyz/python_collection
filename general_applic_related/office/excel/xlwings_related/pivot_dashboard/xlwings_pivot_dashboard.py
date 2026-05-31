@@ -357,6 +357,7 @@ class PivotDashboard:
                 - ``2nd_axis_min`` (float, default 0.0)
                 - ``2nd_axis_max`` (float, default 1.0)
                 - ``plot_on_2nd_axis`` (str or list of str)
+                - ``individual_cache`` (bool, default False)
         chart_layout : dict, optional
             Override chart/grid layout. Keys:
                 - ``ncols``
@@ -471,14 +472,22 @@ class PivotDashboard:
                     )
 
                 pt_name = cfg.get("name", f"PivotTable{idx}")  # undocu
+                individual_cache = cfg.get("individual_cache", False)
 
                 # create pivot table
                 # ------------------------------------------------------------------------
-                pt = self._pivot_cache.CreatePivotTable(
+                pivot_cache = self._pivot_cache
+                if individual_cache:
+                    pivot_cache = self.wb.api.PivotCaches().Create(
+                        SourceType=1,  # xlDatabase
+                        SourceData=self._table_name,
+                    )
+
+                pt = pivot_cache.CreatePivotTable(
                     TableDestination=self.ws_pivot[dest].api,
                     TableName=pt_name,
                 )
-                logger.debug(f"{pt_name = }")
+                logger.debug(f"{pt_name = }, {individual_cache = }")
 
                 # layout pt rows, columns, and values
                 # ------------------------------------------------------------------------
@@ -608,11 +617,17 @@ class PivotDashboard:
 
             # delete existing slicer caches using stored COM refs (idempotent)
             for sc in self._slicer_cache_coms:
-                sc.Delete()
+                try:
+                    sc.Delete()
+                except Exception as e:
+                    logger.debug(f"Failed to delete slicer cache: {e}")
             self._slicer_cache_coms = []
 
-            # use stored pivot COM objects directly
             pt_coms = self._pivot_coms
+            if not pt_coms:
+                raise ValueError(
+                    "No PivotTables found. Call add_pivots() before add_slicers()."
+                )
 
             for field, (left, top) in zip(fields, pos_gen):
                 sc = self.wb.api.SlicerCaches.Add2(Source=pt_coms[0], SourceField=field)
@@ -630,6 +645,11 @@ class PivotDashboard:
                 logger.debug(f"linking slicer for field '{field}'")
 
                 for pt_com in pt_coms[1:]:
-                    sc.PivotTables.AddPivotTable(pt_com)
+                    try:
+                        sc.PivotTables.AddPivotTable(pt_com)
+                    except Exception as e:
+                        logger.debug(
+                            f"Skipping slicer link for one pivot table '{field}': {e}"
+                        )
 
                 self._slicer_cache_coms.append(sc)
