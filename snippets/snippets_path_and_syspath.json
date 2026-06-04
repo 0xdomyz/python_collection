@@ -31,4 +31,11 @@
             "from pathlib import Path",
         ],
     },
+    "reload": {
+        "prefix": "reload",
+        "body": [
+            "import importlib",
+            "importlib.reload($1)",
+        ],
+    },
 }
