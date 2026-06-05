@@ -181,6 +181,26 @@
             "df",
         ],
     },
+    "sasfreqods": {
+        "prefix": "sasfreqods",
+        "body": [
+            "sas.submitLST(",
+            "    f\"\"\"",
+            "ods select none;",
+            "ods output Measures=work._measures5 CrossTabFreqs=work._crossfreq5;",
+            "proc freq data=$1;",
+            "    tables $2 * $3 / missing all;",
+            "run;",
+            "ods output close;",
+            "ods select all;",
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")",
+            "_lib, _tbl = \"work._measures5\".split(\".\")",
+            "df = sas.sd2df(_tbl, _lib)",
+            "df",
+        ],
+    },
     "saslogi": {
         "prefix": "saslogi",
         "body": [
