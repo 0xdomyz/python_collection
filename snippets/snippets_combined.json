@@ -436,14 +436,18 @@
     "sasrun": {
         "prefix": "sasrun",
         "body": [
-            "sas.submitLST(",
-            "    f\"\"\"",
+            "qry$2 = f\"\"\"",
             "$1;",
             "quit;",
             "run;",
-            "\"\"\",",
-            "    method=\"listonly\",",
-            ")"
+            "\"\"\"",
+            "sas.submitLST(qry$2, method=\"listandlog\")"
+        ]
+    },
+    "sasrun0": {
+        "prefix": "sasrun0",
+        "body": [
+            "sas.submitLST(f\"\"\"$1\"\"\", method=\"listandlog\")"
         ]
     },
     "sasprint": {
@@ -641,6 +645,19 @@
             "sas.submitLST(qry, method=\"listonly\")",
             "df = sas.sasdata(\"_tmp_qry\", \"work\").to_df()",
             "df"
+        ]
+    },
+    "sasdataset": {
+        "prefix": "sasdataset",
+        "body": [
+            "qry = f\"\"\"",
+            "data work.$1;",
+            "    length",
+            "        $2 $50;",
+            "    set work.$3_0 - work.$3_$4;",
+            "run;",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")"
         ]
     },
     "sasdrop": {
