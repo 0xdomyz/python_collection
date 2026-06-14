@@ -82,8 +82,26 @@
             "ws.tables.add(source=ws[\"A1\"].expand(), name=\"Data1\")",
         ],
     },
-    "pivdash": {
-        "prefix": "pivdash",
+    "xwdatas": {
+        "prefix": "xwdatas",
+        "body": [
+            "import xlwings as xw",
+            "",
+            "wb = xw.Book()",
+            "ws1 = wb.sheets[0]",
+            "ws1[\"A1\"].value = $1",
+            "ws1.tables.add(source=ws1[\"A1\"].expand(), name=\"Data1\")",
+            "",
+            "ws2 = wb.sheets.add(\"Sheet2\", after=ws1)",
+            "ws2[\"A1\"].value = $2",
+            "ws2.tables.add(source=ws2[\"A1\"].expand(), name=\"Data2\")",
+            "",
+            "ws2[\"$3\"].value = $4",
+            "ws2.tables.add(source=ws2[\"$3\"].expand(), name=\"Data3\")"
+        ]
+    },
+    "xwpivdash": {
+        "prefix": "xwpivdash",
         "body": [
             "import xlwings as xw",
             "wb = xw.Book()",
