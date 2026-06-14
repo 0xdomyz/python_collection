@@ -324,7 +324,7 @@
             "qry = f\"\"\"",
             "data work.$1;",
             "    length",
-            "        $2 $50;",
+            "        $2 \\$50;",
             "    set work.$3_0 - work.$3_$4;",
             "run;",
             "\"\"\"",
@@ -335,6 +335,12 @@
         "prefix": "sasdrop",
         "body": [
             "sas.submitLST(f\"proc sql;drop table $1;quit;\", method=\"listonly\")",
+        ],
+    },
+    "sasdelete": {
+        "prefix": "sasdelete",
+        "body": [
+            "sas.submitLST(f\"proc datasets lib=work nolist; delete $1_:; quit;\", method=\"listandlog\")"
         ],
     },
     "saswrite": {
