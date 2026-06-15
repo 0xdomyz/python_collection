@@ -788,6 +788,12 @@
             "print($1.head().to_string())"
         ]
     },
+    "top": {
+        "prefix": "top",
+        "body": [
+            "print($1.head(1).T.to_string())"
+        ]
+    },
     "casewhere": {
         "prefix": "casewhere",
         "body": [
