@@ -1,0 +1,42 @@
+{
+    "xlview": {
+        "prefix": "xlview",
+        "body": [
+            "import xlwings as xw",
+            "xw.view($1)",
+        ],
+    },
+    "xldf": {
+        "prefix": "xldf",
+        "body": [
+            "import xlwings as xw",
+            "wb = xw.books.active # xw.Book()",
+            "ws = wb.sheets.add('$1')",
+            "ws[\"A1\"].value = $1",
+            "ws.tables.add(source=ws[\"A1\"].expand())",
+        ],
+    },
+    "xwpivdash": {
+        "prefix": "xwpivdash",
+        "body": [
+            "import xlwings as xw",
+            "wb = xw.Book()",
+            "dashboard = PivotDashboard(wb)",
+            "dashboard.write_table(df, code=$1)",
+            "",
+            "pivot_configs = [",
+            "    # fmt: off",
+            "    dict(data_field=\"n\",row_field=$2,col_field=$3,chart_type=\"area_stacked\",),",
+            "    # fmt: on",
+            "]",
+            "dashboard.add_pivots(pivot_configs)",
+            "",
+            "dashboard.add_slicers(",
+            "    fields=[",
+            "        $2,",
+            "        $3,",
+            "    ],",
+            ")",
+        ],
+    }
+}
