@@ -15,6 +15,7 @@ web_related/wallpaper/pictures/*
 *.zip
 *.pptx
 *.xlsx
+*.xlsm
 *.xls
 *.docx
 *.jpeg
