@@ -193,8 +193,8 @@
     "forp": {
         "prefix": "forp",
         "body": [
-            "for i in $0:",
-            "    print(i)"
+            "for $1 in $2:",
+            "    print($1)"
         ]
     },
     "lcomp": {
