@@ -6,18 +6,27 @@
             "xw.view($1)",
         ],
     },
-    "xldf": {
-        "prefix": "xldf",
+    "xlread": {
+        "prefix": "xlread",
         "body": [
             "import xlwings as xw",
-            "wb = xw.books.active # xw.Book()",
-            "ws = wb.sheets.add('$1')",
+            "import pandas as pd",
+            "ws2 = xw.books.active.sheets['$1']",
+            "df2 = ws2['A1'].expand().options(pd.DataFrame).value",
+            "df2",
+        ],
+    },
+    "xlwrite": {
+        "prefix": "xlwrite",
+        "body": [
+            "import xlwings as xw",
+            "ws = xw.books.active.sheets.add('$1')",
             "ws[\"A1\"].value = $1",
             "ws.tables.add(source=ws[\"A1\"].expand())",
         ],
     },
-    "xwpivdash": {
-        "prefix": "xwpivdash",
+    "xlpivdash": {
+        "prefix": "xlpivdash",
         "body": [
             "import xlwings as xw",
             "wb = xw.Book()",
