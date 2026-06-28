@@ -941,10 +941,16 @@
             "xw.view($1)"
         ]
     },
+    "xlws": {
+        "prefix": "xlws",
+        "body": [
+            "ws = xw.books.active.sheets['Sheet1']",
+            "# ws = xw.sheets.active"
+        ]
+    },
     "xlread": {
         "prefix": "xlread",
         "body": [
-            "import xlwings as xw",
             "import pandas as pd",
             "ws2 = xw.books.active.sheets['$1']",
             "df2 = ws2['A1'].expand().options(pd.DataFrame).value",
@@ -954,7 +960,6 @@
     "xlwrite": {
         "prefix": "xlwrite",
         "body": [
-            "import xlwings as xw",
             "ws = xw.books.active.sheets.add('$1')",
             "ws[\"A1\"].value = $1",
             "ws.tables.add(source=ws[\"A1\"].expand())"
