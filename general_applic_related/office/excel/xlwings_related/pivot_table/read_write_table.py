@@ -15,14 +15,13 @@ pivot_cache = ws.book.api.PivotCaches().Create(
     SourceType=1,  # xlDatabase
     SourceData="df",
 )
-
 pt = pivot_cache.CreatePivotTable(
     TableDestination=ws["R5"].api,
     TableName="Pivot1",
 )
 
 pt.PivotFields("who").Orientation = 1  # xlRowField
-pt.AddDataField(pt.PivotFields("survived"), "Avg of survived", -4106)  # -4106 = xlAverage
+pt.AddDataField(pt.PivotFields("survived"), "Avg of survived", xw.constants.ConsolidationFunction.xlAverage)
 
 # %%
 import pandas as pd
@@ -32,3 +31,6 @@ df2
 # %%
 df3 = ws.tables['df'].range.options(pd.DataFrame).value
 df3
+
+# %%
+ws.book.close()
