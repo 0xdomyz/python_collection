@@ -945,24 +945,64 @@
         "prefix": "xlws",
         "body": [
             "ws = xw.books.active.sheets['Sheet1']",
+            "# ws = xw.Book().sheets['Sheet1']",
             "# ws = xw.sheets.active"
         ]
     },
     "xlread": {
         "prefix": "xlread",
         "body": [
-            "import pandas as pd",
-            "ws2 = xw.books.active.sheets['$1']",
-            "df2 = ws2['A1'].expand().options(pd.DataFrame).value",
+            "df2 = xw.sheets.active['$2'].expand().options(pd.DataFrame).value",
             "df2"
+        ]
+    },
+    "xlwritenewsht": {
+        "prefix": "xlwritenewsht",
+        "body": [
+            "ws = xw.books.active.sheets.add('$1')",
+            "ws[\"A1\"].value = $1",
+            "ws.tables.add(source=ws[\"A1\"].expand())"
         ]
     },
     "xlwrite": {
         "prefix": "xlwrite",
         "body": [
-            "ws = xw.books.active.sheets.add('$1')",
-            "ws[\"A1\"].value = $1",
-            "ws.tables.add(source=ws[\"A1\"].expand())"
+            "ws = xw.sheets.active",
+            "ws[\"$2\"].value = $1",
+            "ws.tables.add(source=ws[\"$2\"].expand())"
+        ]
+    },
+    "xlpivot": {
+        "prefix": "xlpivot",
+        "body": [
+            "pivot_cache = ws.book.api.PivotCaches().Create(",
+            "    SourceType=1,  # xlDatabase",
+            "    SourceData=\"$1\",",
+            ")",
+            "pt = pivot_cache.CreatePivotTable(",
+            "    TableDestination=ws[\"$2\"].api,",
+            "    TableName=\"Pivot$3\",",
+            ")",
+            "",
+            "pt.PivotFields(\"$4\").Orientation = 1  # xlRowField",
+            "pt.AddDataField(pt.PivotFields(\"$5\"), \"Avg of $5\", xw.constants.ConsolidationFunction.xlAverage)"
+        ]
+    },
+    "xlslicer": {
+        "prefix": "xlslicer",
+        "body": [
+            "sc = ws.book.api.SlicerCaches.Add2(",
+            "    Source=pt,",
+            "    SourceField=\"$1\",",
+            ")",
+            "",
+            "slicer = sc.Slicers.Add(",
+            "    SlicerDestination=ws.api,",
+            "    Width=100,",
+            "    Height=200,",
+            ")",
+            "slicer.Top = 200",
+            "slicer.Left = 900"
         ]
     },
     "xlpivdash": {
