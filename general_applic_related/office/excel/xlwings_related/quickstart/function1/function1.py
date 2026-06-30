@@ -1,5 +1,4 @@
 import xlwings as xw
-from xlwings import func
 
 
 def main():
@@ -10,12 +9,3 @@ def main():
     else:
         sheet["A1"].value = "Hello xlwings!"
 
-
-@func
-def hello(name):
-    return f"Hello {name}!"
-
-
-if __name__ == "__main__":
-    xw.Book("function1.xlsm").set_mock_caller()
-    main()
