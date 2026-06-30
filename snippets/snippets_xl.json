@@ -53,6 +53,16 @@
             "pt.AddDataField(pt.PivotFields(\"$5\"), \"Avg of $5\", xw.constants.ConsolidationFunction.xlAverage)",
         ],
     },
+    "xlchart": {
+        "prefix": "xlchart",
+        "body": [
+            "chart = ws.charts.add(",
+            "    top=ws['$1'].top, left=ws['$1'].left",
+            ")",
+            "chart.chart_type = 'line'",
+            "chart.set_source_data(ws['$2'].expand())",
+        ],
+    },
     "xlslicer": {
         "prefix": "xlslicer",
         "body": [
