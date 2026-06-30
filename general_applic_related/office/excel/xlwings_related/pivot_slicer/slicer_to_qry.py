@@ -33,6 +33,13 @@ pt.PivotFields("who").Orientation = 1  # xlRowField
 pt.AddDataField(pt.PivotFields("survived"), "Avg of survived", xw.constants.ConsolidationFunction.xlAverage)
 
 # %%
+chart = ws.charts.add(
+    top=ws['w5'].top, left=ws['w5'].left
+)
+chart.chart_type = 'line'
+chart.set_source_data(ws['r5'].expand())
+
+# %%
 sc = ws.book.api.SlicerCaches.Add2(
     Source=pt,
     SourceField="class",
@@ -45,39 +52,47 @@ slicer = sc.Slicers.Add(
 )
 slicer.Top = 200
 slicer.Left = 900
+# %%
+sc = ws.book.api.SlicerCaches.Add2(
+    Source=pt,
+    SourceField="pclass",
+)
+
+slicer = sc.Slicers.Add(
+    SlicerDestination=ws.api,
+    Width=100,
+    Height=200,
+)
+slicer.Top = 200
+slicer.Left = 1050
 
 # %% [markdown]
-# ## stuff
+# ## concept
 # ####################################################################################################
 
 # %%
-for sc in ws.book.api.SlicerCaches:
-    print(sc.Name)
-
+[sc.Name for sc in ws.book.api.SlicerCaches]
 # %%
-vi = ws.book.api.SlicerCaches('Slicer_class').VisibleSlicerItems
-for itm in vi:
-    print(itm.Name)
+[vi.Name for vi in ws.book.api.SlicerCaches('Slicer_class').VisibleSlicerItems]
 # %%
-sc = ws.book.api.SlicerCaches('Slicer_class')
-visible_items = sc.VisibleSlicerItems
-
-visible_list = [item.Name for item in visible_items]
-print(visible_list)
+col = 'class'
+chosen = [ele.Name for ele in ws.book.api.SlicerCaches('Slicer_class').VisibleSlicerItems]
+try:
+    chosen = [int(i) for i in chosen]
+except ValueError:
+    chosen = [i for i in chosen]
+clause = f"{col} in {chosen}"
+clause
 # %%
-sc = ws.book.api.SlicerCaches('Slicer_class')
-all_items = sc.SlicerItems
-
-result = [(item.Name, item.Selected) for item in all_items]
-print(result)
-
-
+col = 'pclass'
+chosen = [ele.Name for ele in ws.book.api.SlicerCaches('Slicer_pclass').VisibleSlicerItems]
+try:
+    chosen = [int(i) for i in chosen]
+except ValueError:
+    chosen = [i for i in chosen]
+clause2 = f"{col} in {chosen}"
+clause2
 # %%
-def get_slicer_selected_items(wb, slicer_name):
-    # wb = xw.Book.caller()
-    sc = wb.api.SlicerCaches(slicer_name)
-    selected = [i.name for i in sc.VisibleSlicerItems]
-    return selected
-
-
-get_slicer_selected_items(wb=ws.book, slicer_name="Slicer_class")
+clause_comb = f"{clause} and {clause2}"
+clause_comb
+# %%
