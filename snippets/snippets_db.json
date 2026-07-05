@@ -1,5 +1,15 @@
 {
     // db via sqlalchemy related
+    "dbsetupalc": {
+        "prefix": "dbsetupalc",
+        "body": [
+            "import sqlalchemy as sa",
+            "import pandas as pd",
+            "import os",
+            "connection_string = f\"$1://$2:{os.environ['password']}@$3\"",
+            "eng = sa.create_engine(connection_string)",
+        ],
+    },
     "dbsetup": {
         "prefix": "dbsetup",
         "body": [
@@ -24,6 +34,35 @@
         "prefix": "dbrun",
         "body": [
             "df = eng.run(f\"select * from $1 where $2 = '$3'\")",
+            "df",
+        ],
+    },
+    "dbltrun": {
+        "prefix": "dbltrun",
+        "body": [
+            "sql = \"SELECT * FROM ${1:titanic} LIMIT ${2:5}\"",
+            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
+            "    cursor = con.cursor()",
+            "    result = cursor.execute(sql).fetchall()",
+            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
+            "df",
+        ],
+    },
+    "dbalcrun": {
+        "prefix": "dbalcrun",
+        "body": [
+            "sql = \"SELECT * FROM ${2:titanic}\"",
+            "with eng.begin() as con:",
+            "    result = con.execute(sa.text(sql))",
+            "df = pd.DataFrame(result.all(), columns=result.keys())",
+            "df",
+        ],
+    },
+    "dbpdrun": {
+        "prefix": "dbpdrun",
+        "body": [
+            "sql = \"SELECT * FROM ${2:titanic}\"",
+            "df = pd.read_sql_query(sql, eng)",
             "df",
         ],
     },
