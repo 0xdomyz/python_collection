@@ -1,5 +1,4 @@
 {
-    // db via sqlalchemy related
     "dbsetupalc": {
         "prefix": "dbsetupalc",
         "body": [
@@ -181,49 +180,5 @@
             "df = eng.run(qry)",
             "df",
         ]
-    },
-    // duckdb related
-    "ddbimportcon": {
-        "prefix": "ddbimportcon",
-        "body": [
-            "import duckdb",
-            "con = duckdb.connect()",
-        ],
-    },
-    "ddbexec": {
-        "prefix": "ddbexec",
-        "body": [
-            "qry = f\"\"\"",
-            "    select",
-            "        $2,",
-            "        count(1) as cnt",
-            "    from $1",
-            "    group by 1",
-            "    order by 1",
-            "\"\"\"",
-            "res = con.execute(qry).df()",
-            "res",
-        ],
-    },
-    // teradata sql via sqlalchemy related
-    "tdsetup": {
-        "prefix": "tdsetup",
-        "body": [
-            "import sqlalchemy as alc",
-            "import pandas as pd",
-            "import os",
-            "",
-            "# add run method to engine",
-            "def run(self: alc.engine.Engine, sql:str) -> pd.DataFrame | None:",
-            "    with self.begin() as conn:",
-            "        res = conn.execute(alc.text(sql))",
-            "        if res.returns_rows:",
-            "            return pd.DataFrame(res.all(), columns=res.keys())",
-            "",
-            "alc.engine.Engine.run = run",
-            "",
-            "connection_string = f\"teradatasql://$1:{os.environ['password']}@$2\"",
-            "eng = alc.create_engine(connection_string)",
-        ],
-    },
+    }
 }

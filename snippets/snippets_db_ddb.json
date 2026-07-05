@@ -1,0 +1,24 @@
+{
+    "ddbimportcon": {
+        "prefix": "ddbimportcon",
+        "body": [
+            "import duckdb",
+            "con = duckdb.connect()",
+        ],
+    },
+    "ddbexec": {
+        "prefix": "ddbexec",
+        "body": [
+            "qry = f\"\"\"",
+            "    select",
+            "        $2,",
+            "        count(1) as cnt",
+            "    from $1",
+            "    group by 1",
+            "    order by 1",
+            "\"\"\"",
+            "res = con.execute(qry).df()",
+            "res",
+        ],
+    }
+}

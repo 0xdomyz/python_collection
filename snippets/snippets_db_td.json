@@ -1,0 +1,22 @@
+{
+    "tdsetup": {
+        "prefix": "tdsetup",
+        "body": [
+            "import sqlalchemy as alc",
+            "import pandas as pd",
+            "import os",
+            "",
+            "# add run method to engine",
+            "def run(self: alc.engine.Engine, sql:str) -> pd.DataFrame | None:",
+            "    with self.begin() as conn:",
+            "        res = conn.execute(alc.text(sql))",
+            "        if res.returns_rows:",
+            "            return pd.DataFrame(res.all(), columns=res.keys())",
+            "",
+            "alc.engine.Engine.run = run",
+            "",
+            "connection_string = f\"teradatasql://$1:{os.environ['password']}@$2\"",
+            "eng = alc.create_engine(connection_string)",
+        ],
+    },
+}
