@@ -9,9 +9,8 @@
     "xlws": {
         "prefix": "xlws",
         "body": [
-            "ws = xw.books.active.sheets['Sheet1']",
+            "ws = xw.sheets.active",
             "# ws = xw.Book().sheets['Sheet1']",
-            "# ws = xw.sheets.active",
         ],
     },
     "xlread": {
