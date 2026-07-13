@@ -3,13 +3,11 @@ import xlwings as xw
 
 # %%
 wb = xw.Book()
-wb.save(r"pac_tracker.xlsm")
-# wb = xw.Book(r"pac_tracker.xlsm")
 
 # %%
 ws = wb.sheets.add('Tracker')
 ws['B4'].value = 'Package Name'
-ws['B5'].name = 'new_package'
+ws['B5'].name = 'package_selection'
 ws['B10'].value = 'Latest release'
 ws['B11'].name = 'latest_release'
 
@@ -34,5 +32,18 @@ shape2.TextFrame.Characters().Text = 'Update Database'
 # %%
 ws = wb.sheets.add('Dropdown')
 ws['A1'].value = 'Packages'
+ws.tables.add( source=ws['A1'].expand(), name='dropdown_content', table_style_name='TableStyleMedium2' )
 
 # %%
+target = wb.names['package_selection'].refers_to_range
+validation = target.api.Validation
+validation.Delete()
+validation.Add(
+    Type=xw.constants.DVType.xlValidateList,
+    AlertStyle=xw.constants.DVAlertStyle.xlValidAlertStop,
+    Operator=xw.constants.FormatConditionOperator.xlBetween,
+    Formula1='=INDIRECT("dropdown_content[Packages]")'
+)
+
+# %%
+wb.save(r"pac_tracker.xlsm")
