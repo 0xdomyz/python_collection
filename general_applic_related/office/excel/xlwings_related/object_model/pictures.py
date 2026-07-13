@@ -13,19 +13,6 @@ ws = xw.books.active.sheets['Sheet1']
 # ws = xw.sheets.active
 
 # %% [markdown]
-# ## # make chart
-# ####################################################################################################
-
-# %%
-chart = ws.charts.add(
-    top=ws['R5'].top, left=ws['R5'].left
-)
-chart.chart_type = 'line'
-chart.set_source_data(ws['E:E'])
-# %%
-ws.charts
-
-# %% [markdown]
 # ## # make picture
 # ####################################################################################################
 # %%
@@ -43,28 +30,3 @@ fig
 # %%
 plot = ws.pictures.add(fig, name='pic', anchor=ws['R20'])
 plot.width, plot.height = 800, 400
-
-# %% [markdown]
-# ## names
-# ####################################################################################################
-# %%
-ws['A1:D5'].name = 'my_range'
-ws['A1:D5'].name = 'Sheet1!my_range2'
-# %%
-ws.names
-# %%
-ws.book.names
-# %%
-ws.names['Sheet1!my_range2'].refers_to_range
-# %%
-import pandas as pd
-
-df2 = ws.names['Sheet1!my_range2'].refers_to_range.options(pd.DataFrame).value
-df2
-
-# %%
-ws.book.names.add('value1', '=3.14')
-ws.book.names
-
-# %%
-ws.book.close()
