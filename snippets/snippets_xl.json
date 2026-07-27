@@ -6,6 +6,13 @@
             "xw.view($1)",
         ],
     },
+    "xlbook": {
+        "prefix": "xlbook",
+        "body": [
+            "import xlwings as xw",
+            "xw.Book()",
+        ],
+    },
     "xlws": {
         "prefix": "xlws",
         "body": [
