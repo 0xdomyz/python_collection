@@ -3,10 +3,18 @@
         "prefix": "yfdl",
         "body": [
             "import yfinance as yf",
-            "df = yf.download(['$1', 'VFINX',], start = '2020-01-01', end = '2026-12-31', interval = '1d')",
+            "df = yf.download(['$1', '^GSPC',], start = '2020-01-01', end = '2026-12-31', interval = '1d')",
             "df[[('ret',x) for x in df['Close'].columns]] = df['Close'].ffill().pct_change().add(1).cumprod()",
             "df.columns = [f\"{col[1]}_{col[0]}\" for col in df.columns]",
             "df"
+        ],
+    },
+    "yftk": {
+        "prefix": "yftk",
+        "body": [
+            "import yfinance as yf",
+            "tk = yf.Ticker('$1')",
+            "tk.history()"
         ],
     },
 }

@@ -1,4 +1,10 @@
 {
+    "xlsetup": {
+        "prefix": "xlsetup",
+        "body": [
+            "import xlwings as xw",
+        ],
+    },
     "xlview": {
         "prefix": "xlview",
         "body": [
@@ -16,6 +22,7 @@
     "xlws": {
         "prefix": "xlws",
         "body": [
+            "import xlwings as xw",
             "ws = xw.sheets.active",
             "# ws = xw.Book().sheets['Sheet1']",
         ],
@@ -23,6 +30,7 @@
     "xlread": {
         "prefix": "xlread",
         "body": [
+            "import xlwings as xw",
             "df2 = xw.sheets.active['$2'].expand().options(pd.DataFrame).value",
             "df2",
         ],
@@ -30,6 +38,7 @@
     "xlwritenewsht": {
         "prefix": "xlwritenewsht",
         "body": [
+            "import xlwings as xw",
             "ws = xw.books.active.sheets.add('$1')",
             "ws[\"A1\"].value = $1",
             "ws.tables.add(source=ws[\"A1\"].expand())",
@@ -38,6 +47,7 @@
     "xlwrite": {
         "prefix": "xlwrite",
         "body": [
+            "import xlwings as xw",
             "ws = xw.sheets.active",
             "ws[\"$2\"].value = $1",
             "ws.tables.add(source=ws[\"$2\"].expand())",

@@ -12,6 +12,14 @@
             "    print($1)",
         ],
     },
+    "pdir": {
+        "prefix": "pdir",
+        "body": [
+            "for i in dir($1):",
+            "    if not i.startswith('_'):",
+            "        print(i,\"-\"*80+\" \\n\", getattr($1, i), '\\n')",
+        ],
+    },
     "lcomp": {
         "prefix": "lcomp",
         "body": [
