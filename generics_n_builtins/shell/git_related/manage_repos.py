@@ -38,7 +38,14 @@ def cd(newdir):
 
 def run_cmd_on_path(cmd: str, path: Path) -> subprocess.CompletedProcess[str]:
     with cd(path):
-        return subprocess.run(cmd, shell=True, check=True)
+        completed_proc = subprocess.run(cmd, shell=True, capture_output=True)
+        try:
+            completed_proc.check_returncode()
+            print(completed_proc.stdout.decode("utf-8"))
+        except subprocess.CalledProcessError as e:
+            print(f"Error: {e}")
+            print(completed_proc.stderr.decode("utf-8"))
+        return completed_proc
 
 
 def pull_all():
