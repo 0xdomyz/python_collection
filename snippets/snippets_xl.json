@@ -44,13 +44,33 @@
             "ws.tables.add(source=ws[\"A1\"].expand())",
         ],
     },
-    "xlwrite": {
-        "prefix": "xlwrite",
+    "xlwrite0": {
+        "prefix": "xlwrite0",
         "body": [
             "import xlwings as xw",
             "ws = xw.sheets.active",
             "ws[\"$2\"].value = $1",
             "ws.tables.add(source=ws[\"$2\"].expand())",
+        ],
+    },
+    "xlwrite": {
+        "prefix": "xlwrite",
+        "body": [
+            "ws = xw.sheets.active",
+            "if ws[\"$2\"].value is not None:",
+            "    ws[\"$2\"].expand().clear()",
+            "ws[\"$2\"].value = $1",
+            "ws.tables.add(source=ws[\"$2\"].expand())",
+        ],
+    },
+    "xltext": {
+        "prefix": "xltext",
+        "body": [
+            "ws = xw.sheets.active",
+            "lines = $1.split(\"\\n\")",
+            "if ws[\"$2\"].value is not None:",
+            "    ws[\"$2\"].expand().clear()",
+            "ws[\"$2\"].value = [[line or \" \"] for line in lines]",
         ],
     },
     "xlpivot": {
