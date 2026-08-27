@@ -31,10 +31,21 @@ print(f"{df2.shape = }")
 print(df2.head().to_string())
 
 # %%
+df3 = df2.head()
+df3.shape
+
+# %%
 # refresh
 ws.clear()
 ws["A1"].value = df2
 ws.tables.add(source=ws["A1"].expand(), name="titanic_table")
+
+# %%
+ws = xw.sheets.active
+if ws["A1"].value is not None:
+    ws["A1"].expand().clear()
+ws["A1"].value = df3
+ws.tables.add(source=ws["A1"].expand())
 
 # %% [markdown]
 # ### save close
