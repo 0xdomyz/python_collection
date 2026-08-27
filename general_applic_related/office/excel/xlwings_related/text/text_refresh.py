@@ -19,21 +19,13 @@ ws = wb.sheets[0]
 ws.name = "SQL"
 
 # %%
+# texts
 sql = """
 select 
     *
 from titanic
 where age > 30
 """
-
-# %%
-# Split into lines and write one line per row so indentation is preserved.
-# Each element is wrapped in a list to write as a single-column range.
-lines = sql.split("\n")
-ws["A1"].value = [[line or " "] for line in lines]
-
-# %% [markdown]
-# ### refresh with new sql
 # %%
 sql2 = """
 select 
@@ -44,10 +36,6 @@ from titanic a
 where age > 30
 group by age_group
 """
-# %%
-lines2 = sql2.split("\n")
-ws["A1"].expand().clear()  # wipe old content before writing shorter sql
-ws["A1"].value = [[line or " "] for line in lines2]
 
 # %%
 sql3 = """
@@ -55,11 +43,41 @@ select
     *
 from titanic
 """
+
+# %%
+# Split into lines and write one line per row so indentation is preserved.
+# Each element is wrapped in a list to write as a single-column range.
+lines = sql.split("\n")
+ws["A1"].value = [[line or " "] for line in lines]
+
+# %% [markdown]
+# ### refresh with new sql
+
+# %%
+lines2 = sql2.split("\n")
+ws["A1"].expand().clear()  # wipe old content before writing shorter sql
+ws["A1"].value = [[line or " "] for line in lines2]
+
 # %%
 lines3 = sql3.split("\n")
 ws["A1"].expand().clear()  # wipe old content before writing shorter sql
 ws["A1"].value = [[line or " "] for line in lines3]
 
+# %%
+code = sql
+# snippet
+ws = xw.sheets.active
+lines = code.split("\n")
+if ws["A1"].value is not None:
+    ws["A1"].expand().clear()
+ws["A1"].value = [[line or " "] for line in lines]
+
+# %%
+ws = xw.sheets.active
+lines = sql3.split("\n")
+if ws["A1"].value is not None:
+    ws["A1"].expand().clear()
+ws["A1"].value = [[line or " "] for line in lines]
 
 # %% [markdown]
 # ### save
