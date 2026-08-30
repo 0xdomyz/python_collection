@@ -36,6 +36,13 @@
             "df"
         ]
     },
+    "dbread": {
+        "prefix": "dbread",
+        "body": [
+            "df = eng.run(f\"select * from $1 where $2 = '$3'\")",
+            "df"
+        ]
+    },
     "dbltrun": {
         "prefix": "dbltrun",
         "body": [
@@ -162,6 +169,30 @@
             "\"\"\"",
             ")",
             "",
+            "eng.run(f\"select count(*) from {tbl}\").iloc[0, 0]"
+        ]
+    },
+    "dbwrite": {
+        "prefix": "dbwrite",
+        "body": [
+            "tbl = \"$1\"",
+            "",
+            "try:",
+            "    eng.run(f\"drop table {tbl}\")",
+            "except Exception as e:",
+            "    pass",
+            "",
+            "qry = f\"\"\"",
+            "create table {tbl}(",
+            "    survived INT,",
+            "    sex VARCHAR(10),",
+            "    age FLOAT,",
+            "    adult_male BYTEINT",
+            ");",
+            "\"\"\"",
+            "_ = eng.run(qry)",
+            "",
+            "df.to_sql(tbl, eng, if_exists='append', index=False)",
             "eng.run(f\"select count(*) from {tbl}\").iloc[0, 0]"
         ]
     },
@@ -690,7 +721,8 @@
     "saswrite": {
         "prefix": "saswrite",
         "body": [
-            "_lib, _tbl = \"$1\".split(\".\")",
+            "tbl$2 = \"work.$1\"",
+            "_lib, _tbl = tbl$2.split(\".\")",
             "sas.df2sd(df, _tbl, _lib, index=False, if_exists=\"replace\")",
             "sd = sas.sasdata(_tbl, _lib)",
             "_shape = (sd.obs(), len(sd.columnInfo()))",
