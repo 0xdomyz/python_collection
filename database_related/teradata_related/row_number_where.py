@@ -98,7 +98,10 @@ create table {tbl2} as (
             ROW_NUMBER() OVER (
                 PARTITION BY s.{id_col}, s.{time_col}, s.{dedup_id_col}
                 ORDER BY 
-                    ABS(s.{time_col} - x.{time_col}),   /* primary distance */
+                    case when s.{time_col} = x.{time_col} then 1 
+                        when s.{time_col} < x.{time_col} then 2
+                        else 3 end,  /* direction */
+                    ABS(s.{time_col} - x.{time_col}),   /* distance */
                     x.{dedup_id_col}                    /* tie-breaker */
             ) AS rn
         FROM {tbl} s
@@ -114,7 +117,7 @@ _ = eng.run(qry)
 eng.run(f"select count(*) from {tbl2}").iloc[0, 0]
 
 # %%
-df = eng.run(f'select * from {tbl2}')
+df = eng.run(f'select * from {tbl2} order by {id_col}, {time_col}, {dedup_id_col}')
 df
 
 ws = xw.sheets.active
