@@ -346,7 +346,8 @@
     "saswrite": {
         "prefix": "saswrite",
         "body": [
-            "_lib, _tbl = \"$1\".split(\".\")",
+            "tbl$2 = \"work.$1\"",
+            "_lib, _tbl = tbl$2.split(\".\")",
             "sas.df2sd(df, _tbl, _lib, index=False, if_exists=\"replace\")",
             "sd = sas.sasdata(_tbl, _lib)",
             "_shape = (sd.obs(), len(sd.columnInfo()))",
