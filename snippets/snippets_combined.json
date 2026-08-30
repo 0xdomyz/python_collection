@@ -192,7 +192,8 @@
             "\"\"\"",
             "_ = eng.run(qry)",
             "",
-            "df.to_sql(tbl, eng, if_exists='append', index=False)",
+            "sch, tbl2 = tbl.split('.')",
+            "df.to_sql(tbl2, eng, if_exists='append', index=False, schema=sch)",
             "eng.run(f\"select count(*) from {tbl}\").iloc[0, 0]"
         ]
     },
