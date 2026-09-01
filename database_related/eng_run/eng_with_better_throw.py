@@ -9,12 +9,12 @@ from sqlalchemy.exc import OperationalError
 
 
 # add run method to engine
-def run(self: sa.engine.Engine, sql:str, report_lines:int = 2) -> pd.DataFrame | None:
+def run(self: sa.engine.Engine, sql:str, ops_error_lines:int = 2) -> pd.DataFrame | None:
     with self.begin() as conn:
         try: 
             res = conn.execute(sa.text(sql))
         except OperationalError as e:
-            useful_lines = str(e).split('\n')[0:report_lines]
+            useful_lines = str(e).split('\n')[0:ops_error_lines]
             cln_lines = []
             for line in useful_lines:
                 cln_line = '\n'.join(line[i:i+80] for i in range(0, len(line), 80))
