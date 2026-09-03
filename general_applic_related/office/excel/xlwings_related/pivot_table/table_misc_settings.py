@@ -74,3 +74,9 @@ pt.PivotFields("survived").AutoSort(
     Order=2,  # 1=xlAscending, 2=xlDescending
     Field="Count of Fare",  # label field name to sort by
 )
+
+# %%
+# legend position
+from xlwings.constants import LegendPosition
+
+chart_com.Legend.Position = LegendPosition.xlLegendPositionBottom
