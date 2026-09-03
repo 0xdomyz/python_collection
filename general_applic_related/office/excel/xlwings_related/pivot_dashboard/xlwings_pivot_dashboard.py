@@ -25,11 +25,13 @@ logger.remove()
 # ---------------------------------------------------------------------------
 
 XL_FUNC = {
-    "count": -4112,  # xlCount
-    "sum": -4157,  # xlSum
-    "average": -4106,  # xlAverage
-    "max": -4136,  # xlMax
-    "min": -4139,  # xlMin
+    "average": xw.constants.ConsolidationFunction.xlAverage,  # -4106,  # xlAverage
+    "count": xw.constants.ConsolidationFunction.xlCount,  # -4112,  # xlCount
+    "count_nums": xw.constants.ConsolidationFunction.xlCountNums,  # -4113,  # xlCountNums
+    "max": xw.constants.ConsolidationFunction.xlMax,  # -4136,  # xlMax
+    "min": xw.constants.ConsolidationFunction.xlMin,  # -4139,  # xlMin
+    "product": xw.constants.ConsolidationFunction.xlProduct,  # -4149,  # xlProduct
+    "sum": xw.constants.ConsolidationFunction.xlSum,  # -4157,  # xlSum
 }
 
 XL_CHART_TYPES = [
@@ -413,6 +415,7 @@ class PivotDashboard:
                 - ``title`` (str)
                 - ``page_filters`` (dict[str, value|list[value]])
                 - ``sort_col_asc_by_1st_data_field`` (bool, default False)
+                - ``legend_position`` (xlconstants, default ``xlwings.constants.LegendPosition.xlLegendPositionRight``)
                 - ``axis_min`` (float)
                 - ``axis_max`` (float)
                 - ``2nd_axis_min`` (float, default 0.0)
@@ -504,6 +507,8 @@ class PivotDashboard:
                 )
 
                 chart_type = cfg.get("chart_type", "column_clustered")
+
+                cfg['legend_position'] = cfg.get("legend_position", xw.constants.LegendPosition.xlLegendPositionRight)
 
                 cfg["2nd_axis_min"] = cfg.get("2nd_axis_min", 0.0)
                 cfg["2nd_axis_max"] = cfg.get("2nd_axis_max", 1.0)
@@ -625,6 +630,11 @@ class PivotDashboard:
 
                 # chart auxiliary
                 # ------------------------------------------------------------------------
+                try:
+                    chart_com_win.Legend.Position = cfg["legend_position"]
+                except Exception as e:
+                    logger.warning(f"Failed to set legend position: {e}")
+                
                 y1 = chart_com_win.Axes(2, 1)
                 if cfg.get("axis_min"):
                     y1.MinimumScale = cfg["axis_min"]

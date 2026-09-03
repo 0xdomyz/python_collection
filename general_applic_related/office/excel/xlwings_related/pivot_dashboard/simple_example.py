@@ -36,7 +36,7 @@ dashboard.write_table(df, code=f"SELECT * FROM df")
 
 pivot_configs = [
     # fmt: off
-    dict(data_field="n", row_field="who"),
+    dict(data_field="n", row_field="who",legend_position=xw.constants.LegendPosition.xlLegendPositionBottom),
     dict(data_field=["n",'survived'],xl_func=['sum','average'],row_field="who",plot_on_2nd_axis='survived'),
 
     dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",page_filters={'survived':None,},),
@@ -54,3 +54,11 @@ dashboard.add_slicers(
 
 # %%
 # wb.close()
+
+# %%
+# from xlwings.constants import LegendPosition
+
+# for chart in dashboard._chart_coms:
+#     com = chart.api[1]
+
+#     com.Legend.Position = LegendPosition.xlLegendPositionBottom
