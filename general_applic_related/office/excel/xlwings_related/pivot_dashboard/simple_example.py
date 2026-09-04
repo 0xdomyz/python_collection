@@ -41,6 +41,9 @@ pivot_configs = [
 
     dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",page_filters={'survived':None,},),
     dict(data_field=["n",'survived'], xl_func=['sum','average'],row_field="age_group",col_field="who",chart_type="area_stacked",plot_on_2nd_axis=['survived']),
+
+    # check throw
+    # dict(data_field=["n",'survived1'], xl_func=['sum','average'],row_field="age_group",col_field="who",chart_type="area_stacked",plot_on_2nd_axis=['survived']),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs)

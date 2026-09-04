@@ -558,13 +558,22 @@ class PivotDashboard:
                 # layout pt rows, columns, and values
                 # ------------------------------------------------------------------------
                 for rf in row_fields:
-                    pt.PivotFields(rf).Orientation = 1  # xlRowField
+                    try:
+                        pt.PivotFields(rf).Orientation = 1  # xlRowField
+                    except Exception as e:
+                        raise Exception(f"Failed to set row field orientation for '{rf}'")
                 for cf in col_fields:
-                    pt.PivotFields(cf).Orientation = 2  # xlColumnField
+                    try:
+                        pt.PivotFields(cf).Orientation = 2  # xlColumnField
+                    except Exception as e:
+                        raise Exception(f"Failed to set column field orientation for '{cf}'")
 
                 # report filters (page fields), supports both single and multi-select
                 for pf_name, pf_values in page_filters.items():
-                    pf = pt.PivotFields(pf_name)
+                    try: 
+                        pf = pt.PivotFields(pf_name)
+                    except Exception as e:
+                        raise Exception(f"Failed to get page field '{pf_name}'")
                     pf.Orientation = 3  # xlPageField
 
                     if pf_values is None or not pf_values:
@@ -572,19 +581,28 @@ class PivotDashboard:
                     if not isinstance(pf_values, (list, tuple, set)):
                         pf_values = [pf_values]
                     if len(pf_values) == 1:
-                        pf.CurrentPage = str(pf_values[0])  # COM res is str
+                        try:
+                            pf.CurrentPage = str(pf_values[0])  # COM res is str
+                        except Exception as e:
+                            raise Exception(f"Failed to set page field '{pf_name}' to '{pf_values[0]}'")
                         continue
                     else:
                         pf.EnableMultiplePageItems = True
                         pf_values = set(str(v) for v in pf_values)  # COM res is str
                         for item in pf.PivotItems():
-                            item.Visible = item.Name in pf_values
+                            try: 
+                                item.Visible = item.Name in pf_values
+                            except Exception as e:
+                                raise Exception(f"Failed to set visibility for page field item '{item.Name}'")
 
                 # data fields
                 for data_field, xl_func, data_value in zip(
                     data_fields, xl_funcs, data_values
                 ):
-                    pt.AddDataField(pt.PivotFields(data_field), data_value, xl_func)
+                    try: 
+                        pt.AddDataField(pt.PivotFields(data_field), data_value, xl_func)
+                    except Exception as e:
+                        raise Exception(f"Failed to add data field '{data_field}' with value '{data_value}' and function '{xl_func}'")
 
                 if sort_col_asc_by_1st_data_field and col_fields:
                     for cf in col_fields:
@@ -633,21 +651,32 @@ class PivotDashboard:
                 try:
                     chart_com_win.Legend.Position = cfg["legend_position"]
                 except Exception as e:
-                    logger.warning(f"Failed to set legend position: {e}")
+                    raise Exception(f"Failed to set legend position with {cfg["legend_position"]}")
                 
                 y1 = chart_com_win.Axes(2, 1)
                 if cfg.get("axis_min"):
-                    y1.MinimumScale = cfg["axis_min"]
+                    try: 
+                        y1.MinimumScale = cfg["axis_min"]
+                    except Exception as e:
+                        raise Exception(f"Failed to set axis minimum with {cfg['axis_min']}")
                 if cfg.get("axis_max"):
-                    y1.MaximumScale = cfg["axis_max"]
+                    try:
+                        y1.MaximumScale = cfg["axis_max"]
+                    except Exception as e:
+                        raise Exception(f"Failed to set axis maximum with {cfg['axis_max']}")
 
                 try:
-                    y2 = chart_com_win.Axes(2, 2)  # secondary value axis
-                    y2.MinimumScale = cfg["2nd_axis_min"]
-                    y2.MaximumScale = cfg["2nd_axis_max"]
+                    y2 = chart_com_win.Axes(2, 2)  # check existence of secondary axis
+
+                    # if has secondary axis configuration
+                    try: 
+                        y2.MinimumScale = cfg["2nd_axis_min"]
+                        y2.MaximumScale = cfg["2nd_axis_max"]
+                    except Exception as e:
+                        raise Exception(f"Failed to set secondary axis scales with {cfg['2nd_axis_min']} and / or {cfg['2nd_axis_max']}")
                     # y2.MajorUnit = 0.1
                 except Exception as e:
-                    # logger.warning(f"Failed to set secondary axis scales: {e}")
+                    # raise Exception(f"Failed to set secondary axis scales")
                     pass
 
                 chart_com_win.HasTitle = True
@@ -691,7 +720,7 @@ class PivotDashboard:
                 try:
                     sc.Delete()
                 except Exception as e:
-                    logger.debug(f"Failed to delete slicer cache: {e}")
+                    logger.debug(f"Failed to delete slicer cache")
             self._slicer_cache_coms = []
 
             pt_coms = self._pivot_coms
@@ -720,7 +749,7 @@ class PivotDashboard:
                         sc.PivotTables.AddPivotTable(pt_com)
                     except Exception as e:
                         logger.debug(
-                            f"Skipping slicer link for one pivot table '{field}': {e}"
+                            f"Skipping slicer link for one pivot table '{field}'"
                         )
 
                 self._slicer_cache_coms.append(sc)
