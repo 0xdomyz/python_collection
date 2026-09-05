@@ -307,6 +307,22 @@
             "    print(i.name)"
         ]
     },
+    "iterdir_replacetxt": {
+        "prefix": "iterdir_replacetxt",
+        "body": [
+            "from pathlib import Path",
+            "",
+            "for i in (Path('.')).iterdir():",
+            "    if i.suffix == '.$1':",
+            "        print(i.name)",
+            "",
+            "        txt = \"$2\"",
+            "        if txt in i.name:",
+            "            new_name = i.name.replace(txt,\"\")",
+            "            print(new_name)",
+            "            i.rename(new_name)"
+        ]
+    },
     "today": {
         "prefix": "today",
         "body": [
