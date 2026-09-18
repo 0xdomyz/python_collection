@@ -1,4 +1,7 @@
+convert mp4 to mp3::
 
+    ffmpeg -i input.mp4 -q:a 0 -map a output.mp3
+    ffmpeg -i input.mp4 -vn -c:a libmp3lame -q:a 2 output.mp3
 
 list devices::
 
