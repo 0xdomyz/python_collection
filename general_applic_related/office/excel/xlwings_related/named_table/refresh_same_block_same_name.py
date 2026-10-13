@@ -40,6 +40,10 @@ ws.clear()
 ws["A1"].value = df2
 ws.tables.add(source=ws["A1"].expand(), name="titanic_table")
 
+# %% [markdown]
+# ## hard coded fml with refreshed table with any name
+# ####################################################################################################
+
 # %%
 ws = xw.sheets.active
 if ws["A1"].value is not None:
