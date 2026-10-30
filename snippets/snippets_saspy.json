@@ -397,6 +397,23 @@
             "print(f\"{sas.saslog().count('ERROR') = }\")",
         ],
     },
+    "sascomp": {
+        "prefix": "sascomp",
+        "body": [
+            "qry = f\"\"\"",
+            "   proc sort data=$1 out=_a;",
+            "       by $3 $4;",
+            "",
+            "   proc sort data=$2 out=_b;",
+            "       by $3 $4;",
+            "",
+            "   proc compare base=_a compare=_b maxprint=100;",
+            "       id $3 $4;",
+            "   run;",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")",
+        ],
+    },
     "saslog": {
         "prefix": "saslog",
         "body": [
