@@ -4,9 +4,6 @@ import os
 import pandas as pd
 import sqlalchemy as sa
 
-from general_applic_related.office.excel.xlwings_related.example_package_tracker.components import \
-    db
-
 
 # add run method to engine
 def run(self: sa.engine.Engine, sql:str, ops_error_lines:int = 2) -> pd.DataFrame | None:
@@ -85,6 +82,29 @@ qualify ROW_NUMBER() OVER (
         ORDER BY meas_by_cate DESC,
                 acc_id
     ) = 1
+order by borr_id, acc_id
+"""
+df = eng.run(qry)
+df
+
+# %%
+# qualify method
+qry = f"""
+with x as (
+    SELECT a.*,
+        sum(meas) over (partition by borr_id, cate) as meas_by_cate,
+        sum(meas) over (partition by borr_id) as meas_by_borr
+    FROM {tbl} a
+)
+select 
+    x.*,
+    ROW_NUMBER() OVER (
+        PARTITION BY borr_id
+        ORDER BY meas_by_cate DESC,
+                acc_id
+    ) as rn
+from x 
+qualify rn = 1
 order by borr_id, acc_id
 """
 df = eng.run(qry)
