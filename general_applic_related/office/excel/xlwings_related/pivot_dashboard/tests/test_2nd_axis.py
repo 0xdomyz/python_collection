@@ -65,7 +65,7 @@ dashboard.add_slicers(
 
 # %%
 # wb.save("output.xlsx")
-# wb.close()
+wb.close()
 
 
 # %%
