@@ -69,4 +69,4 @@ wb.close()
 
 
 # %%
-# dashboard._chart_coms[0]
+# dashboard.chart_coms[0]

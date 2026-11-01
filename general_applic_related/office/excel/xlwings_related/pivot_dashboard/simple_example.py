@@ -39,7 +39,7 @@ pivot_configs = [
     dict(data_field="n", row_field="who",legend_position=xw.constants.LegendPosition.xlLegendPositionBottom),
     dict(data_field=["n",'survived'],xl_func=['sum','average'],row_field="who",plot_on_2nd_axis='survived'),
 
-    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",page_filters={'survived':None,},),
+    dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",page_filters={'survived':'1',},),
     dict(data_field=["n",'survived'], xl_func=['sum','average'],row_field="age_group",col_field="who",chart_type="area_stacked",plot_on_2nd_axis=['survived']),
 
     # check throw
@@ -61,7 +61,7 @@ dashboard.add_slicers(
 # %%
 # from xlwings.constants import LegendPosition
 
-# for chart in dashboard._chart_coms:
+# for chart in dashboard.chart_coms:
 #     com = chart.api[1]
 
 #     com.Legend.Position = LegendPosition.xlLegendPositionBottom

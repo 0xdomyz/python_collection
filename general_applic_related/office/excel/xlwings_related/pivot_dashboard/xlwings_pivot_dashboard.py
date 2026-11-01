@@ -238,21 +238,21 @@ class PivotDashboard:
         pts_raw = inst.ws_pivot.api.PivotTables
         pts = pts_raw()
         try:
-            inst._pivot_coms = [pts(i) for i in range(1, pts.Count + 1)]
+            inst.pivot_coms = [pts(i) for i in range(1, pts.Count + 1)]
         except Exception as e:  # earlier COM version
             logger.debug(f"early COM version detected in retrieving pivot COM")
-            inst._pivot_coms = [pts_raw(i) for i in range(1, pts.Count + 1)]
+            inst.pivot_coms = [pts_raw(i) for i in range(1, pts.Count + 1)]
 
-        if not inst._pivot_coms:
+        if not inst.pivot_coms:
             raise ValueError(f"No PivotTables found on sheet '{pivot_sheet}'.")
 
         # discover chart objects from all charts on the pivot sheet
-        inst._chart_coms = list(inst.ws_pivot.charts)
+        inst.chart_coms = list(inst.ws_pivot.charts)
 
         # discover slicer cache COM objects whose slicers live on the pivot sheet
         pivot_sheet_name = inst.ws_pivot.name
         scs = inst.wb.api.SlicerCaches
-        inst._slicer_cache_coms = [
+        inst.slicer_cache_coms = [
             scs.Item(i)
             for i in range(1, scs.Count + 1)
             if scs.Item(i).Slicers.Count > 0
@@ -260,7 +260,7 @@ class PivotDashboard:
         ]
 
         # obtain the shared pivot cache from the first pivot table
-        inst._pivot_cache = inst._pivot_coms[0].PivotCache()
+        inst._pivot_cache = inst.pivot_coms[0].PivotCache()
 
         return inst
 
@@ -300,12 +300,12 @@ class PivotDashboard:
         self.ws_code = wb.sheets.add(code_sheet)
         self.ws_data = wb.sheets.add(data_sheet)
         self.ws_pivot = wb.sheets.add(pivot_sheet)
+        self.pivot_coms: list = []
+        self.chart_coms: list = []
 
         self._table_name: str | None = None
         self._pivot_cache = None
-        self._pivot_coms: list = []
-        self._chart_coms: list = []
-        self._slicer_cache_coms: list = []
+        self.slicer_cache_coms: list = []
 
     # ------------------------------------------------------------------
     # Repr / str
@@ -314,13 +314,13 @@ class PivotDashboard:
     def __repr__(self) -> str:
         return (
             f"PivotDashboard("
-            f"data='{self.ws_data.name}', "
-            f"pivot='{self.ws_pivot.name}', "
-            f"code='{self.ws_code.name}', "
-            f"table='{self._table_name}', "
-            f"pivots={len(self._pivot_coms)}, "
-            f"charts={len(self._chart_coms)}, "
-            f"slicers={len(self._slicer_cache_coms)})"
+            f"ws_data='{self.ws_data.name}', "
+            f"ws_pivot='{self.ws_pivot.name}', "
+            f"ws_code='{self.ws_code.name}', "
+            f"_table_name='{self._table_name}', "
+            f"pivot_coms={len(self.pivot_coms)}, "
+            f"chart_coms={len(self.chart_coms)}, "
+            f"slicer_cache_coms={len(self.slicer_cache_coms)})"
         )
 
     def __str__(self) -> str:
@@ -330,9 +330,9 @@ class PivotDashboard:
             f"  pivot sheet  : {self.ws_pivot.name}",
             f"  code sheet   : {self.ws_code.name}",
             f"  table name   : {self._table_name}",
-            f"  pivot count  : {len(self._pivot_coms)}",
-            f"  chart count  : {len(self._chart_coms)}",
-            f"  slicer count : {len(self._slicer_cache_coms)}",
+            f"  pivot count  : {len(self.pivot_coms)}",
+            f"  chart count  : {len(self.chart_coms)}",
+            f"  slicer count : {len(self.slicer_cache_coms)}",
         ]
         return "\n".join(lines)
 
@@ -387,7 +387,7 @@ class PivotDashboard:
                 )  # ignore new name if table name already exists
             self.ws_data["A1"].value = df
             self.ws_data.tables.add(source=self.ws_data["A1"].expand(), name=table_name)
-            for pt_com in self._pivot_coms:
+            for pt_com in self.pivot_coms:
                 pt_com.RefreshTable()
 
     # ------------------------------------------------------------------
@@ -452,12 +452,12 @@ class PivotDashboard:
         with ctx:
 
             # clear existing pivot tables and charts using stored COM refs (idempotent)
-            for pt_com in self._pivot_coms:
+            for pt_com in self.pivot_coms:
                 pt_com.TableRange2.Clear()
-            for chart in self._chart_coms:
+            for chart in self.chart_coms:
                 chart.delete()
-            self._pivot_coms = []
-            self._chart_coms = []
+            self.pivot_coms = []
+            self.chart_coms = []
 
             # re-create the pivot cache each time — Excel drops it when all pivots are deleted
             self._pivot_cache = self.wb.api.PivotCaches().Create(
@@ -555,7 +555,7 @@ class PivotDashboard:
                     TableName=pt_name,
                 )
                 # Save immediately so partially configured pivots can still be cleaned up on retry.
-                self._pivot_coms.append(pt)
+                self.pivot_coms.append(pt)
                 logger.debug(f"{pt_name = }, {individual_cache = }")
 
                 # layout pt rows, columns, and values
@@ -623,7 +623,7 @@ class PivotDashboard:
                     height=cl["chart_height"],
                 )
                 # Save immediately so partially configured charts can still be cleaned up on retry.
-                self._chart_coms.append(chart)
+                self.chart_coms.append(chart)
                 chart.set_source_data(self.ws_pivot[dest].expand())
                 chart.chart_type = chart_type
                 chart_com_win = chart.api[1]  # (Shape, Chart) tuple on Windows
@@ -718,14 +718,14 @@ class PivotDashboard:
         with ctx:
 
             # delete existing slicer caches using stored COM refs (idempotent)
-            for sc in self._slicer_cache_coms:
+            for sc in self.slicer_cache_coms:
                 try:
                     sc.Delete()
                 except Exception as e:
                     logger.debug(f"Failed to delete slicer cache")
-            self._slicer_cache_coms = []
+            self.slicer_cache_coms = []
 
-            pt_coms = self._pivot_coms
+            pt_coms = self.pivot_coms
             if not pt_coms:
                 raise ValueError(
                     "No PivotTables found. Call add_pivots() before add_slicers()."
@@ -754,4 +754,4 @@ class PivotDashboard:
                             f"Skipping slicer link for one pivot table '{field}'"
                         )
 
-                self._slicer_cache_coms.append(sc)
+                self.slicer_cache_coms.append(sc)
