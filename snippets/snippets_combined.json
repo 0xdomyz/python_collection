@@ -73,76 +73,6 @@
             "df"
         ]
     },
-    "dbltrun": {
-        "prefix": "dbltrun",
-        "body": [
-            "sql = \"SELECT * FROM ${1:titanic} LIMIT ${2:5}\"",
-            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
-            "    cursor = con.cursor()",
-            "    result = cursor.execute(sql).fetchall()",
-            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
-            "df"
-        ]
-    },
-    "dbltinfo": {
-        "prefix": "dbltinfo",
-        "body": [
-            "sql = \"SELECT * FROM sqlite_master\"",
-            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
-            "    cursor = con.cursor()",
-            "    result = cursor.execute(sql).fetchall()",
-            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
-            "df"
-        ]
-    },
-    "dbpginfo": {
-        "prefix": "dbpginfo",
-        "body": [
-            "qry = f\"\"\"",
-            "SELECT ",
-            "    tc.table_schema,",
-            "    tc.table_name,",
-            "    kcu.column_name,",
-            "    tc.constraint_name,",
-            "    tc.constraint_type",
-            "FROM information_schema.table_constraints tc",
-            "JOIN information_schema.key_column_usage kcu ",
-            "    ON tc.constraint_name = kcu.constraint_name",
-            "    AND tc.table_schema = kcu.table_schema",
-            "WHERE tc.constraint_type = 'PRIMARY KEY'",
-            "    AND tc.table_schema = '${1:kraken}'",
-            "    AND tc.table_name = '${2:trades_history}'",
-            "ORDER BY kcu.ordinal_position;",
-            "\"\"\"",
-            "df = eng.run(qry)",
-            "df"
-        ]
-    },
-    "dbtdinfo": {
-        "prefix": "dbtdinfo",
-        "body": [
-            "qry = f\"\"\"",
-            "SELECT ",
-            "    t.DatabaseName as table_schema,",
-            "    t.TableName as table_name,",
-            "    c.ColumnId as column_position,",
-            "    c.ColumnName as column_name,",
-            "    c.ColumnType as data_type,",
-            "    c.ColumnLength as column_length,",
-            "    c.DecimalTotalDigits as precision_digits,",
-            "    c.DecimalFractionalDigits as scale_digits,",
-            "    c.Nullable as is_nullable",
-            "FROM DBC.TablesV t",
-            "LEFT JOIN DBC.ColumnsV c ON t.DatabaseName = c.DatabaseName AND t.TableName = c.TableName",
-            "WHERE ",
-            "    t.DatabaseName = '${1:your_database_name}'",
-            "    AND t.TableName = '${2:your_table_name}'",
-            "ORDER BY c.ColumnId;",
-            "\"\"\"",
-            "df = eng.run(qry)",
-            "df"
-        ]
-    },
     "dbalcrun": {
         "prefix": "dbalcrun",
         "body": [
@@ -150,14 +80,6 @@
             "with eng.begin() as con:",
             "    result = con.execute(sa.text(sql))",
             "df = pd.DataFrame(result.all(), columns=result.keys())",
-            "df"
-        ]
-    },
-    "dbpdrun": {
-        "prefix": "dbpdrun",
-        "body": [
-            "sql = \"SELECT * FROM ${2:titanic}\"",
-            "df = pd.read_sql_query(sql, eng)",
             "df"
         ]
     },
@@ -324,6 +246,59 @@
             "res"
         ]
     },
+    "dbltrun": {
+        "prefix": "dbltrun",
+        "body": [
+            "sql = \"SELECT * FROM ${1:titanic} LIMIT ${2:5}\"",
+            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
+            "    cursor = con.cursor()",
+            "    result = cursor.execute(sql).fetchall()",
+            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
+            "df"
+        ]
+    },
+    "dbltinfo": {
+        "prefix": "dbltinfo",
+        "body": [
+            "sql = \"SELECT * FROM sqlite_master\"",
+            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
+            "    cursor = con.cursor()",
+            "    result = cursor.execute(sql).fetchall()",
+            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
+            "df"
+        ]
+    },
+    "dbpdrun": {
+        "prefix": "dbpdrun",
+        "body": [
+            "sql = \"SELECT * FROM ${2:titanic}\"",
+            "df = pd.read_sql_query(sql, eng)",
+            "df"
+        ]
+    },
+    "dbpginfo": {
+        "prefix": "dbpginfo",
+        "body": [
+            "qry = f\"\"\"",
+            "SELECT ",
+            "    tc.table_schema,",
+            "    tc.table_name,",
+            "    kcu.column_name,",
+            "    tc.constraint_name,",
+            "    tc.constraint_type",
+            "FROM information_schema.table_constraints tc",
+            "JOIN information_schema.key_column_usage kcu ",
+            "    ON tc.constraint_name = kcu.constraint_name",
+            "    AND tc.table_schema = kcu.table_schema",
+            "WHERE tc.constraint_type = 'PRIMARY KEY'",
+            "    AND tc.table_schema = '${1:kraken}'",
+            "    AND tc.table_name = '${2:trades_history}'",
+            "ORDER BY kcu.ordinal_position;",
+            "\"\"\"",
+            "df = eng.run(qry)",
+            "df"
+        ]
+    },
     "tdsetup": {
         "prefix": "tdsetup",
         "body": [
@@ -342,6 +317,31 @@
             "",
             "connection_string = f\"teradatasql://$1:{os.environ['password']}@$2\"",
             "eng = alc.create_engine(connection_string)"
+        ]
+    },
+    "dbtdinfo": {
+        "prefix": "dbtdinfo",
+        "body": [
+            "qry = f\"\"\"",
+            "SELECT ",
+            "    t.DatabaseName as table_schema,",
+            "    t.TableName as table_name,",
+            "    c.ColumnId as column_position,",
+            "    c.ColumnName as column_name,",
+            "    c.ColumnType as data_type,",
+            "    c.ColumnLength as column_length,",
+            "    c.DecimalTotalDigits as precision_digits,",
+            "    c.DecimalFractionalDigits as scale_digits,",
+            "    c.Nullable as is_nullable",
+            "FROM DBC.TablesV t",
+            "LEFT JOIN DBC.ColumnsV c ON t.DatabaseName = c.DatabaseName AND t.TableName = c.TableName",
+            "WHERE ",
+            "    t.DatabaseName = '${1:your_database_name}'",
+            "    AND t.TableName = '${2:your_table_name}'",
+            "ORDER BY c.ColumnId;",
+            "\"\"\"",
+            "df = eng.run(qry)",
+            "df"
         ]
     },
     "peq": {

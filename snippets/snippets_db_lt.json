@@ -1,0 +1,24 @@
+{
+    "dbltrun": {
+        "prefix": "dbltrun",
+        "body": [
+            "sql = \"SELECT * FROM ${1:titanic} LIMIT ${2:5}\"",
+            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
+            "    cursor = con.cursor()",
+            "    result = cursor.execute(sql).fetchall()",
+            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
+            "df",
+        ],
+    },
+    "dbltinfo": {
+        "prefix": "dbltinfo",
+        "body": [
+            "sql = \"SELECT * FROM sqlite_master\"",
+            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
+            "    cursor = con.cursor()",
+            "    result = cursor.execute(sql).fetchall()",
+            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
+            "df",
+        ],
+    },
+}

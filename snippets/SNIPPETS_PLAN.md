@@ -43,7 +43,11 @@ snippets_rpy.json
 
 # database
 snippets_db.json
-snippets_td.json
+snippets_db_pd.json
+snippets_db_pg.json
+snippets_db_td.json
+snippets_db_lt.json
+snippets_db_oc.json
 
 # sas
 snippets_sas.json

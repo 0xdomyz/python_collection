@@ -1,0 +1,10 @@
+{
+    "dbpdrun": {
+        "prefix": "dbpdrun",
+        "body": [
+            "sql = \"SELECT * FROM ${2:titanic}\"",
+            "df = pd.read_sql_query(sql, eng)",
+            "df",
+        ],
+    },
+}
