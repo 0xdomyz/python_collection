@@ -544,6 +544,7 @@ class PivotDashboard:
                 # ------------------------------------------------------------------------
                 pivot_cache = self._pivot_cache
                 if individual_cache:
+                    logger.debug("Creating individual pivot cache")
                     pivot_cache = self.wb.api.PivotCaches().Create(
                         SourceType=1,  # xlDatabase
                         SourceData=self._table_name,
@@ -553,6 +554,8 @@ class PivotDashboard:
                     TableDestination=self.ws_pivot[dest].api,
                     TableName=pt_name,
                 )
+                # Save immediately so partially configured pivots can still be cleaned up on retry.
+                self._pivot_coms.append(pt)
                 logger.debug(f"{pt_name = }, {individual_cache = }")
 
                 # layout pt rows, columns, and values
@@ -611,8 +614,6 @@ class PivotDashboard:
                             Field=data_values[0],
                         )
 
-                self._pivot_coms.append(pt)
-
                 # create chart on all data
                 # ------------------------------------------------------------------------
                 chart = self.ws_pivot.charts.add(
@@ -621,6 +622,8 @@ class PivotDashboard:
                     width=cl["chart_width"],
                     height=cl["chart_height"],
                 )
+                # Save immediately so partially configured charts can still be cleaned up on retry.
+                self._chart_coms.append(chart)
                 chart.set_source_data(self.ws_pivot[dest].expand())
                 chart.chart_type = chart_type
                 chart_com_win = chart.api[1]  # (Shape, Chart) tuple on Windows
@@ -681,7 +684,6 @@ class PivotDashboard:
 
                 chart_com_win.HasTitle = True
                 chart_com_win.ChartTitle.Text = title
-                self._chart_coms.append(chart)
 
                 # import time
                 # time.sleep(1)

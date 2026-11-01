@@ -33,7 +33,7 @@ logger.add(sys.stdout, level="DEBUG")
 wb = xw.Book()
 dashboard = PivotDashboard(wb)
 dashboard.write_table(df, code=f"SELECT * FROM df")
-
+# %%
 pivot_configs = [
     # fmt: off
     dict(data_field="n", row_field="who",legend_position=xw.constants.LegendPosition.xlLegendPositionBottom),
