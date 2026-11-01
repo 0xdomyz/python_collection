@@ -1,0 +1,87 @@
+{
+    "dbqry": {
+        "prefix": "dbqry",
+        "body": [
+            "qry = f\"\"\"",
+            "select",
+            "    *",
+            "from $1",
+            "where $2 = '$3'",
+            "\"\"\"",
+            "df = eng.run(qry)",
+            "df",
+        ],
+    },
+    "dbhead": {
+        "prefix": "dbhead",
+        "body": [
+            "df_h = eng.run(f\"select top 5 * from $1\")",
+            "print(df_h.head().to_string())",
+        ],
+    },
+    "dbtop": {
+        "prefix": "dbtop",
+        "body": [
+            "df_t = eng.run(f\"select top 1 * from $1\")",
+            "print(df_t.T.to_string())",
+        ],
+    },
+    "dbcol": {
+        "prefix": "dbcol",
+        "body": [
+            "df_c = eng.run(f\"select top 1 * from $1\")",
+            "for i in [i for i in df_c.columns if '$2' in i.lower()]:",
+            "    print(i)",
+        ],
+    },
+    "dbcount1": {
+        "prefix": "dbcount1",
+        "body": [
+            "eng.run(f\"select count(*) as n from $1\").iloc[0,0]",
+        ],
+    },
+    "dbgrp": {
+        "prefix": "dbgrp",
+        "body": [
+            "qry = f\"\"\"",
+            "select",
+            "    $1,",
+            "    $2,",
+            "    count(1) as n",
+            "from $3",
+            "where $4 = '$5'",
+            "group by 1,2",
+            "order by 1,2",
+            "\"\"\"",
+            "df = eng.run(qry)",
+            "df",
+        ],
+    },
+    "dbouter": {
+        "prefix": "dbouter",
+        "body": [
+            "qry = f\"\"\"",
+            "with x as (",
+            "   select",
+            "   CASE",
+            "       WHEN a.$1 IS NOT NULL AND b.$1 IS NULL THEN 'A_ONLY'",
+            "       WHEN a.$1 IS NULL AND b.$1 IS NOT NULL THEN 'B_ONLY'",
+            "       WHEN a.$2 = b.$2 THEN 'MATCH'",
+            "       WHEN a.$2 <> b.$2 THEN 'MISMATCH'",
+            "       ELSE 'UNKNOWN'",
+            "   END AS col_check",
+            "   from $1 a",
+            "   full outer join $2 b",
+            "   on a.$3 = b.$3 and a.$4 = b.$4",
+            ") ",
+            "select",
+            "   col_check,",
+            "   count(1) as n",
+            "from x",
+            "group by 1",
+            "\"\"\"",
+            "df = eng.run(qry)",
+            "df",
+        ]
+    }
+}

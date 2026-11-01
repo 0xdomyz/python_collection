@@ -1,16 +1,219 @@
 {
-    "dbsetupalc": {
-        "prefix": "dbsetupalc",
+    "caseloc": {
         "body": [
-            "import sqlalchemy as sa",
-            "import pandas as pd",
-            "import os",
-            "connection_string = f\"$1://$2:{os.environ['password']}@$3\"",
-            "eng = sa.create_engine(connection_string)"
-        ]
+            "df[f\"is_$1\"] = np.nan",
+            "df.loc[lambda x: x[\"$2\"] $3, \"is_$1\"] = True",
+            "df.loc[lambda x: x[\"$2\"] $4, \"is_$1\"] = False"
+        ],
+        "prefix": "caseloc"
+    },
+    "caseselect": {
+        "body": [
+            "conditions = [df[\"$1\"]$2]",
+            "choices = [$3]",
+            "df[\"$4\"] = np.select(conditions, choices, default=None)"
+        ],
+        "prefix": "caseselect"
+    },
+    "casewhere": {
+        "body": [
+            "df[f\"is_$1\"] = np.where(df[\"$2\"] $3, True, np.where(df[\"$2\"] $4, False, np.nan))"
+        ],
+        "prefix": "casewhere"
+    },
+    "collower": {
+        "body": [
+            "$1.columns = $1.columns.str.lower()"
+        ],
+        "prefix": "collower"
+    },
+    "dbalcrun": {
+        "body": [
+            "sql = \"SELECT * FROM ${2:titanic}\"",
+            "with eng.begin() as con:",
+            "    result = con.execute(sa.text(sql))",
+            "df = pd.DataFrame(result.all(), columns=result.keys())",
+            "df"
+        ],
+        "prefix": "dbalcrun"
+    },
+    "dbcol": {
+        "body": [
+            "df_c = eng.run(f\"select top 1 * from $1\")",
+            "for i in [i for i in df_c.columns if '$2' in i.lower()]:",
+            "    print(i)"
+        ],
+        "prefix": "dbcol"
+    },
+    "dbcount1": {
+        "body": [
+            "eng.run(f\"select count(*) as n from $1\").iloc[0,0]"
+        ],
+        "prefix": "dbcount1"
+    },
+    "dbctbl": {
+        "body": [
+            "tbl = \"$1\"",
+            "",
+            "try:",
+            "    eng.run(f\"drop table {tbl}\")",
+            "except Exception as e:",
+            "    pass",
+            "",
+            "qry = f\"\"\"",
+            "create table {tbl} as (",
+            "    select *",
+            "    from $2",
+            ") with data;",
+            "\"\"\"",
+            "",
+            "_ = eng.run(qry)",
+            "_ = eng.run(f\"select count(*) from {tbl}\").iloc[0, 0]",
+            "print(_)"
+        ],
+        "prefix": "dbctbl"
+    },
+    "dbdrop": {
+        "body": [
+            "try:",
+            "    eng.run(f\"drop table $1\")",
+            "except Exception as e:",
+            "    pass"
+        ],
+        "prefix": "dbdrop"
+    },
+    "dbgrp": {
+        "body": [
+            "qry = f\"\"\"",
+            "select",
+            "    $1,",
+            "    $2,",
+            "    count(1) as n",
+            "from $3",
+            "where $4 = '$5'",
+            "group by 1,2",
+            "order by 1,2",
+            "\"\"\"",
+            "df = eng.run(qry)",
+            "df"
+        ],
+        "prefix": "dbgrp"
+    },
+    "dbhead": {
+        "body": [
+            "df_h = eng.run(f\"select top 5 * from $1\")",
+            "print(df_h.head().to_string())"
+        ],
+        "prefix": "dbhead"
+    },
+    "dbltinfo": {
+        "body": [
+            "sql = \"SELECT * FROM sqlite_master\"",
+            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
+            "    cursor = con.cursor()",
+            "    result = cursor.execute(sql).fetchall()",
+            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
+            "df"
+        ],
+        "prefix": "dbltinfo"
+    },
+    "dbltrun": {
+        "body": [
+            "sql = \"SELECT * FROM ${1:titanic} LIMIT ${2:5}\"",
+            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
+            "    cursor = con.cursor()",
+            "    result = cursor.execute(sql).fetchall()",
+            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
+            "df"
+        ],
+        "prefix": "dbltrun"
+    },
+    "dbouter": {
+        "body": [
+            "qry = f\"\"\"",
+            "with x as (",
+            "   select",
+            "   CASE",
+            "       WHEN a.$1 IS NOT NULL AND b.$1 IS NULL THEN 'A_ONLY'",
+            "       WHEN a.$1 IS NULL AND b.$1 IS NOT NULL THEN 'B_ONLY'",
+            "       WHEN a.$2 = b.$2 THEN 'MATCH'",
+            "       WHEN a.$2 <> b.$2 THEN 'MISMATCH'",
+            "       ELSE 'UNKNOWN'",
+            "   END AS col_check",
+            "   from $1 a",
+            "   full outer join $2 b",
+            "   on a.$3 = b.$3 and a.$4 = b.$4",
+            ") ",
+            "select",
+            "   col_check,",
+            "   count(1) as n",
+            "from x",
+            "group by 1",
+            "\"\"\"",
+            "df = eng.run(qry)",
+            "df"
+        ],
+        "prefix": "dbouter"
+    },
+    "dbpdrun": {
+        "body": [
+            "sql = \"SELECT * FROM ${2:titanic}\"",
+            "df = pd.read_sql_query(sql, eng)",
+            "df"
+        ],
+        "prefix": "dbpdrun"
+    },
+    "dbpginfo": {
+        "body": [
+            "qry = f\"\"\"",
+            "SELECT ",
+            "    tc.table_schema,",
+            "    tc.table_name,",
+            "    kcu.column_name,",
+            "    tc.constraint_name,",
+            "    tc.constraint_type",
+            "FROM information_schema.table_constraints tc",
+            "JOIN information_schema.key_column_usage kcu ",
+            "    ON tc.constraint_name = kcu.constraint_name",
+            "    AND tc.table_schema = kcu.table_schema",
+            "WHERE tc.constraint_type = 'PRIMARY KEY'",
+            "    AND tc.table_schema = '${1:kraken}'",
+            "    AND tc.table_name = '${2:trades_history}'",
+            "ORDER BY kcu.ordinal_position;",
+            "\"\"\"",
+            "df = eng.run(qry)",
+            "df"
+        ],
+        "prefix": "dbpginfo"
+    },
+    "dbqry": {
+        "body": [
+            "qry = f\"\"\"",
+            "select",
+            "    *",
+            "from $1",
+            "where $2 = '$3'",
+            "\"\"\"",
+            "df = eng.run(qry)",
+            "df"
+        ],
+        "prefix": "dbqry"
+    },
+    "dbread": {
+        "body": [
+            "df = eng.run(f\"select * from $1 where $2 = '$3'\")",
+            "df"
+        ],
+        "prefix": "dbread"
+    },
+    "dbrun": {
+        "body": [
+            "df = eng.run(f\"select * from $1 where $2 = '$3'\")",
+            "df"
+        ],
+        "prefix": "dbrun"
     },
     "dbsetup": {
-        "prefix": "dbsetup",
         "body": [
             "import sqlalchemy as sa",
             "import pandas as pd",
@@ -27,10 +230,20 @@
             "",
             "connection_string = f\"$1://$2:{os.environ['password']}@$3\"",
             "eng = sa.create_engine(connection_string)"
-        ]
+        ],
+        "prefix": "dbsetup"
+    },
+    "dbsetupalc": {
+        "body": [
+            "import sqlalchemy as sa",
+            "import pandas as pd",
+            "import os",
+            "connection_string = f\"$1://$2:{os.environ['password']}@$3\"",
+            "eng = sa.create_engine(connection_string)"
+        ],
+        "prefix": "dbsetupalc"
     },
     "dbsetupthrow": {
-        "prefix": "dbsetupthrow",
         "body": [
             "import sqlalchemy as sa",
             "import pandas as pd",
@@ -57,270 +270,10 @@
             "",
             "connection_string = f\"$1://$2:{os.environ['password']}@$3\"",
             "eng = sa.create_engine(connection_string)"
-        ]
-    },
-    "dbrun": {
-        "prefix": "dbrun",
-        "body": [
-            "df = eng.run(f\"select * from $1 where $2 = '$3'\")",
-            "df"
-        ]
-    },
-    "dbread": {
-        "prefix": "dbread",
-        "body": [
-            "df = eng.run(f\"select * from $1 where $2 = '$3'\")",
-            "df"
-        ]
-    },
-    "dbalcrun": {
-        "prefix": "dbalcrun",
-        "body": [
-            "sql = \"SELECT * FROM ${2:titanic}\"",
-            "with eng.begin() as con:",
-            "    result = con.execute(sa.text(sql))",
-            "df = pd.DataFrame(result.all(), columns=result.keys())",
-            "df"
-        ]
-    },
-    "dbqry": {
-        "prefix": "dbqry",
-        "body": [
-            "qry = f\"\"\"",
-            "select",
-            "    *",
-            "from $1",
-            "where $2 = '$3'",
-            "\"\"\"",
-            "df = eng.run(qry)",
-            "df"
-        ]
-    },
-    "dbhead": {
-        "prefix": "dbhead",
-        "body": [
-            "df_h = eng.run(f\"select top 5 * from $1\")",
-            "print(df_h.head().to_string())"
-        ]
-    },
-    "dbtop": {
-        "prefix": "dbtop",
-        "body": [
-            "df_t = eng.run(f\"select top 1 * from $1\")",
-            "print(df_t.T.to_string())"
-        ]
-    },
-    "dbcol": {
-        "prefix": "dbcol",
-        "body": [
-            "df_c = eng.run(f\"select top 1 * from $1\")",
-            "for i in [i for i in df_c.columns if '$2' in i.lower()]:",
-            "    print(i)"
-        ]
-    },
-    "dbcount1": {
-        "prefix": "dbcount1",
-        "body": [
-            "eng.run(f\"select count(*) as n from $1\").iloc[0,0]"
-        ]
-    },
-    "dbdrop": {
-        "prefix": "dbdrop",
-        "body": [
-            "try:",
-            "    eng.run(f\"drop table $1\")",
-            "except Exception as e:",
-            "    pass"
-        ]
-    },
-    "dbgrp": {
-        "prefix": "dbgrp",
-        "body": [
-            "qry = f\"\"\"",
-            "select",
-            "    $1,",
-            "    $2,",
-            "    count(1) as n",
-            "from $3",
-            "where $4 = '$5'",
-            "group by 1,2",
-            "order by 1,2",
-            "\"\"\"",
-            "df = eng.run(qry)",
-            "df"
-        ]
-    },
-    "dbctbl": {
-        "prefix": "dbctbl",
-        "body": [
-            "tbl = \"$1\"",
-            "",
-            "try:",
-            "    eng.run(f\"drop table {tbl}\")",
-            "except Exception as e:",
-            "    pass",
-            "",
-            "qry = f\"\"\"",
-            "create table {tbl} as (",
-            "    select *",
-            "    from $2",
-            ") with data;",
-            "\"\"\"",
-            "",
-            "_ = eng.run(qry)",
-            "_ = eng.run(f\"select count(*) from {tbl}\").iloc[0, 0]",
-            "print(_)"
-        ]
-    },
-    "dbwrite": {
-        "prefix": "dbwrite",
-        "body": [
-            "tbl = \"$1\"",
-            "",
-            "try:",
-            "    eng.run(f\"drop table {tbl}\")",
-            "except Exception as e:",
-            "    pass",
-            "",
-            "qry = f\"\"\"",
-            "create table {tbl}(",
-            "    survived INT,",
-            "    sex VARCHAR(10),",
-            "    age FLOAT,",
-            "    adult_male BYTEINT",
-            ");",
-            "\"\"\"",
-            "_ = eng.run(qry)",
-            "",
-            "sch, tbl2 = tbl.split('.')",
-            "df.to_sql(tbl2, eng, if_exists='append', index=False, schema=sch)",
-            "eng.run(f\"select count(*) from {tbl}\").iloc[0, 0]"
-        ]
-    },
-    "dbouter": {
-        "prefix": "dbouter",
-        "body": [
-            "qry = f\"\"\"",
-            "with x as (",
-            "   select",
-            "   CASE",
-            "       WHEN a.$1 IS NOT NULL AND b.$1 IS NULL THEN 'A_ONLY'",
-            "       WHEN a.$1 IS NULL AND b.$1 IS NOT NULL THEN 'B_ONLY'",
-            "       WHEN a.$2 = b.$2 THEN 'MATCH'",
-            "       WHEN a.$2 <> b.$2 THEN 'MISMATCH'",
-            "       ELSE 'UNKNOWN'",
-            "   END AS col_check",
-            "   from $1 a",
-            "   full outer join $2 b",
-            "   on a.$3 = b.$3 and a.$4 = b.$4",
-            ") ",
-            "select",
-            "   col_check,",
-            "   count(1) as n",
-            "from x",
-            "group by 1",
-            "\"\"\"",
-            "df = eng.run(qry)",
-            "df"
-        ]
-    },
-    "ddbimportcon": {
-        "prefix": "ddbimportcon",
-        "body": [
-            "import duckdb",
-            "con = duckdb.connect()"
-        ]
-    },
-    "ddbexec": {
-        "prefix": "ddbexec",
-        "body": [
-            "qry = f\"\"\"",
-            "    select",
-            "        $2,",
-            "        count(1) as cnt",
-            "    from $1",
-            "    group by 1",
-            "    order by 1",
-            "\"\"\"",
-            "res = con.execute(qry).df()",
-            "res"
-        ]
-    },
-    "dbltrun": {
-        "prefix": "dbltrun",
-        "body": [
-            "sql = \"SELECT * FROM ${1:titanic} LIMIT ${2:5}\"",
-            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
-            "    cursor = con.cursor()",
-            "    result = cursor.execute(sql).fetchall()",
-            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
-            "df"
-        ]
-    },
-    "dbltinfo": {
-        "prefix": "dbltinfo",
-        "body": [
-            "sql = \"SELECT * FROM sqlite_master\"",
-            "with sqlite3.connect(\"${1:titanic.db}\") as con:",
-            "    cursor = con.cursor()",
-            "    result = cursor.execute(sql).fetchall()",
-            "df = pd.DataFrame(result, columns=[x[0] for x in cursor.description])",
-            "df"
-        ]
-    },
-    "dbpdrun": {
-        "prefix": "dbpdrun",
-        "body": [
-            "sql = \"SELECT * FROM ${2:titanic}\"",
-            "df = pd.read_sql_query(sql, eng)",
-            "df"
-        ]
-    },
-    "dbpginfo": {
-        "prefix": "dbpginfo",
-        "body": [
-            "qry = f\"\"\"",
-            "SELECT ",
-            "    tc.table_schema,",
-            "    tc.table_name,",
-            "    kcu.column_name,",
-            "    tc.constraint_name,",
-            "    tc.constraint_type",
-            "FROM information_schema.table_constraints tc",
-            "JOIN information_schema.key_column_usage kcu ",
-            "    ON tc.constraint_name = kcu.constraint_name",
-            "    AND tc.table_schema = kcu.table_schema",
-            "WHERE tc.constraint_type = 'PRIMARY KEY'",
-            "    AND tc.table_schema = '${1:kraken}'",
-            "    AND tc.table_name = '${2:trades_history}'",
-            "ORDER BY kcu.ordinal_position;",
-            "\"\"\"",
-            "df = eng.run(qry)",
-            "df"
-        ]
-    },
-    "tdsetup": {
-        "prefix": "tdsetup",
-        "body": [
-            "import sqlalchemy as alc",
-            "import pandas as pd",
-            "import os",
-            "",
-            "# add run method to engine",
-            "def run(self: alc.engine.Engine, sql:str) -> pd.DataFrame | None:",
-            "    with self.begin() as conn:",
-            "        res = conn.execute(alc.text(sql))",
-            "        if res.returns_rows:",
-            "            return pd.DataFrame(res.all(), columns=res.keys())",
-            "",
-            "alc.engine.Engine.run = run",
-            "",
-            "connection_string = f\"teradatasql://$1:{os.environ['password']}@$2\"",
-            "eng = alc.create_engine(connection_string)"
-        ]
+        ],
+        "prefix": "dbsetupthrow"
     },
     "dbtdinfo": {
-        "prefix": "dbtdinfo",
         "body": [
             "qry = f\"\"\"",
             "SELECT ",
@@ -342,51 +295,168 @@
             "\"\"\"",
             "df = eng.run(qry)",
             "df"
-        ]
+        ],
+        "prefix": "dbtdinfo"
     },
-    "peq": {
-        "prefix": "peq",
+    "dbtop": {
         "body": [
-            "print(f\"{$0 = }\")"
-        ]
+            "df_t = eng.run(f\"select top 1 * from $1\")",
+            "print(df_t.T.to_string())"
+        ],
+        "prefix": "dbtop"
+    },
+    "dbwrite": {
+        "body": [
+            "tbl = \"$1\"",
+            "",
+            "try:",
+            "    eng.run(f\"drop table {tbl}\")",
+            "except Exception as e:",
+            "    pass",
+            "",
+            "qry = f\"\"\"",
+            "create table {tbl}(",
+            "    survived INT,",
+            "    sex VARCHAR(10),",
+            "    age FLOAT,",
+            "    adult_male BYTEINT",
+            ");",
+            "\"\"\"",
+            "_ = eng.run(qry)",
+            "",
+            "sch, tbl2 = tbl.split('.')",
+            "df.to_sql(tbl2, eng, if_exists='append', index=False, schema=sch)",
+            "eng.run(f\"select count(*) from {tbl}\").iloc[0, 0]"
+        ],
+        "prefix": "dbwrite"
+    },
+    "ddbexec": {
+        "body": [
+            "qry = f\"\"\"",
+            "    select",
+            "        $2,",
+            "        count(1) as cnt",
+            "    from $1",
+            "    group by 1",
+            "    order by 1",
+            "\"\"\"",
+            "res = con.execute(qry).df()",
+            "res"
+        ],
+        "prefix": "ddbexec"
+    },
+    "ddbimportcon": {
+        "body": [
+            "import duckdb",
+            "con = duckdb.connect()"
+        ],
+        "prefix": "ddbimportcon"
+    },
+    "figax": {
+        "body": [
+            "fig, ax = plt.subplots(1, 1, figsize=(12, 6))"
+        ],
+        "prefix": "figax"
     },
     "forp": {
-        "prefix": "forp",
         "body": [
             "for $1 in $2:",
             "    print($1)"
-        ]
+        ],
+        "prefix": "forp"
     },
-    "pdir": {
-        "prefix": "pdir",
+    "grp2unstack": {
         "body": [
-            "for i in dir($1):",
-            "    if not i.startswith('_'):",
-            "        print(i,\"-\"*80+\" \\n\", getattr($1, i), '\\n')"
-        ]
+            "$1.groupby([\"$2\", \"$3\"], dropna=False)[\"$4\"].agg(",
+            "    lambda x: (len(x), float(x.mean().round(2)))",
+            ").unstack()"
+        ],
+        "prefix": "grp2unstack"
     },
-    "lcomp": {
-        "prefix": "lcomp",
+    "grpapply": {
         "body": [
-            "[i$1 for i in $2]"
-        ]
+            "$1.groupby(['$2'], dropna=False, group_keys=False).apply(",
+            "    lambda x: (x - x.mean()) / x.std()",
+            ")"
+        ],
+        "prefix": "grpapply"
     },
-    "withopen": {
-        "prefix": "withopen",
+    "grpargs": {
         "body": [
-            "with open(\"$1\", 'r') as f:",
-            "    $2 = f.read()"
-        ]
+            "$1.groupby([\"$2\", \"$3\"], dropna=False).agg(",
+            "    **{",
+            "        \"n\": (\"$2\", \"size\"),",
+            "        \"$4_rate\": (\"$4\", \"mean\"),",
+            "    }",
+            ")"
+        ],
+        "prefix": "grpargs"
+    },
+    "grpcol": {
+        "body": [
+            "$1.groupby(\"$2\", dropna=False)[\"$3\"].mean()"
+        ],
+        "prefix": "grpcol"
+    },
+    "grpdict": {
+        "body": [
+            "$1.groupby(\"$2\", dropna=False).agg(",
+            "    {\"$3\": [\"size\", \"sum\", \"mean\"]}",
+            ")"
+        ],
+        "prefix": "grpdict"
+    },
+    "iana": {
+        "body": [
+            "import numpy as np",
+            "import pandas as pd",
+            "import matplotlib.pyplot as plt",
+            "import matplotlib as mpl"
+        ],
+        "prefix": "iana"
+    },
+    "incol": {
+        "body": [
+            "[i for i in $1.columns if '$2' in i]"
+        ],
+        "prefix": "incol"
+    },
+    "info": {
+        "body": [
+            "df_info = pd.concat([",
+            "    $1.head(1).T, $1.dtypes.astype(str), $1.nunique(), $1.isna().sum(),",
+            "    $1.describe(include=\"all\").T[[\"min\", \"max\"]]], axis=1) # fmt: skip",
+            "df_info.columns = [\"example_value\", \"dtypes\", \"nunique\", \"n_null\", \"min\", \"max\"]",
+            "df_info = df_info.sort_index().sort_values(\"dtypes\")",
+            "print(df_info.to_string())"
+        ],
+        "prefix": "info"
+    },
+    "ipath": {
+        "body": [
+            "from pathlib import Path"
+        ],
+        "prefix": "ipath"
+    },
+    "istats": {
+        "body": [
+            "import matplotlib.pyplot as plt",
+            "import matplotlib as mpl",
+            "import numpy as np",
+            "import pandas as pd",
+            "import statsmodels.api as sm",
+            "from scipy import stats"
+        ],
+        "prefix": "istats"
     },
     "iterdir": {
-        "prefix": "iterdir",
         "body": [
             "for i in ($1).iterdir():",
             "    print(i.name)"
-        ]
+        ],
+        "prefix": "iterdir"
     },
     "iterdir_replacetxt": {
-        "prefix": "iterdir_replacetxt",
         "body": [
             "from pathlib import Path",
             "",
@@ -399,212 +469,243 @@
             "            new_name = i.name.replace(txt,\"\")",
             "            print(new_name)",
             "            i.rename(new_name)"
-        ]
+        ],
+        "prefix": "iterdir_replacetxt"
     },
-    "today": {
-        "prefix": "today",
+    "lcomp": {
         "body": [
-            "import datetime",
-            "",
-            "today_dt = datetime.datetime.now().strftime('%Y%m%d')",
-            "today_dt"
-        ]
+            "[i$1 for i in $2]"
+        ],
+        "prefix": "lcomp"
     },
-    "pdb": {
-        "prefix": "pdb",
+    "loc": {
         "body": [
-            "import pdb; pdb.set_trace()"
-        ]
-    },
-    "writeqry": {
-        "prefix": "writeqry",
-        "body": [
-            "with open(Path('sql') / \"$1.sql\"), \"w\") as f:",
-            "    f.write(qry)"
-        ]
+            "$1.loc[lambda x:x['$2']$3, :]"
+        ],
+        "prefix": "loc"
     },
     "logurudebug": {
-        "prefix": "logurudebug",
         "body": [
             "import sys",
             "from loguru import logger",
             "logger.add(sys.stdout, level=\"DEBUG\")"
-        ]
+        ],
+        "prefix": "logurudebug"
     },
-    "syspath": {
-        "prefix": "syspath",
+    "mplfull": {
         "body": [
-            "from pathlib import Path",
-            "import sys",
-            "sys.path.append(Path().cwd().parents[0].as_posix())"
-        ]
+            "fig, ax = plt.subplots(figsize=(12, 6))",
+            "",
+            "x_ticks = $1['$2'].astype(str)",
+            "",
+            "ax.plot(x_ticks, $1['$3'], alpha=0.8, marker='x', color='red', label= $1['$3'].name)",
+            "ax.plot(x_ticks, $1['$4'], alpha=0.8, marker='o', color='green', label= $1['$4'].name)",
+            "",
+            "ax.set_title(f\"$5\", fontsize=15, fontweight='bold')",
+            "",
+            "ax.set_xticks(x_ticks)",
+            "ax.set_xticklabels(x_ticks, rotation=45)",
+            "ax.set_xlabel(x_ticks.name, loc=\"center\")",
+            "",
+            "ax.set_ylabel(f\"$6\", loc=\"center\")",
+            "ax.yaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins=10))",
+            "ax.yaxis.set_major_formatter(mpl.ticker.PercentFormatter(1.0, decimals=0))",
+            "ax.yaxis.set_minor_locator(mpl.ticker.AutoMinorLocator(2))",
+            "ax.set_ylim(0, 1)",
+            "",
+            "ax.grid(True, linestyle='--', alpha=0.5)",
+            "ax.spines['top'].set_visible(False)",
+            "ax.spines['right'].set_visible(False)",
+            "",
+            "ax.legend(loc='upper left', fontsize=10, frameon=False)",
+            "",
+            "plt.tight_layout()"
+        ],
+        "prefix": "mplfull"
     },
-    "syspathfile": {
-        "prefix": "syspathfile",
+    "pdb": {
         "body": [
-            "from pathlib import Path",
-            "import sys",
-            "sys.path.append(Path(__file__).parents[1].as_posix())"
-        ]
+            "import pdb; pdb.set_trace()"
+        ],
+        "prefix": "pdb"
     },
-    "syspathnodup": {
-        "prefix": "syspathnodup",
+    "pdir": {
         "body": [
-            "from pathlib import Path",
-            "import sys",
-            "_lib_path = Path(__file__).parents[1].as_posix() # or Path().cwd() for notebook",
-            "if _lib_path not in sys.path:",
-            "    sys.path.append(_lib_path)"
-        ]
+            "for i in dir($1):",
+            "    if not i.startswith('_'):",
+            "        print(i,\"-\"*80+\" \\n\", getattr($1, i), '\\n')"
+        ],
+        "prefix": "pdir"
     },
-    "ipath": {
-        "prefix": "ipath",
+    "peq": {
         "body": [
-            "from pathlib import Path"
-        ]
+            "print(f\"{$0 = }\")"
+        ],
+        "prefix": "peq"
+    },
+    "phstr": {
+        "body": [
+            "print($1.head().to_string())"
+        ],
+        "prefix": "phstr"
+    },
+    "pstr": {
+        "body": [
+            "print($1.to_string())"
+        ],
+        "prefix": "pstr"
+    },
+    "qry": {
+        "body": [
+            "$1.query('$2')"
+        ],
+        "prefix": "qry"
+    },
+    "readcsv": {
+        "body": [
+            "$1 = pd.read_csv('$2.csv')"
+        ],
+        "prefix": "readcsv"
     },
     "reload": {
-        "prefix": "reload",
         "body": [
             "import importlib",
             "importlib.reload($1)"
-        ]
-    },
-    "sassetup": {
-        "prefix": "sassetup",
-        "body": [
-            "import saspy",
-            "",
-            "sas = saspy.SASsession()",
-            "sas"
-        ]
-    },
-    "sassetupcfg": {
-        "prefix": "sassetupcfg",
-        "body": [
-            "import saspy  # isort: skip",
-            "from pathlib import Path  # isort: skip",
-            "",
-            "print(Path(saspy.SAScfg).as_posix())"
-        ]
-    },
-    "sassetuplib": {
-        "prefix": "sassetuplib",
-        "body": [
-            "sas.submitLST(",
-            "    rf\"\"\"",
-            "%let myvar=myvalue;",
-            "libname mylib 'C:\\temp';",
-            "\"\"\",",
-            "    method=\"listonly\",",
-            ")"
-        ]
-    },
-    "sashead": {
-        "prefix": "sashead",
-        "body": [
-            "_lib, _tbl = $1.split(\".\")",
-            "df_h = sas.sasdata(_tbl, _lib).head()",
-            "df_h"
-        ]
-    },
-    "sascount": {
-        "prefix": "sascount",
-        "body": [
-            "_lib, _tbl = $1.split(\".\")",
-            "n_obs = sas.sasdata(_tbl, _lib).obs()",
-            "n_obs"
-        ]
-    },
-    "sasshape": {
-        "prefix": "sasshape",
-        "body": [
-            "_lib, _tbl = $1.split(\".\")",
-            "sd = sas.sasdata(_tbl, _lib)",
-            "_shape = (sd.obs(), len(sd.columnInfo()))",
-            "print(_shape)"
-        ]
-    },
-    "sastop": {
-        "prefix": "sastop",
-        "body": [
-            "_lib, _tbl = $1.split(\".\")",
-            "df_h1 = sas.sasdata(_tbl, _lib).head(1)",
-            "print(df_h1.T.to_string())"
-        ]
-    },
-    "sasshapehead": {
-        "prefix": "sasshapehead",
-        "body": [
-            "_lib, _tbl = $1.split(\".\")",
-            "sd = sas.sasdata(_tbl, _lib)",
-            "_shape, df_h = (sd.obs(), len(sd.columnInfo())), sd.head()",
-            "print(_shape)",
-            "df_h"
-        ]
-    },
-    "sasinfo": {
-        "prefix": "sasinfo",
-        "body": [
-            "sas.submitLST(",
-            "    f\"proc contents data=$1;run;\",",
-            "    method=\"listonly\",",
-            ")"
-        ]
+        ],
+        "prefix": "reload"
     },
     "sascol": {
-        "prefix": "sascol",
         "body": [
             "_lib, _tbl = $1.split(\".\")",
             "df_info = sas.sasdata(_tbl, _lib).columnInfo()",
             "cols = df_info[\"Variable\"].tolist()",
             "[c for c in cols if $3 in c.lower()]"
-        ]
+        ],
+        "prefix": "sascol"
     },
-    "sasvalc": {
-        "prefix": "sasvalc",
+    "sascomp": {
+        "body": [
+            "qry = f\"\"\"",
+            "   proc sort data=$1 out=_a;",
+            "       by $3 $4;",
+            "",
+            "   proc sort data=$2 out=_b;",
+            "       by $3 $4;",
+            "",
+            "   proc compare base=_a compare=_b maxprint=100;",
+            "       id $3 $4;",
+            "   run;",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")"
+        ],
+        "prefix": "sascomp"
+    },
+    "sascount": {
+        "body": [
+            "_lib, _tbl = $1.split(\".\")",
+            "n_obs = sas.sasdata(_tbl, _lib).obs()",
+            "n_obs"
+        ],
+        "prefix": "sascount"
+    },
+    "sasctbl": {
+        "body": [
+            "sas.submitLST(f\"proc sql;drop table $1;quit;\", method=\"listonly\")",
+            "",
+            "qry = f\"\"\"",
+            "proc sql;",
+            "create table $1 as",
+            "    select",
+            "        a.$4,",
+            "        b.$5,",
+            "        count(1) as n",
+            "    from $2 a",
+            "    left join $3 b",
+            "    on",
+            "        a.$4 = b.$4 and",
+            "        a.$5 = b.$5",
+            "    where",
+            "        $6",
+            "    group by 1,2",
+            "    order by 1,2",
+            "    ;",
+            "quit;",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")",
+            "_lib, _tbl = f\"$1\".split(\".\")",
+            "sas.sasdata(_tbl, _lib).obs()"
+        ],
+        "prefix": "sasctbl"
+    },
+    "sasdataset": {
+        "body": [
+            "qry = f\"\"\"",
+            "data work.$1;",
+            "    length",
+            "        $2 \\$50;",
+            "    set work.$3_0 - work.$3_$4;",
+            "run;",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")"
+        ],
+        "prefix": "sasdataset"
+    },
+    "sasdelete": {
+        "body": [
+            "sas.submitLST(f\"proc datasets lib=work nolist; delete $1_:; quit;\", method=\"listandlog\")"
+        ],
+        "prefix": "sasdelete"
+    },
+    "sasdrop": {
+        "body": [
+            "sas.submitLST(f\"proc sql;drop table $1;quit;\", method=\"listonly\")"
+        ],
+        "prefix": "sasdrop"
+    },
+    "saserrors": {
+        "body": [
+            "print(f\"{sas.saslog().count('ERROR') = }\")"
+        ],
+        "prefix": "saserrors"
+    },
+    "sasfreq": {
         "body": [
             "sas.submitLST(",
             "    f\"\"\"",
             "proc freq data=$1;",
-            "    tables $2 / missing;",
+            "    tables $2 * $3 / missing all;",
+            "    output out=work._tmp_meas measures;",
             "run;",
             "\"\"\",",
             "    method=\"listonly\",",
-            ")"
-        ]
+            ")",
+            "_lib, _tbl = \"work._tmp_meas\".split(\".\")",
+            "df = sas.sd2df(_tbl, _lib)",
+            "df"
+        ],
+        "prefix": "sasfreq"
     },
-    "sasrun": {
-        "prefix": "sasrun",
-        "body": [
-            "qry$2 = f\"\"\"",
-            "$1;",
-            "quit;",
-            "run;",
-            "\"\"\"",
-            "sas.submitLST(qry$2, method=\"listandlog\")"
-        ]
-    },
-    "sasrun0": {
-        "prefix": "sasrun0",
-        "body": [
-            "sas.submitLST(f\"\"\"$1\"\"\", method=\"listandlog\")"
-        ]
-    },
-    "sasprint": {
-        "prefix": "sasprint",
+    "sasfreqods": {
         "body": [
             "sas.submitLST(",
             "    f\"\"\"",
-            "proc print data=$1 (obs=5);",
+            "ods select none;",
+            "ods output Measures=work._measures5 CrossTabFreqs=work._crossfreq5;",
+            "proc freq data=$1;",
+            "    tables $2 * $3 / missing all;",
             "run;",
+            "ods output close;",
+            "ods select all;",
             "\"\"\",",
             "    method=\"listonly\",",
-            ")"
-        ]
+            ")",
+            "_lib, _tbl = \"work._measures5\".split(\".\")",
+            "df = sas.sd2df(_tbl, _lib)",
+            "df"
+        ],
+        "prefix": "sasfreqods"
     },
     "sasgrp": {
-        "prefix": "sasgrp",
         "body": [
             "qry = f\"\"\"",
             "proc sql;",
@@ -622,61 +723,33 @@
             "sas.submitLST(qry, method=\"listonly\")",
             "df = sas.sasdata(\"_tmp_grp\", \"work\").to_df()",
             "df"
-        ]
+        ],
+        "prefix": "sasgrp"
     },
-    "sasuni": {
-        "prefix": "sasuni",
+    "sashead": {
+        "body": [
+            "_lib, _tbl = $1.split(\".\")",
+            "df_h = sas.sasdata(_tbl, _lib).head()",
+            "df_h"
+        ],
+        "prefix": "sashead"
+    },
+    "sasinfo": {
         "body": [
             "sas.submitLST(",
-            "    f\"\"\"",
-            "proc univariate data=$1;",
-            "    var $2;",
-            "    histogram $2 / lognormal;",
-            "run;",
-            "\"\"\",",
+            "    f\"proc contents data=$1;run;\",",
             "    method=\"listonly\",",
             ")"
-        ]
+        ],
+        "prefix": "sasinfo"
     },
-    "sasfreq": {
-        "prefix": "sasfreq",
+    "saslog": {
         "body": [
-            "sas.submitLST(",
-            "    f\"\"\"",
-            "proc freq data=$1;",
-            "    tables $2 * $3 / missing all;",
-            "    output out=work._tmp_meas measures;",
-            "run;",
-            "\"\"\",",
-            "    method=\"listonly\",",
-            ")",
-            "_lib, _tbl = \"work._tmp_meas\".split(\".\")",
-            "df = sas.sd2df(_tbl, _lib)",
-            "df"
-        ]
-    },
-    "sasfreqods": {
-        "prefix": "sasfreqods",
-        "body": [
-            "sas.submitLST(",
-            "    f\"\"\"",
-            "ods select none;",
-            "ods output Measures=work._measures5 CrossTabFreqs=work._crossfreq5;",
-            "proc freq data=$1;",
-            "    tables $2 * $3 / missing all;",
-            "run;",
-            "ods output close;",
-            "ods select all;",
-            "\"\"\",",
-            "    method=\"listonly\",",
-            ")",
-            "_lib, _tbl = \"work._measures5\".split(\".\")",
-            "df = sas.sd2df(_tbl, _lib)",
-            "df"
-        ]
+            "print(sas.lastlog())"
+        ],
+        "prefix": "saslog"
     },
     "saslogi": {
-        "prefix": "saslogi",
         "body": [
             "qry = f\"\"\"",
             "proc logistic data=$1 plots(only)=roc;",
@@ -686,10 +759,70 @@
             "run;",
             "\"\"\"",
             "sas.submitLST(qry, method=\"listonly\")"
-        ]
+        ],
+        "prefix": "saslogi"
+    },
+    "sasprint": {
+        "body": [
+            "sas.submitLST(",
+            "    f\"\"\"",
+            "proc print data=$1 (obs=5);",
+            "run;",
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")"
+        ],
+        "prefix": "sasprint"
+    },
+    "sasqry": {
+        "body": [
+            "qry = f\"\"\"",
+            "proc sql;",
+            "create table _tmp_qry as",
+            "    select",
+            "        a.$3,",
+            "        b.$4,",
+            "        count(1) as n",
+            "    from $1 a",
+            "    left join $2 b",
+            "    on",
+            "        a.$3 = b.$3 and",
+            "        a.$4 = b.$4",
+            "    where",
+            "        $5",
+            "    group by 1,2",
+            "    order by 1,2",
+            "    ;",
+            "quit;",
+            "\"\"\"",
+            "sas.submitLST(qry, method=\"listonly\")",
+            "df = sas.sasdata(\"_tmp_qry\", \"work\").to_df()",
+            "df"
+        ],
+        "prefix": "sasqry"
+    },
+    "sasqry0": {
+        "body": [
+            "sas.submitLST(",
+            "    f\"\"\"",
+            "proc sql;",
+            "    select",
+            "        a.$3,",
+            "        count(1) as n",
+            "    from $1 a",
+            "    where",
+            "        $5",
+            "    group by 1",
+            "    order by 1",
+            "    ;",
+            "quit;",
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")"
+        ],
+        "prefix": "sasqry0"
     },
     "sasrank": {
-        "prefix": "sasrank",
         "body": [
             "qry = f\"\"\"",
             "proc rank",
@@ -701,10 +834,65 @@
             "run;",
             "\"\"\"",
             "sas.submitLST(qry, method=\"listonly\")"
-        ]
+        ],
+        "prefix": "sasrank"
+    },
+    "sasread": {
+        "body": [
+            "_lib, _tbl = \"$1\".split(\".\")",
+            "df = sas.sd2df(_tbl, _lib)",
+            "df"
+        ],
+        "prefix": "sasread"
+    },
+    "sasrun": {
+        "body": [
+            "qry$2 = f\"\"\"",
+            "$1;",
+            "quit;",
+            "run;",
+            "\"\"\"",
+            "sas.submitLST(qry$2, method=\"listandlog\")"
+        ],
+        "prefix": "sasrun"
+    },
+    "sasrun0": {
+        "body": [
+            "sas.submitLST(f\"\"\"$1\"\"\", method=\"listandlog\")"
+        ],
+        "prefix": "sasrun0"
+    },
+    "sassetup": {
+        "body": [
+            "import saspy",
+            "",
+            "sas = saspy.SASsession()",
+            "sas"
+        ],
+        "prefix": "sassetup"
+    },
+    "sassetupcfg": {
+        "body": [
+            "import saspy  # isort: skip",
+            "from pathlib import Path  # isort: skip",
+            "",
+            "print(Path(saspy.SAScfg).as_posix())"
+        ],
+        "prefix": "sassetupcfg"
+    },
+    "sassetuplib": {
+        "body": [
+            "sas.submitLST(",
+            "    rf\"\"\"",
+            "%let myvar=myvalue;",
+            "libname mylib 'C:\\temp';",
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")"
+        ],
+        "prefix": "sassetuplib"
     },
     "sassfa": {
-        "prefix": "sassfa",
         "body": [
             "qry = f\"\"\"",
             "proc rank",
@@ -738,83 +926,64 @@
             "run;",
             "    \"\"\"",
             "sas.submitLST(qry, method=\"listonly\")"
-        ]
+        ],
+        "prefix": "sassfa"
     },
-    "sasqry0": {
-        "prefix": "sasqry0",
+    "sasshape": {
+        "body": [
+            "_lib, _tbl = $1.split(\".\")",
+            "sd = sas.sasdata(_tbl, _lib)",
+            "_shape = (sd.obs(), len(sd.columnInfo()))",
+            "print(_shape)"
+        ],
+        "prefix": "sasshape"
+    },
+    "sasshapehead": {
+        "body": [
+            "_lib, _tbl = $1.split(\".\")",
+            "sd = sas.sasdata(_tbl, _lib)",
+            "_shape, df_h = (sd.obs(), len(sd.columnInfo())), sd.head()",
+            "print(_shape)",
+            "df_h"
+        ],
+        "prefix": "sasshapehead"
+    },
+    "sastop": {
+        "body": [
+            "_lib, _tbl = $1.split(\".\")",
+            "df_h1 = sas.sasdata(_tbl, _lib).head(1)",
+            "print(df_h1.T.to_string())"
+        ],
+        "prefix": "sastop"
+    },
+    "sasuni": {
         "body": [
             "sas.submitLST(",
             "    f\"\"\"",
-            "proc sql;",
-            "    select",
-            "        a.$3,",
-            "        count(1) as n",
-            "    from $1 a",
-            "    where",
-            "        $5",
-            "    group by 1",
-            "    order by 1",
-            "    ;",
-            "quit;",
+            "proc univariate data=$1;",
+            "    var $2;",
+            "    histogram $2 / lognormal;",
+            "run;",
             "\"\"\",",
             "    method=\"listonly\",",
             ")"
-        ]
+        ],
+        "prefix": "sasuni"
     },
-    "sasqry": {
-        "prefix": "sasqry",
+    "sasvalc": {
         "body": [
-            "qry = f\"\"\"",
-            "proc sql;",
-            "create table _tmp_qry as",
-            "    select",
-            "        a.$3,",
-            "        b.$4,",
-            "        count(1) as n",
-            "    from $1 a",
-            "    left join $2 b",
-            "    on",
-            "        a.$3 = b.$3 and",
-            "        a.$4 = b.$4",
-            "    where",
-            "        $5",
-            "    group by 1,2",
-            "    order by 1,2",
-            "    ;",
-            "quit;",
-            "\"\"\"",
-            "sas.submitLST(qry, method=\"listonly\")",
-            "df = sas.sasdata(\"_tmp_qry\", \"work\").to_df()",
-            "df"
-        ]
-    },
-    "sasdataset": {
-        "prefix": "sasdataset",
-        "body": [
-            "qry = f\"\"\"",
-            "data work.$1;",
-            "    length",
-            "        $2 \\$50;",
-            "    set work.$3_0 - work.$3_$4;",
+            "sas.submitLST(",
+            "    f\"\"\"",
+            "proc freq data=$1;",
+            "    tables $2 / missing;",
             "run;",
-            "\"\"\"",
-            "sas.submitLST(qry, method=\"listonly\")"
-        ]
-    },
-    "sasdrop": {
-        "prefix": "sasdrop",
-        "body": [
-            "sas.submitLST(f\"proc sql;drop table $1;quit;\", method=\"listonly\")"
-        ]
-    },
-    "sasdelete": {
-        "prefix": "sasdelete",
-        "body": [
-            "sas.submitLST(f\"proc datasets lib=work nolist; delete $1_:; quit;\", method=\"listandlog\")"
-        ]
+            "\"\"\",",
+            "    method=\"listonly\",",
+            ")"
+        ],
+        "prefix": "sasvalc"
     },
     "saswrite": {
-        "prefix": "saswrite",
         "body": [
             "tbl$2 = \"work.$1\"",
             "_lib, _tbl = tbl$2.split(\".\")",
@@ -822,439 +991,169 @@
             "sd = sas.sasdata(_tbl, _lib)",
             "_shape = (sd.obs(), len(sd.columnInfo()))",
             "print(_shape)"
-        ]
-    },
-    "sasread": {
-        "prefix": "sasread",
-        "body": [
-            "_lib, _tbl = \"$1\".split(\".\")",
-            "df = sas.sd2df(_tbl, _lib)",
-            "df"
-        ]
-    },
-    "sasctbl": {
-        "prefix": "sasctbl",
-        "body": [
-            "sas.submitLST(f\"proc sql;drop table $1;quit;\", method=\"listonly\")",
-            "",
-            "qry = f\"\"\"",
-            "proc sql;",
-            "create table $1 as",
-            "    select",
-            "        a.$4,",
-            "        b.$5,",
-            "        count(1) as n",
-            "    from $2 a",
-            "    left join $3 b",
-            "    on",
-            "        a.$4 = b.$4 and",
-            "        a.$5 = b.$5",
-            "    where",
-            "        $6",
-            "    group by 1,2",
-            "    order by 1,2",
-            "    ;",
-            "quit;",
-            "\"\"\"",
-            "sas.submitLST(qry, method=\"listonly\")",
-            "_lib, _tbl = f\"$1\".split(\".\")",
-            "sas.sasdata(_tbl, _lib).obs()"
-        ]
-    },
-    "saserrors": {
-        "prefix": "saserrors",
-        "body": [
-            "print(f\"{sas.saslog().count('ERROR') = }\")"
-        ]
-    },
-    "sascomp": {
-        "prefix": "sascomp",
-        "body": [
-            "qry = f\"\"\"",
-            "   proc sort data=$1 out=_a;",
-            "       by $3 $4;",
-            "",
-            "   proc sort data=$2 out=_b;",
-            "       by $3 $4;",
-            "",
-            "   proc compare base=_a compare=_b maxprint=100;",
-            "       id $3 $4;",
-            "   run;",
-            "\"\"\"",
-            "sas.submitLST(qry, method=\"listonly\")"
-        ]
-    },
-    "saslog": {
-        "prefix": "saslog",
-        "body": [
-            "print(sas.lastlog())"
-        ]
-    },
-    "iana": {
-        "prefix": "iana",
-        "body": [
-            "import numpy as np",
-            "import pandas as pd",
-            "import matplotlib.pyplot as plt",
-            "import matplotlib as mpl"
-        ]
-    },
-    "istats": {
-        "prefix": "istats",
-        "body": [
-            "import matplotlib.pyplot as plt",
-            "import matplotlib as mpl",
-            "import numpy as np",
-            "import pandas as pd",
-            "import statsmodels.api as sm",
-            "from scipy import stats"
-        ]
-    },
-    "pstr": {
-        "prefix": "pstr",
-        "body": [
-            "print($1.to_string())"
-        ]
-    },
-    "shapephstr": {
-        "prefix": "shapephstr",
-        "body": [
-            "print($1.shape)",
-            "print($1.head().to_string())"
-        ]
-    },
-    "phstr": {
-        "prefix": "phstr",
-        "body": [
-            "print($1.head().to_string())"
-        ]
-    },
-    "top": {
-        "prefix": "top",
-        "body": [
-            "print($1.head(1).T.to_string())"
-        ]
-    },
-    "casewhere": {
-        "prefix": "casewhere",
-        "body": [
-            "df[f\"is_$1\"] = np.where(df[\"$2\"] $3, True, np.where(df[\"$2\"] $4, False, np.nan))"
-        ]
-    },
-    "caseloc": {
-        "prefix": "caseloc",
-        "body": [
-            "df[f\"is_$1\"] = np.nan",
-            "df.loc[lambda x: x[\"$2\"] $3, \"is_$1\"] = True",
-            "df.loc[lambda x: x[\"$2\"] $4, \"is_$1\"] = False"
-        ]
-    },
-    "caseselect": {
-        "prefix": "caseselect",
-        "body": [
-            "conditions = [df[\"$1\"]$2]",
-            "choices = [$3]",
-            "df[\"$4\"] = np.select(conditions, choices, default=None)"
-        ]
-    },
-    "incol": {
-        "prefix": "incol",
-        "body": [
-            "[i for i in $1.columns if '$2' in i]"
-        ]
-    },
-    "valc": {
-        "prefix": "valc",
-        "body": [
-            "$1.value_counts($2, dropna=False)"
-        ]
-    },
-    "info": {
-        "prefix": "info",
-        "body": [
-            "df_info = pd.concat([",
-            "    $1.head(1).T, $1.dtypes.astype(str), $1.nunique(), $1.isna().sum(),",
-            "    $1.describe(include=\"all\").T[[\"min\", \"max\"]]], axis=1) # fmt: skip",
-            "df_info.columns = [\"example_value\", \"dtypes\", \"nunique\", \"n_null\", \"min\", \"max\"]",
-            "df_info = df_info.sort_index().sort_values(\"dtypes\")",
-            "print(df_info.to_string())"
-        ]
-    },
-    "loc": {
-        "prefix": "loc",
-        "body": [
-            "$1.loc[lambda x:x['$2']$3, :]"
-        ]
-    },
-    "readcsv": {
-        "prefix": "readcsv",
-        "body": [
-            "$1 = pd.read_csv('$2.csv')"
-        ]
-    },
-    "tocsv": {
-        "prefix": "tocsv",
-        "body": [
-            "$1.to_csv('$2.csv', index=False)"
-        ]
-    },
-    "toclip": {
-        "prefix": "toclip",
-        "body": [
-            "$1.to_clipboard(index=False)"
-        ]
-    },
-    "qry": {
-        "prefix": "qry",
-        "body": [
-            "$1.query('$2')"
-        ]
-    },
-    "grpcol": {
-        "prefix": "grpcol",
-        "body": [
-            "$1.groupby(\"$2\", dropna=False)[\"$3\"].mean()"
-        ]
-    },
-    "grpdict": {
-        "prefix": "grpdict",
-        "body": [
-            "$1.groupby(\"$2\", dropna=False).agg(",
-            "    {\"$3\": [\"size\", \"sum\", \"mean\"]}",
-            ")"
-        ]
-    },
-    "grp2unstack": {
-        "prefix": "grp2unstack",
-        "body": [
-            "$1.groupby([\"$2\", \"$3\"], dropna=False)[\"$4\"].agg(",
-            "    lambda x: (len(x), float(x.mean().round(2)))",
-            ").unstack()"
-        ]
-    },
-    "grpargs": {
-        "prefix": "grpargs",
-        "body": [
-            "$1.groupby([\"$2\", \"$3\"], dropna=False).agg(",
-            "    **{",
-            "        \"n\": (\"$2\", \"size\"),",
-            "        \"$4_rate\": (\"$4\", \"mean\"),",
-            "    }",
-            ")"
-        ]
-    },
-    "grpapply": {
-        "prefix": "grpapply",
-        "body": [
-            "$1.groupby(['$2'], dropna=False, group_keys=False).apply(",
-            "    lambda x: (x - x.mean()) / x.std()",
-            ")"
-        ]
-    },
-    "collower": {
-        "prefix": "collower",
-        "body": [
-            "$1.columns = $1.columns.str.lower()"
-        ]
-    },
-    "figax": {
-        "prefix": "figax",
-        "body": [
-            "fig, ax = plt.subplots(1, 1, figsize=(12, 6))"
-        ]
-    },
-    "mplfull": {
-        "prefix": "mplfull",
-        "body": [
-            "fig, ax = plt.subplots(figsize=(12, 6))",
-            "",
-            "x_ticks = $1['$2'].astype(str)",
-            "",
-            "ax.plot(x_ticks, $1['$3'], alpha=0.8, marker='x', color='red', label= $1['$3'].name)",
-            "ax.plot(x_ticks, $1['$4'], alpha=0.8, marker='o', color='green', label= $1['$4'].name)",
-            "",
-            "ax.set_title(f\"$5\", fontsize=15, fontweight='bold')",
-            "",
-            "ax.set_xticks(x_ticks)",
-            "ax.set_xticklabels(x_ticks, rotation=45)",
-            "ax.set_xlabel(x_ticks.name, loc=\"center\")",
-            "",
-            "ax.set_ylabel(f\"$6\", loc=\"center\")",
-            "ax.yaxis.set_major_locator(mpl.ticker.MaxNLocator(nbins=10))",
-            "ax.yaxis.set_major_formatter(mpl.ticker.PercentFormatter(1.0, decimals=0))",
-            "ax.yaxis.set_minor_locator(mpl.ticker.AutoMinorLocator(2))",
-            "ax.set_ylim(0, 1)",
-            "",
-            "ax.grid(True, linestyle='--', alpha=0.5)",
-            "ax.spines['top'].set_visible(False)",
-            "ax.spines['right'].set_visible(False)",
-            "",
-            "ax.legend(loc='upper left', fontsize=10, frameon=False)",
-            "",
-            "plt.tight_layout()"
-        ]
-    },
-    "titanic": {
-        "prefix": "titanic",
-        "body": [
-            "import seaborn as sns",
-            "df = sns.load_dataset('titanic')",
-            "print(f\"{df.shape = }\")",
-            "print(df.head().to_string())"
-        ]
+        ],
+        "prefix": "saswrite"
     },
     "seaborndata": {
-        "prefix": "seaborndata",
         "body": [
             "df = sns.load_dataset(\"healthexp\")",
             "print(f\"{df.shape = }\")",
             "print(df.head().to_string())",
             "df.describe()"
-        ]
+        ],
+        "prefix": "seaborndata"
     },
-    "vspycell": {
-        "prefix": "vspycell",
+    "shapephstr": {
         "body": [
-            "# %%",
-            "$0"
-        ]
+            "print($1.shape)",
+            "print($1.head().to_string())"
+        ],
+        "prefix": "shapephstr"
+    },
+    "syspath": {
+        "body": [
+            "from pathlib import Path",
+            "import sys",
+            "sys.path.append(Path().cwd().parents[0].as_posix())"
+        ],
+        "prefix": "syspath"
+    },
+    "syspathfile": {
+        "body": [
+            "from pathlib import Path",
+            "import sys",
+            "sys.path.append(Path(__file__).parents[1].as_posix())"
+        ],
+        "prefix": "syspathfile"
+    },
+    "syspathnodup": {
+        "body": [
+            "from pathlib import Path",
+            "import sys",
+            "_lib_path = Path(__file__).parents[1].as_posix() # or Path().cwd() for notebook",
+            "if _lib_path not in sys.path:",
+            "    sys.path.append(_lib_path)"
+        ],
+        "prefix": "syspathnodup"
+    },
+    "tdsetup": {
+        "body": [
+            "import sqlalchemy as alc",
+            "import pandas as pd",
+            "import os",
+            "",
+            "# add run method to engine",
+            "def run(self: alc.engine.Engine, sql:str) -> pd.DataFrame | None:",
+            "    with self.begin() as conn:",
+            "        res = conn.execute(alc.text(sql))",
+            "        if res.returns_rows:",
+            "            return pd.DataFrame(res.all(), columns=res.keys())",
+            "",
+            "alc.engine.Engine.run = run",
+            "",
+            "connection_string = f\"teradatasql://$1:{os.environ['password']}@$2\"",
+            "eng = alc.create_engine(connection_string)"
+        ],
+        "prefix": "tdsetup"
+    },
+    "titanic": {
+        "body": [
+            "import seaborn as sns",
+            "df = sns.load_dataset('titanic')",
+            "print(f\"{df.shape = }\")",
+            "print(df.head().to_string())"
+        ],
+        "prefix": "titanic"
+    },
+    "toclip": {
+        "body": [
+            "$1.to_clipboard(index=False)"
+        ],
+        "prefix": "toclip"
+    },
+    "tocsv": {
+        "body": [
+            "$1.to_csv('$2.csv', index=False)"
+        ],
+        "prefix": "tocsv"
+    },
+    "today": {
+        "body": [
+            "import datetime",
+            "",
+            "today_dt = datetime.datetime.now().strftime('%Y%m%d')",
+            "today_dt"
+        ],
+        "prefix": "today"
+    },
+    "top": {
+        "body": [
+            "print($1.head(1).T.to_string())"
+        ],
+        "prefix": "top"
+    },
+    "valc": {
+        "body": [
+            "$1.value_counts($2, dropna=False)"
+        ],
+        "prefix": "valc"
     },
     "vsmdcell": {
-        "prefix": "vsmdcell",
         "body": [
             "# %% [markdown]",
             "# ### $1",
             "$0"
-        ]
+        ],
+        "prefix": "vsmdcell"
     },
     "vsmdsection": {
-        "prefix": "vsmdsection",
         "body": [
             "# %% [markdown]",
             "# ## $1",
             "# ####################################################################################################",
             "$0"
-        ]
+        ],
+        "prefix": "vsmdsection"
     },
-    "xlsetup": {
-        "prefix": "xlsetup",
+    "vspycell": {
         "body": [
-            "import xlwings as xw"
-        ]
+            "# %%",
+            "$0"
+        ],
+        "prefix": "vspycell"
     },
-    "xlview": {
-        "prefix": "xlview",
+    "withopen": {
         "body": [
-            "import xlwings as xw",
-            "xw.view($1)"
-        ]
+            "with open(\"$1\", 'r') as f:",
+            "    $2 = f.read()"
+        ],
+        "prefix": "withopen"
+    },
+    "writeqry": {
+        "body": [
+            "with open(Path('sql') / \"$1.sql\"), \"w\") as f:",
+            "    f.write(qry)"
+        ],
+        "prefix": "writeqry"
     },
     "xlbook": {
-        "prefix": "xlbook",
         "body": [
             "import xlwings as xw",
             "xw.Book()"
-        ]
-    },
-    "xlws": {
-        "prefix": "xlws",
-        "body": [
-            "import xlwings as xw",
-            "ws = xw.sheets.active",
-            "# ws = xw.Book().sheets['Sheet1']"
-        ]
-    },
-    "xlread": {
-        "prefix": "xlread",
-        "body": [
-            "import xlwings as xw",
-            "df2 = xw.sheets.active['$2'].expand().options(pd.DataFrame).value",
-            "df2"
-        ]
-    },
-    "xlwritenewsht": {
-        "prefix": "xlwritenewsht",
-        "body": [
-            "import xlwings as xw",
-            "ws = xw.books.active.sheets.add('$1')",
-            "ws[\"A1\"].value = $1",
-            "ws.tables.add(source=ws[\"A1\"].expand())"
-        ]
-    },
-    "xlwrite0": {
-        "prefix": "xlwrite0",
-        "body": [
-            "import xlwings as xw",
-            "ws = xw.sheets.active",
-            "ws[\"$2\"].value = $1",
-            "ws.tables.add(source=ws[\"$2\"].expand())"
-        ]
-    },
-    "xlwrite": {
-        "prefix": "xlwrite",
-        "body": [
-            "ws = xw.sheets.active",
-            "if ws[\"$2\"].value is not None:",
-            "    ws[\"$2\"].expand().clear()",
-            "ws[\"$2\"].value = $1",
-            "ws.tables.add(source=ws[\"$2\"].expand())"
-        ]
-    },
-    "xltext": {
-        "prefix": "xltext",
-        "body": [
-            "ws = xw.sheets.active",
-            "lines = $1.split(\"\\n\")",
-            "if ws[\"$2\"].value is not None:",
-            "    ws[\"$2\"].expand().clear()",
-            "ws[\"$2\"].value = [[line or \" \"] for line in lines]"
-        ]
-    },
-    "xlpivot": {
-        "prefix": "xlpivot",
-        "body": [
-            "pivot_cache = ws.book.api.PivotCaches().Create(",
-            "    SourceType=1,  # xlDatabase",
-            "    SourceData=\"$1\",",
-            ")",
-            "pt = pivot_cache.CreatePivotTable(",
-            "    TableDestination=ws[\"$2\"].api,",
-            "    TableName=\"Pivot$3\",",
-            ")",
-            "",
-            "pt.PivotFields(\"$4\").Orientation = 1  # xlRowField",
-            "pt.AddDataField(pt.PivotFields(\"$5\"), \"Avg of $5\", xw.constants.ConsolidationFunction.xlAverage)"
-        ]
+        ],
+        "prefix": "xlbook"
     },
     "xlchart": {
-        "prefix": "xlchart",
         "body": [
             "chart = ws.charts.add(",
             "    top=ws['$1'].top, left=ws['$1'].left",
             ")",
             "chart.chart_type = 'line'",
             "chart.set_source_data(ws['$2'].expand())"
-        ]
-    },
-    "xlslicer": {
-        "prefix": "xlslicer",
-        "body": [
-            "sc = ws.book.api.SlicerCaches.Add2(",
-            "    Source=pt,",
-            "    SourceField=\"$1\",",
-            ")",
-            "",
-            "slicer = sc.Slicers.Add(",
-            "    SlicerDestination=ws.api,",
-            "    Width=100,",
-            "    Height=200,",
-            ")",
-            "slicer.Top = 200",
-            "slicer.Left = 900"
-        ]
+        ],
+        "prefix": "xlchart"
     },
     "xlpivdash": {
-        "prefix": "xlpivdash",
         "body": [
             "import xlwings as xw",
             "wb = xw.Book()",
@@ -1274,24 +1173,125 @@
             "        $3,",
             "    ],",
             ")"
-        ]
+        ],
+        "prefix": "xlpivdash"
+    },
+    "xlpivot": {
+        "body": [
+            "pivot_cache = ws.book.api.PivotCaches().Create(",
+            "    SourceType=1,  # xlDatabase",
+            "    SourceData=\"$1\",",
+            ")",
+            "pt = pivot_cache.CreatePivotTable(",
+            "    TableDestination=ws[\"$2\"].api,",
+            "    TableName=\"Pivot$3\",",
+            ")",
+            "",
+            "pt.PivotFields(\"$4\").Orientation = 1  # xlRowField",
+            "pt.AddDataField(pt.PivotFields(\"$5\"), \"Avg of $5\", xw.constants.ConsolidationFunction.xlAverage)"
+        ],
+        "prefix": "xlpivot"
+    },
+    "xlread": {
+        "body": [
+            "import xlwings as xw",
+            "df2 = xw.sheets.active['$2'].expand().options(pd.DataFrame).value",
+            "df2"
+        ],
+        "prefix": "xlread"
+    },
+    "xlsetup": {
+        "body": [
+            "import xlwings as xw"
+        ],
+        "prefix": "xlsetup"
+    },
+    "xlslicer": {
+        "body": [
+            "sc = ws.book.api.SlicerCaches.Add2(",
+            "    Source=pt,",
+            "    SourceField=\"$1\",",
+            ")",
+            "",
+            "slicer = sc.Slicers.Add(",
+            "    SlicerDestination=ws.api,",
+            "    Width=100,",
+            "    Height=200,",
+            ")",
+            "slicer.Top = 200",
+            "slicer.Left = 900"
+        ],
+        "prefix": "xlslicer"
+    },
+    "xltext": {
+        "body": [
+            "ws = xw.sheets.active",
+            "lines = $1.split(\"\\n\")",
+            "if ws[\"$2\"].value is not None:",
+            "    ws[\"$2\"].expand().clear()",
+            "ws[\"$2\"].value = [[line or \" \"] for line in lines]"
+        ],
+        "prefix": "xltext"
+    },
+    "xlview": {
+        "body": [
+            "import xlwings as xw",
+            "xw.view($1)"
+        ],
+        "prefix": "xlview"
+    },
+    "xlwrite": {
+        "body": [
+            "ws = xw.sheets.active",
+            "if ws[\"$2\"].value is not None:",
+            "    ws[\"$2\"].expand().clear()",
+            "ws[\"$2\"].value = $1",
+            "ws.tables.add(source=ws[\"$2\"].expand())"
+        ],
+        "prefix": "xlwrite"
+    },
+    "xlwrite0": {
+        "body": [
+            "import xlwings as xw",
+            "ws = xw.sheets.active",
+            "ws[\"$2\"].value = $1",
+            "ws.tables.add(source=ws[\"$2\"].expand())"
+        ],
+        "prefix": "xlwrite0"
+    },
+    "xlwritenewsht": {
+        "body": [
+            "import xlwings as xw",
+            "ws = xw.books.active.sheets.add('$1')",
+            "ws[\"A1\"].value = $1",
+            "ws.tables.add(source=ws[\"A1\"].expand())"
+        ],
+        "prefix": "xlwritenewsht"
+    },
+    "xlws": {
+        "body": [
+            "import xlwings as xw",
+            "ws = xw.sheets.active",
+            "# ws = xw.Book().sheets['Sheet1']"
+        ],
+        "prefix": "xlws"
     },
     "yfdl": {
-        "prefix": "yfdl",
         "body": [
             "import yfinance as yf",
             "df = yf.download(['$1', '^GSPC',], start = '2020-01-01', end = '2026-12-31', interval = '1d')",
             "df[[('ret',x) for x in df['Close'].columns]] = df['Close'].ffill().pct_change().add(1).cumprod()",
             "df.columns = [f\"{col[1]}_{col[0]}\" for col in df.columns]",
             "df"
-        ]
+        ],
+        "prefix": "yfdl"
     },
     "yftk": {
-        "prefix": "yftk",
         "body": [
             "import yfinance as yf",
             "tk = yf.Ticker('$1')",
             "tk.history()"
-        ]
+        ],
+        "prefix": "yftk"
     }
 }

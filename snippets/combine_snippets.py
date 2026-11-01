@@ -52,7 +52,8 @@ def merge_snippets(files: List[Path]) -> Tuple[Dict, Dict[str, List[str]]]:
 
 def write_snippets(path: Path, snippets: Dict) -> None:
     path.write_text(
-        json.dumps(snippets, indent=4, ensure_ascii=False), encoding="utf-8"
+        json.dumps(snippets, indent=4, ensure_ascii=False, sort_keys=True),
+        encoding="utf-8",
     )
 
 
