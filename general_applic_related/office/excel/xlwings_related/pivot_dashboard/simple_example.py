@@ -1,12 +1,17 @@
 # %%
-import numpy as np
+import sys
+
 import pandas as pd
 import seaborn as sns
 import xlwings as xw
+from loguru import logger
 from xlwings_pivot_dashboard import PivotDashboard
 
-# %%
-# initial data
+logger.add(sys.stdout, level="DEBUG")
+# %% [markdown]
+# ## 1. data
+# ####################################################################################################
+
 df = sns.load_dataset("titanic")
 
 df["age_group"] = pd.cut(
@@ -19,31 +24,20 @@ print(df.shape)
 print(df.head(3).T.to_string())
 
 # %% [markdown]
-# ### simple usage
+# ## 2. run
+# ####################################################################################################
 
-# %%
-import sys
-
-from loguru import logger
-
-logger.add(sys.stdout, level="DEBUG")
-
-
-# %%
 wb = xw.Book()
 dashboard = PivotDashboard(wb)
 dashboard.write_table(df, code=f"SELECT * FROM df")
+
 # %%
 pivot_configs = [
     # fmt: off
     dict(data_field="n", row_field="who",legend_position=xw.constants.LegendPosition.xlLegendPositionBottom),
     dict(data_field=["n",'survived'],xl_func=['sum','average'],row_field="who",plot_on_2nd_axis='survived'),
-
     dict(data_field="n", row_field="age_group",col_field="who",chart_type="area_stacked",page_filters={'survived':'1',},),
     dict(data_field=["n",'survived'], xl_func=['sum','average'],row_field="age_group",col_field="who",chart_type="area_stacked",plot_on_2nd_axis=['survived']),
-
-    # check throw
-    # dict(data_field=["n",'survived1'], xl_func=['sum','average'],row_field="age_group",col_field="who",chart_type="area_stacked",plot_on_2nd_axis=['survived']),
     # fmt: on
 ]
 dashboard.add_pivots(pivot_configs)
@@ -54,14 +48,3 @@ dashboard.add_slicers(
         "embark_town",
     ],
 )
-
-# %%
-# wb.close()
-
-# %%
-# from xlwings.constants import LegendPosition
-
-# for chart in dashboard.chart_coms:
-#     com = chart.api[1]
-
-#     com.Legend.Position = LegendPosition.xlLegendPositionBottom
