@@ -1145,11 +1145,16 @@
     },
     "xlchart": {
         "body": [
+            "ws = xw.sheets.active",
             "chart = ws.charts.add(",
-            "    top=ws['$1'].top, left=ws['$1'].left",
+            "    top=ws['$1'].top, left=ws['$1'].left, width=500, height=300,",
             ")",
-            "chart.chart_type = 'line'",
-            "chart.set_source_data(ws['$2'].expand())"
+            "chart.chart_type = '${2:area_stacked}'",
+            "chart.set_source_data(ws['$3'].expand())",
+            "",
+            "chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows",
+            "chart_com.HasTitle = True",
+            "chart_com.ChartTitle.Text = \"$4\""
         ],
         "prefix": "xlchart"
     },
@@ -1178,6 +1183,7 @@
     },
     "xlpivot": {
         "body": [
+            "ws = xw.sheets.active",
             "pivot_cache = ws.book.api.PivotCaches().Create(",
             "    SourceType=1,  # xlDatabase",
             "    SourceData=\"$1\",",
@@ -1186,16 +1192,22 @@
             "    TableDestination=ws[\"$2\"].api,",
             "    TableName=\"Pivot$3\",",
             ")",
-            "",
-            "pt.PivotFields(\"$4\").Orientation = 1  # xlRowField",
-            "pt.AddDataField(pt.PivotFields(\"$5\"), \"Avg of $5\", xw.constants.ConsolidationFunction.xlAverage)"
+            "pt.PivotFields(\"$4\").Orientation = 3  # xlPageField (Filter)",
+            "pt.PivotFields(\"$5\").Orientation = 1  # xlRowField",
+            "pt.PivotFields(\"$6\").Orientation = 2  # xlColumnField",
+            "pt.AddDataField(",
+            "    pt.PivotFields(\"$7\"), \"Sum $7\", -4157 # xlSum",
+            ")",
+            "pt.AddDataField(",
+            "    pt.PivotFields(\"$7\"), \"Average $7\", -4106 # xlAverage",
+            ")"
         ],
         "prefix": "xlpivot"
     },
     "xlread": {
         "body": [
             "import xlwings as xw",
-            "df2 = xw.sheets.active['$2'].expand().options(pd.DataFrame).value",
+            "df2 = xw.sheets.active['$2'].expand().options(pd.DataFrame).value.reset_index()",
             "df2"
         ],
         "prefix": "xlread"
@@ -1206,20 +1218,30 @@
         ],
         "prefix": "xlsetup"
     },
+    "xlsht": {
+        "body": [
+            "import xlwings as xw",
+            "ws = xw.sheets.active",
+            "# ws = xw.Book().sheets['Sheet1']",
+            "ws.name = \"$1\""
+        ],
+        "prefix": "xlsht"
+    },
     "xlslicer": {
         "body": [
+            "ws = xw.sheets.active",
+            "pt_com = ws.api.PivotTables(\"$1\")",
             "sc = ws.book.api.SlicerCaches.Add2(",
-            "    Source=pt,",
-            "    SourceField=\"$1\",",
+            "    Source=pt_com,",
+            "    SourceField=\"$2\",",
             ")",
-            "",
             "slicer = sc.Slicers.Add(",
             "    SlicerDestination=ws.api,",
             "    Width=100,",
             "    Height=200,",
             ")",
-            "slicer.Top = 200",
-            "slicer.Left = 900"
+            "slicer.Top = ${3:200}",
+            "slicer.Left = ${4:200}"
         ],
         "prefix": "xlslicer"
     },
@@ -1239,6 +1261,16 @@
             "xw.view($1)"
         ],
         "prefix": "xlview"
+    },
+    "xlwipe": {
+        "body": [
+            "ws = xw.sheets.active",
+            "pt_com = ws.api.PivotTables(\"$1\")",
+            "pt_com.TableRange2.Clear()",
+            "ws.charts.delete()",
+            "ws.api.SlicerCaches().Delete()"
+        ],
+        "prefix": "xlwipe"
     },
     "xlwrite": {
         "body": [
@@ -1267,14 +1299,6 @@
             "ws.tables.add(source=ws[\"A1\"].expand())"
         ],
         "prefix": "xlwritenewsht"
-    },
-    "xlws": {
-        "body": [
-            "import xlwings as xw",
-            "ws = xw.sheets.active",
-            "# ws = xw.Book().sheets['Sheet1']"
-        ],
-        "prefix": "xlws"
     },
     "yfdl": {
         "body": [
