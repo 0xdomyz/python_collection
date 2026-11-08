@@ -1,3 +1,9 @@
+##
+# delete via below:
+# pt_com.TableRange2.Clear()
+# for chart in ws_pivot.charts:
+#     chart.delete()
+
 # %%
 import pandas as pd
 import seaborn as sns
@@ -78,23 +84,38 @@ new_range = ws["A1"].expand()
 ws.tables.add(source=new_range, name="titanic_table")
 
 # %% [markdown]
-# ### refresh pivot with new data
+# remove old table and chart
+pt_com = ws_pivot.api.PivotTables("TitanicPivot")
+pt_com.TableRange2.Clear()
+for chart in ws_pivot.charts:
+    chart.delete()
+
 # %%
-# create a fresh cache pointing at the recreated table, then swap it in
-new_cache = wb.api.PivotCaches().Create(
+#remake pivot table and chart
+pivot_cache = wb.api.PivotCaches().Create(
     SourceType=1,  # xlDatabase
     SourceData="titanic_table",
 )
-pt_com = ws_pivot.api.PivotTables("TitanicPivot")
-pt_com.ChangePivotCache(new_cache)
-pt_com.RefreshTable()
 
-# %% [markdown]
-# ### save
-# %%
-wb.save(r"output.xlsx")
-wb.close()
+pt = pivot_cache.CreatePivotTable(
+    TableDestination=ws_pivot["L5"].api,
+    TableName="TitanicPivot",
+)
 
-# %%
-# pt.TableRange2.Clear()
-# chart.delete()
+pt.PivotFields("who").Orientation = 1  # xlRowField
+pt.PivotFields("survived").Orientation = 2  # xlColumnField
+pt.AddDataField(pt.PivotFields("fare"), "Count of Fare", -4112)  # -4112 = xlCount
+
+# remake chart
+pt_range = ws_pivot["L5"].expand()
+chart = ws_pivot.charts.add(
+    left=1,
+    top=pt_range.top,
+    width=400,
+    height=300,
+)
+chart.set_source_data(pt_range)
+chart.chart_type = "bar_clustered"
+chart_com = chart.api[1]  # (Shape, Chart) tuple on Windows
+chart_com.HasTitle = True
+chart_com.ChartTitle.Text = "Titanic Fare by Who and Survival"
